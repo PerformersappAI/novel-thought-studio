@@ -95,7 +95,7 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50 shadow-lg;
+    @apply bg-card/60 backdrop-blur-xl border border-border/20 shadow-lg;
   }
 
   .glow-blue {
