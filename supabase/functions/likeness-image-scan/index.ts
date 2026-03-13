@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { imageBase64, scanId } = await req.json();
+    const { imageBase64, scanId, name, stageName, description } = await req.json();
 
     if (!imageBase64) {
       return new Response(
@@ -27,6 +27,12 @@ Deno.serve(async (req) => {
     }
 
     console.log('Running reverse image scan via Google Cloud Vision');
+    console.log('Context:', { name, stageName, description });
+
+    // Build search terms for filtering
+    const searchTerms: string[] = [];
+    if (name) searchTerms.push(...name.toLowerCase().split(/\s+/));
+    if (stageName) searchTerms.push(...stageName.toLowerCase().split(/\s+/));
 
     // Call Google Cloud Vision Web Detection
     const visionResponse = await fetch(
@@ -35,18 +41,15 @@ Deno.serve(async (req) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          requests: [
-            {
-              image: { content: imageBase64 },
-              features: [{ type: 'WEB_DETECTION', maxResults: 20 }],
-            },
-          ],
+          requests: [{
+            image: { content: imageBase64 },
+            features: [{ type: 'WEB_DETECTION', maxResults: 30 }],
+          }],
         }),
       }
     );
 
     const visionData = await visionResponse.json();
-
     if (!visionResponse.ok) {
       console.error('Vision API error:', visionData);
       return new Response(
@@ -56,15 +59,11 @@ Deno.serve(async (req) => {
     }
 
     const webDetection = visionData.responses?.[0]?.webDetection || {};
-
-    // Build results from pages with matching images and partial matching images
     const pagesWithImages = webDetection.pagesWithMatchingImages || [];
-    const fullMatches = webDetection.fullMatchingImages || [];
-    const partialMatches = webDetection.partialMatchingImages || [];
     const visuallySimilar = webDetection.visuallySimilarImages || [];
     const bestGuessLabels = webDetection.bestGuessLabels || [];
 
-    const results = pagesWithImages.map((page: any) => ({
+    let results = pagesWithImages.map((page: any) => ({
       url: page.url,
       title: page.pageTitle || '',
       description: bestGuessLabels.map((l: any) => l.label).join(', '),
@@ -73,7 +72,6 @@ Deno.serve(async (req) => {
       matching_images: (page.fullMatchingImages || []).concat(page.partialMatchingImages || []).map((img: any) => img.url),
     }));
 
-    // Add visually similar images not already in pages
     const pageUrls = new Set(results.map((r: any) => r.url));
     visuallySimilar.forEach((img: any) => {
       if (!pageUrls.has(img.url)) {
@@ -88,11 +86,63 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Update the scan record if scanId provided
+    // If name/stageName provided, score results by relevance
+    if (searchTerms.length > 0) {
+      results = results.map((r: any) => {
+        const text = `${r.url} ${r.title} ${r.description}`.toLowerCase();
+        const matchCount = searchTerms.filter(term => text.includes(term)).length;
+        return { ...r, _score: matchCount };
+      });
+
+      // Sort: name matches first, then the rest
+      results.sort((a: any, b: any) => b._score - a._score);
+
+      // Tag name matches
+      results = results.map((r: any) => {
+        if (r._score > 0) r.match_type = 'name_match';
+        const { _score, ...rest } = r;
+        return rest;
+      });
+    }
+
+    // Also do a Firecrawl text search if name is provided
+    if (name) {
+      const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
+      if (firecrawlKey) {
+        try {
+          const searchQuery = `"${name}"${stageName ? ` OR "${stageName}"` : ''} photo OR image OR likeness`;
+          console.log('Firecrawl search:', searchQuery);
+          const fcResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${firecrawlKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: searchQuery, limit: 10 }),
+          });
+          if (fcResponse.ok) {
+            const fcData = await fcResponse.json();
+            const existingUrls = new Set(results.map((r: any) => r.url));
+            (fcData.data || []).forEach((item: any) => {
+              if (!existingUrls.has(item.url)) {
+                results.push({
+                  url: item.url,
+                  title: item.title || '',
+                  description: item.description || '',
+                  snippet: '',
+                  match_type: 'text_cross_reference',
+                  matching_images: [],
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Firecrawl search failed (non-fatal):', e);
+        }
+      }
+    }
+
+    // Update the scan record
     if (scanId) {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
       await fetch(`${supabaseUrl}/rest/v1/likeness_scans?id=eq.${scanId}`, {
         method: 'PATCH',
         headers: {
@@ -111,7 +161,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, data: results, webDetection }),
+      JSON.stringify({ success: true, data: results }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
