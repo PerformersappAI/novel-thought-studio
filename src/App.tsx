@@ -20,6 +20,7 @@ import AdminBlog from "./pages/AdminBlog";
 import Education from "./pages/Education";
 import BlogPost from "./pages/BlogPost";
 import Tools from "./pages/Tools";
+import LikenessMonitor from "./pages/LikenessMonitor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
