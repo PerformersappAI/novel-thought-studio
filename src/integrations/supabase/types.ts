@@ -247,6 +247,42 @@ export type Database = {
         }
         Relationships: []
       }
+      likeness_scans: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          query: string
+          result_count: number | null
+          results: Json | null
+          scan_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          query: string
+          result_count?: number | null
+          results?: Json | null
+          scan_type?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          query?: string
+          result_count?: number | null
+          results?: Json | null
+          scan_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
