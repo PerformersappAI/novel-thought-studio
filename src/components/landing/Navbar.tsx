@@ -57,6 +57,12 @@ const Navbar = () => {
           ))}
         </div>
 
+        {/* Center — Brand name */}
+        <Link to="/" className="hidden md:block font-display font-bold text-lg tracking-tight">
+          <span className="text-gradient-blue">Replica</span>{" "}
+          <span className="text-gradient-gold">Shield</span>
+        </Link>
+
         {/* Right — Auth buttons (desktop) */}
         <div className="hidden md:flex items-center gap-4">
           {user ? (
