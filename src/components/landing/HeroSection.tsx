@@ -25,7 +25,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="h-36 md:h-56 w-auto mx-auto mb-8"
+            className="h-72 md:h-[28rem] w-auto mx-auto mb-2"
           />
 
           <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
@@ -40,7 +40,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
+            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 leading-relaxed"
           >
             The trusted registry for performers to register their likeness-based assets, 
             verify ownership, and receive certified protection against unauthorized AI use.
@@ -69,7 +69,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="mt-12 -mx-4 md:-mx-8 lg:-mx-16"
+            className="mt-4 -mx-4 md:-mx-8 lg:-mx-16"
           >
             <img
               src={performersHero}

@@ -10,7 +10,7 @@ const features = [
 
 const TrustSection = () => {
   return (
-    <section className="py-24 relative">
+    <section id="trust" className="py-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-background" />
       <div className="container px-4 relative z-10">
         <motion.div
