@@ -69,7 +69,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="mt-4 -mx-4 md:-mx-8 lg:-mx-16"
+            className="mt-1 -mx-4 md:-mx-8 lg:-mx-16"
           >
             <img
               src={performersHero}
