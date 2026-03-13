@@ -7,33 +7,33 @@ import replicaLogo from "@/assets/replica-shield-logo.png";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Full-bleed background image */}
-      <img
-        src={heroCreators}
-        alt="Content creators filming in a professional studio"
-        className="absolute inset-0 w-full h-full object-cover opacity-30"
-      />
-      {/* Gradient overlays for seamless fade */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/30" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(var(--background))_75%)]" />
+    <section className="flex flex-col">
+      {/* Hero image area */}
+      <div className="relative w-full h-[55vh] md:h-[60vh] overflow-hidden">
+        <img
+          src={heroCreators}
+          alt="Content creators filming in a professional studio"
+          className="absolute inset-0 w-full h-full object-cover opacity-55"
+        />
+        {/* Bottom fade into background */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0 grid-pattern opacity-10" />
 
-      {/* Grid pattern */}
-      <div className="absolute inset-0 grid-pattern opacity-20" />
+        {/* Logo inside image, bottom-right corner */}
+        <motion.img
+          src={replicaLogo}
+          alt="Replica Shield"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.75 }}
+          transition={{ delay: 1, duration: 1 }}
+          className="absolute bottom-6 right-6 w-28 md:w-36 z-10"
+        />
+      </div>
 
-      {/* Corner logo */}
-      <motion.img
-        src={replicaLogo}
-        alt="Replica Shield"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.7 }}
-        transition={{ delay: 1.2, duration: 1 }}
-        className="absolute top-6 right-6 w-32 md:w-40 z-20"
-      />
-
-      <div className="container relative z-10 px-4 py-8">
+      {/* Text content below */}
+      <div className="container px-4 py-10 md:py-14">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,7 +52,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-3 leading-relaxed"
+            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 leading-relaxed"
           >
             The trusted registry for performers to register their likeness-based assets, 
             verify ownership, and receive certified protection against unauthorized AI use.
