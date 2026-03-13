@@ -11,10 +11,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const navLinks = [
+const anchorLinks = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Trust", href: "#trust" },
   { label: "Pricing", href: "#pricing" },
+];
+
+const routeLinks = [
+  { label: "Education", href: "/education" },
+  { label: "Tools", href: "/tools" },
 ];
 
 const Navbar = () => {
