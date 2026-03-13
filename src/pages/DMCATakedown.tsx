@@ -20,7 +20,7 @@ const DMCATakedown = () => {
     ownerName: "",
     ownerAddress: "",
     infringingUrl: prefill.infringingUrl || "",
-    originalWorkDescription: "",
+    originalWorkDescription: prefill.originalWorkDescription || "",
     ownershipProof: "",
   });
 
