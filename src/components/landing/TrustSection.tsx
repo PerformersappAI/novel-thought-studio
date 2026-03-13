@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { Shield, Lock, Eye, FileCheck } from "lucide-react";
 
 const features = [
-  { icon: Shield, title: "Identity Verification", desc: "Multi-step verification ensures every creator profile is authentic and trustworthy." },
-  { icon: Lock, title: "Encrypted Agreements", desc: "All licensing contracts are digitally signed and stored with enterprise-grade encryption." },
-  { icon: Eye, title: "Usage Monitoring", desc: "Real-time tracking of where and how your likeness is being used across platforms." },
-  { icon: FileCheck, title: "Legal Compliance", desc: "Pre-built license templates reviewed by IP attorneys for maximum legal protection." },
+  { icon: Shield, title: "Identity Verification", desc: "Government ID + live selfie verification ensures every performer profile is authentic." },
+  { icon: Lock, title: "Cryptographic Hashing", desc: "Every registered asset receives a unique hash and timestamp — immutable proof of ownership." },
+  { icon: Eye, title: "Audit Trail", desc: "All actions are logged immutably. Full transparency for legal compliance and dispute resolution." },
+  { icon: FileCheck, title: "Legal Framework", desc: "Version-controlled agreements, consent capture with IP logging, and digital signatures on file." },
 ];
 
 const TrustSection = () => {
@@ -19,8 +19,8 @@ const TrustSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">Built on Trust</h2>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">Your identity deserves the highest level of protection</p>
+          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">Built on Trust & Security</h2>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">Enterprise-grade protection for your most valuable asset — your identity.</p>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
