@@ -16,7 +16,7 @@ const HowItWorks = () => {
   const [activeStep, setActiveStep] = useState(0);
 
   return (
-    <section className="py-24 relative">
+    <section id="how-it-works" className="py-24 relative">
       <div className="absolute inset-0 grid-pattern opacity-20" />
       <div className="container relative z-10 px-4">
         <motion.div

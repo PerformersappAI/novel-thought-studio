@@ -33,7 +33,7 @@ const plans = [
 
 const PricingSection = () => {
   return (
-    <section className="py-24 relative">
+    <section id="pricing" className="py-24 relative">
       <div className="container px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
