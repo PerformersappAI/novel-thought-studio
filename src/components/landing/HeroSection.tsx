@@ -68,25 +68,6 @@ const HeroSection = () => {
                 </Link>
               </Button>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="flex flex-wrap justify-center md:justify-start gap-8 md:gap-16 mt-12 pt-8 border-t border-border/30"
-            >
-              {[
-                { value: "10K+", label: "Performers Protected" },
-                { value: "52K", label: "Assets Registered" },
-                { value: "100%", label: "Verified Ownership" },
-                { value: "24/7", label: "Active Monitoring" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <div className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
-                </div>
-              ))}
-            </motion.div>
           </motion.div>
 
           <motion.img
@@ -95,10 +76,32 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.7 }}
             transition={{ delay: 1, duration: 1 }}
-            className="w-[20rem] md:w-[40rem] lg:w-[44rem] flex-shrink-0 md:-ml-16 md:-mt-20"
+            className="w-[20rem] md:w-[40rem] lg:w-[44rem] flex-shrink-0 md:-ml-16 md:-mt-24"
           />
         </div>
       </div>
+
+      {/* Full-width stats bar */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="w-full border-t border-border/30"
+      >
+        <div className="container px-4 py-8 flex flex-wrap justify-center gap-8 md:gap-16">
+          {[
+            { value: "10K+", label: "Performers Protected" },
+            { value: "52K", label: "Assets Registered" },
+            { value: "100%", label: "Verified Ownership" },
+            { value: "24/7", label: "Active Monitoring" },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
+              <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
     </section>
   );
 };
