@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
+import performersHero from "@/assets/performers-hero.png";
 
 const HeroSection = () => {
   return (
@@ -17,17 +19,16 @@ const HeroSection = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-4xl mx-auto text-center"
         >
-          <motion.div
+          <motion.img
+            src={logo}
+            alt="Replica Shield"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card glow-blue mb-8"
-          >
-            <Shield className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Digital Rights Registry for Performers</span>
-          </motion.div>
+            className="h-24 md:h-36 w-auto mx-auto mb-8"
+          />
 
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
+          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
             <span className="text-foreground">Protect Your </span>
             <span className="text-gradient-blue">Likeness.</span>
             <br />
@@ -39,7 +40,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
+            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
             The trusted registry for performers to register their likeness-based assets, 
             verify ownership, and receive certified protection against unauthorized AI use.
@@ -65,10 +66,23 @@ const HeroSection = () => {
           </motion.div>
 
           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="mt-12"
+          >
+            <img
+              src={performersHero}
+              alt="Performers protected by Replica Shield"
+              className="max-w-md md:max-w-lg lg:max-w-xl mx-auto rounded-xl opacity-90"
+            />
+          </motion.div>
+
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="flex flex-wrap justify-center gap-8 md:gap-16 mt-16 pt-8 border-t border-border/30"
+            className="flex flex-wrap justify-center gap-8 md:gap-16 mt-12 pt-8 border-t border-border/30"
           >
             {[
               { value: "10K+", label: "Performers Protected" },

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,15 +11,11 @@ import { Upload, Plus, FileImage, FileAudio, FileVideo, FileText, Cpu } from "lu
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import StepIndicator from "@/components/StepIndicator";
 
 const assetTypeIcons: Record<string, any> = {
-  image: FileImage,
-  audio: FileAudio,
-  video: FileVideo,
-  text: FileText,
-  ai_model: Cpu,
+  image: FileImage, audio: FileAudio, video: FileVideo, text: FileText, ai_model: Cpu,
 };
 
 const MyAssets = () => {
@@ -36,11 +32,7 @@ const MyAssets = () => {
 
   const fetchAssets = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("registry_assets")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("registry_assets").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     setAssets(data ?? []);
   };
 
@@ -56,33 +48,18 @@ const MyAssets = () => {
     e.preventDefault();
     if (!user || !file || !assetType) return;
     setUploading(true);
-
     try {
       const fileHash = await computeHash(file);
       const filePath = `${user.id}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage.from("assets").upload(filePath, file);
       if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from("assets").getPublicUrl(filePath);
-
       const { error: insertError } = await supabase.from("registry_assets").insert({
-        user_id: user.id,
-        title,
-        description,
-        asset_type: assetType as any,
-        file_url: filePath,
-        file_hash: fileHash,
-        file_size_bytes: file.size,
-        mime_type: file.type,
+        user_id: user.id, title, description, asset_type: assetType as any,
+        file_url: filePath, file_hash: fileHash, file_size_bytes: file.size, mime_type: file.type,
       });
       if (insertError) throw insertError;
-
       toast({ title: "Asset submitted!", description: "Your asset is now pending review." });
-      setShowUpload(false);
-      setTitle("");
-      setDescription("");
-      setAssetType("");
-      setFile(null);
+      setShowUpload(false); setTitle(""); setDescription(""); setAssetType(""); setFile(null);
       fetchAssets();
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
@@ -91,16 +68,14 @@ const MyAssets = () => {
   };
 
   const statusColors: Record<string, string> = {
-    pending: "bg-accent/10 text-accent",
-    approved: "bg-primary/10 text-primary",
-    rejected: "bg-destructive/10 text-destructive",
-    revision_requested: "bg-accent/10 text-accent",
+    pending: "bg-accent/10 text-accent", approved: "bg-primary/10 text-primary",
+    rejected: "bg-destructive/10 text-destructive", revision_requested: "bg-accent/10 text-accent",
   };
 
   return (
     <DashboardLayout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-2xl md:text-3xl font-bold">My Assets</h1>
             <p className="text-muted-foreground mt-1">Register and manage your likeness assets</p>
@@ -110,17 +85,21 @@ const MyAssets = () => {
           </Button>
         </div>
 
+        <StepIndicator currentStep={2} className="mb-8" />
+
         {showUpload && (
           <Card className="glass-card border-border/30 mb-8 glow-blue">
             <CardHeader>
-              <CardTitle className="font-display text-lg">Register New Asset</CardTitle>
+              <CardTitle className="font-display text-lg">Step 3: Register a New Asset</CardTitle>
+              <p className="text-sm text-muted-foreground">Upload your likeness asset. Each file is cryptographically hashed and timestamped for ownership proof.</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpload} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Title</Label>
-                    <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Asset title" required />
+                    <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="E.g. Headshot - Front View" required />
+                    <p className="text-xs text-muted-foreground">Give your asset a clear, descriptive name.</p>
                   </div>
                   <div className="space-y-2">
                     <Label>Asset Type</Label>
@@ -138,11 +117,12 @@ const MyAssets = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Description</Label>
-                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this asset..." />
+                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this asset and how it represents your likeness..." />
                 </div>
                 <div className="space-y-2">
                   <Label>File</Label>
                   <Input ref={fileRef} type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} required />
+                  <p className="text-xs text-muted-foreground">Supported: images, video, audio, text files, AI model files.</p>
                 </div>
                 <div className="flex gap-3">
                   <Button type="submit" disabled={uploading} className="font-display">

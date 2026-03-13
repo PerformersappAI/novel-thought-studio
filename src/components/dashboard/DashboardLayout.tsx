@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Shield, LayoutDashboard, Upload, FileText, BarChart3, Settings, Users, CheckSquare, ScrollText, LogOut, Bell } from "lucide-react";
+import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import logo from "@/assets/logo.png";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -34,8 +35,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <aside className="w-64 border-r border-border/30 bg-card/40 backdrop-blur-sm hidden lg:flex flex-col">
         <div className="p-6 border-b border-border/30">
           <Link to="/" className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-primary" />
-            <span className="font-display text-lg font-bold text-foreground">Replica Shield</span>
+            <img src={logo} alt="Replica Shield" className="h-8 w-auto" />
           </Link>
           {role && (
             <span className="text-xs text-muted-foreground mt-1 block capitalize">{role} Account</span>
