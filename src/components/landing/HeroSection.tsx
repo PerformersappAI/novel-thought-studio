@@ -95,7 +95,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.7 }}
             transition={{ delay: 1, duration: 1 }}
-            className="w-[20rem] md:w-[40rem] lg:w-[44rem] flex-shrink-0 md:-ml-16"
+            className="w-[20rem] md:w-[40rem] lg:w-[44rem] flex-shrink-0 md:-ml-16 md:-mt-12"
           />
         </div>
       </div>
