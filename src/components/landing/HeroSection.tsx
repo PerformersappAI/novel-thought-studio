@@ -12,7 +12,7 @@ const HeroSection = () => {
       <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/10 blur-[120px] animate-pulse-glow" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full bg-accent/10 blur-[120px] animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
 
-      <div className="container relative z-10 px-4 py-20">
+      <div className="container relative z-10 px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -25,10 +25,10 @@ const HeroSection = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="h-72 md:h-[28rem] w-auto mx-auto mb-2"
+            className="h-[36rem] md:h-[56rem] w-auto mx-auto mb-0"
           />
 
-          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
+          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
             <span className="text-foreground">Protect Your </span>
             <span className="text-gradient-blue">Likeness.</span>
             <br />
@@ -40,7 +40,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 leading-relaxed"
+            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-3 leading-relaxed"
           >
             The trusted registry for performers to register their likeness-based assets, 
             verify ownership, and receive certified protection against unauthorized AI use.
@@ -69,7 +69,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="mt-4 -mx-4 md:-mx-8 lg:-mx-16"
+            className="mt-1 -mx-4 md:-mx-8 lg:-mx-16"
           >
             <img
               src={performersHero}

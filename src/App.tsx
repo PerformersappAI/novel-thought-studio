@@ -16,6 +16,10 @@ import AdminReviewQueue from "./pages/AdminReviewQueue";
 import Settings from "./pages/Settings";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLegalLogs from "./pages/AdminLegalLogs";
+import AdminBlog from "./pages/AdminBlog";
+import Education from "./pages/Education";
+import BlogPost from "./pages/BlogPost";
+import Tools from "./pages/Tools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +43,10 @@ const App = () => (
             <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/dashboard/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/dashboard/legal" element={<ProtectedRoute><AdminLegalLogs /></ProtectedRoute>} />
+            <Route path="/dashboard/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/education/:slug" element={<BlogPost />} />
+            <Route path="/tools" element={<Tools />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

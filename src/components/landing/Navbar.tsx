@@ -11,10 +11,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const navLinks = [
+const anchorLinks = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Trust", href: "#trust" },
   { label: "Pricing", href: "#pricing" },
+];
+
+const routeLinks = [
+  { label: "Education", href: "/education" },
+  { label: "Tools", href: "/tools" },
 ];
 
 const Navbar = () => {
@@ -32,7 +37,7 @@ const Navbar = () => {
       <div className="container px-4 h-16 flex items-center justify-between">
         {/* Left — Nav links (desktop) */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {anchorLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => handleAnchorClick(link.href)}
@@ -40,6 +45,15 @@ const Navbar = () => {
             >
               {link.label}
             </button>
+          ))}
+          {routeLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-display"
+            >
+              {link.label}
+            </Link>
           ))}
         </div>
 
@@ -73,7 +87,7 @@ const Navbar = () => {
                 <SheetTitle className="font-display">Menu</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-4 mt-6">
-                {navLinks.map((link) => (
+                {anchorLinks.map((link) => (
                   <button
                     key={link.href}
                     onClick={() => handleAnchorClick(link.href)}
@@ -81,6 +95,16 @@ const Navbar = () => {
                   >
                     {link.label}
                   </button>
+                ))}
+                {routeLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    onClick={() => setOpen(false)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors font-display"
+                  >
+                    {link.label}
+                  </Link>
                 ))}
                 <div className="border-t border-border/30 pt-4 flex flex-col gap-3">
                   {user ? (
