@@ -1,0 +1,95 @@
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Shield, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const HeroSection = () => {
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Grid background */}
+      <div className="absolute inset-0 grid-pattern opacity-40" />
+      
+      {/* Gradient orbs */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/10 blur-[120px] animate-pulse-glow" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full bg-accent/10 blur-[120px] animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
+
+      <div className="container relative z-10 px-4 py-20">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="max-w-4xl mx-auto text-center"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card glow-blue mb-8"
+          >
+            <Shield className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Identity-First AI Licensing</span>
+          </motion.div>
+
+          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
+            <span className="text-foreground">Own Your </span>
+            <span className="text-gradient-blue">Likeness.</span>
+            <br />
+            <span className="text-foreground">License It. </span>
+            <span className="text-gradient-gold">Get Paid.</span>
+          </h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
+          >
+            The first marketplace where creators control how AI uses their face, voice, and identity. 
+            Set your terms. Track usage. Earn royalties.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Button asChild size="lg" className="font-display text-base px-8 h-13 glow-blue">
+              <Link to="/signup">
+                Start as Creator
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="font-display text-base px-8 h-13 border-border/60 hover:border-primary/50">
+              <Link to="/signup">
+                License Talent
+              </Link>
+            </Button>
+          </motion.div>
+
+          {/* Stats row */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="flex flex-wrap justify-center gap-8 md:gap-16 mt-16 pt-8 border-t border-border/30"
+          >
+            {[
+              { value: "12K+", label: "Creators Listed" },
+              { value: "48K", label: "Licenses Issued" },
+              { value: "$2.4M", label: "Creator Earnings" },
+              { value: "99.9%", label: "Uptime Security" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+export default HeroSection;
