@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -12,12 +12,14 @@ import { useToast } from "@/hooks/use-toast";
 
 const DMCATakedown = () => {
   const { toast } = useToast();
+  const location = useLocation();
+  const prefill = (location.state as any) || {};
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
   const [form, setForm] = useState({
     ownerName: "",
     ownerAddress: "",
-    infringingUrl: "",
+    infringingUrl: prefill.infringingUrl || "",
     originalWorkDescription: "",
     ownershipProof: "",
   });
