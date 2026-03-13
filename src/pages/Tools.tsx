@@ -1,0 +1,90 @@
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, User, FileText, Receipt, ScanFace, Palette, Shield } from "lucide-react";
+import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
+
+const tools = [
+  {
+    icon: User,
+    title: "Avatar Creator",
+    description: "Generate AI-safe digital avatars from your registered likeness assets.",
+    status: "coming_soon" as const,
+  },
+  {
+    icon: FileText,
+    title: "Contract Generator",
+    description: "Create legally-binding contracts for likeness usage, licensing, and permissions.",
+    status: "coming_soon" as const,
+  },
+  {
+    icon: Receipt,
+    title: "Invoice Builder",
+    description: "Build professional invoices for your creative and performance work.",
+    status: "coming_soon" as const,
+  },
+  {
+    icon: ScanFace,
+    title: "Digital Likeness Scanner",
+    description: "Scan the web for unauthorized use of your registered likeness.",
+    status: "coming_soon" as const,
+  },
+  {
+    icon: Palette,
+    title: "Media Kit Builder",
+    description: "Create a shareable media kit with your verified credentials and assets.",
+    status: "coming_soon" as const,
+  },
+  {
+    icon: Shield,
+    title: "DMCA Takedown Assistant",
+    description: "Generate DMCA takedown notices for unauthorized use of your likeness.",
+    status: "coming_soon" as const,
+  },
+];
+
+const Tools = () => {
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container px-4 pt-24 pb-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="flex items-center gap-3 mb-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/"><ArrowLeft className="w-4 h-4 mr-1" /> Home</Link>
+            </Button>
+          </div>
+          <div className="text-center mb-12">
+            <h1 className="font-display text-3xl md:text-4xl font-bold mb-4">AI Tools</h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Powerful AI-powered tools to help you create, protect, and manage your digital presence.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {tools.map((tool) => (
+              <Card key={tool.title} className="glass-card border-border/30 hover:border-primary/40 transition-all">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 rounded-lg bg-primary/10">
+                      <tool.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                  </div>
+                  <h3 className="font-display font-semibold text-lg mb-2">{tool.title}</h3>
+                  <p className="text-sm text-muted-foreground">{tool.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+export default Tools;

@@ -43,6 +43,10 @@ const App = () => (
             <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/dashboard/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/dashboard/legal" element={<ProtectedRoute><AdminLegalLogs /></ProtectedRoute>} />
+            <Route path="/dashboard/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/education/:slug" element={<BlogPost />} />
+            <Route path="/tools" element={<Tools />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
