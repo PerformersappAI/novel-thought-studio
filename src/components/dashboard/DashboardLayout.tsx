@@ -14,6 +14,7 @@ const performerLinks = [
   { to: "/dashboard/assets", icon: Upload, label: "My Assets" },
   { to: "/dashboard/certificates", icon: FileText, label: "Certificates" },
   { to: "/dashboard/verification", icon: CheckSquare, label: "Verification" },
+  { to: "/dashboard/monitor", icon: Radar, label: "Likeness Monitor" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
