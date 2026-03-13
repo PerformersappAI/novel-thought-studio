@@ -182,7 +182,7 @@ const LikenessMonitor = () => {
           </TabsContent>
         </Tabs>
 
-        <ScanHistory scans={scans} loading={loading} />
+        <ScanHistory scans={scans} loading={loading} onUpdate={fetchScans} />
       </div>
     </DashboardLayout>
   );
