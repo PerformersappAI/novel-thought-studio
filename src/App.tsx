@@ -16,6 +16,10 @@ import AdminReviewQueue from "./pages/AdminReviewQueue";
 import Settings from "./pages/Settings";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLegalLogs from "./pages/AdminLegalLogs";
+import AdminBlog from "./pages/AdminBlog";
+import Education from "./pages/Education";
+import BlogPost from "./pages/BlogPost";
+import Tools from "./pages/Tools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
