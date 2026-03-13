@@ -5,10 +5,10 @@ import { Link } from "react-router-dom";
 
 const plans = [
   {
-    name: "Starter",
+    name: "Basic",
     price: "Free",
-    desc: "Perfect for creators getting started",
-    features: ["1 likeness profile", "Basic licensing templates", "Usage dashboard", "Community support"],
+    desc: "Get started with basic asset registration",
+    features: ["5 asset registrations", "Identity verification", "Basic certificates", "Community support"],
     cta: "Get Started",
     highlight: false,
   },
@@ -16,16 +16,16 @@ const plans = [
     name: "Professional",
     price: "$29",
     period: "/mo",
-    desc: "For serious creators and small businesses",
-    features: ["Unlimited profiles", "Custom license terms", "Advanced usage analytics", "Priority support", "Verification badge", "API access"],
-    cta: "Go Pro",
+    desc: "Full protection for working performers",
+    features: ["Unlimited registrations", "Priority verification", "Advanced certificates", "Usage monitoring", "Legal document access", "Priority support"],
+    cta: "Go Professional",
     highlight: true,
   },
   {
     name: "Enterprise",
     price: "Custom",
-    desc: "For agencies and large organizations",
-    features: ["Team management", "Bulk licensing", "Dedicated account manager", "Custom integrations", "SLA guarantee", "White-label options"],
+    desc: "For agencies and large talent rosters",
+    features: ["Multi-performer management", "Bulk registration", "Dedicated account manager", "API access", "Custom integrations", "SLA guarantee"],
     cta: "Contact Sales",
     highlight: false,
   },
@@ -42,7 +42,7 @@ const PricingSection = () => {
           className="text-center mb-16"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">Simple Pricing</h2>
-          <p className="text-muted-foreground text-lg">Start free. Scale as you grow.</p>
+          <p className="text-muted-foreground text-lg">Start free. Upgrade when you need full protection.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -76,11 +76,7 @@ const PricingSection = () => {
                   </li>
                 ))}
               </ul>
-              <Button
-                asChild
-                variant={plan.highlight ? "default" : "outline"}
-                className={`w-full font-display ${plan.highlight ? "glow-blue" : ""}`}
-              >
+              <Button asChild variant={plan.highlight ? "default" : "outline"} className={`w-full font-display ${plan.highlight ? "glow-blue" : ""}`}>
                 <Link to="/signup">{plan.cta}</Link>
               </Button>
             </motion.div>

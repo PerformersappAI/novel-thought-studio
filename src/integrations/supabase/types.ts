@@ -14,16 +14,448 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: unknown
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: unknown
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: unknown
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      certificates: {
+        Row: {
+          asset_id: string
+          certificate_hash: string
+          certificate_url: string | null
+          id: string
+          issued_at: string
+          metadata: Json | null
+          registry_id: string
+          user_id: string
+        }
+        Insert: {
+          asset_id: string
+          certificate_hash: string
+          certificate_url?: string | null
+          id?: string
+          issued_at?: string
+          metadata?: Json | null
+          registry_id: string
+          user_id: string
+        }
+        Update: {
+          asset_id?: string
+          certificate_hash?: string
+          certificate_url?: string | null
+          id?: string
+          issued_at?: string
+          metadata?: Json | null
+          registry_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "registry_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consent_signatures: {
+        Row: {
+          asset_id: string | null
+          document_id: string
+          document_version: number
+          id: string
+          ip_address: unknown
+          signed_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_id?: string | null
+          document_id: string
+          document_version: number
+          id?: string
+          ip_address?: unknown
+          signed_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_id?: string | null
+          document_id?: string
+          document_version?: number
+          id?: string
+          ip_address?: unknown
+          signed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_signatures_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "registry_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_signatures_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      identity_verifications: {
+        Row: {
+          created_at: string
+          government_id_url: string
+          id: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          selfie_url: string
+          status: Database["public"]["Enums"]["verification_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          government_id_url: string
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          selfie_url: string
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          government_id_url?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          selfie_url?: string
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      legal_documents: {
+        Row: {
+          content: string
+          created_at: string
+          document_type: string
+          id: string
+          is_active: boolean
+          title: string
+          version: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_type: string
+          id?: string
+          is_active?: boolean
+          title: string
+          version?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_type?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      registry_assets: {
+        Row: {
+          asset_type: Database["public"]["Enums"]["asset_type"]
+          created_at: string
+          description: string | null
+          file_hash: string
+          file_size_bytes: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          registry_id: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_type: Database["public"]["Enums"]["asset_type"]
+          created_at?: string
+          description?: string | null
+          file_hash: string
+          file_size_bytes?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          registry_id?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_type?: Database["public"]["Enums"]["asset_type"]
+          created_at?: string
+          description?: string | null
+          file_hash?: string
+          file_size_bytes?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          registry_id?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          interval: Database["public"]["Enums"]["plan_interval"]
+          is_active: boolean
+          name: string
+          price_cents: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval: Database["public"]["Enums"]["plan_interval"]
+          is_active?: boolean
+          name: string
+          price_cents: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval?: Database["public"]["Enums"]["plan_interval"]
+          is_active?: boolean
+          name?: string
+          price_cents?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          plan_id: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end: string
+          current_period_start?: string
+          id?: string
+          plan_id: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          plan_id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_registry_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "performer" | "admin"
+      asset_status: "pending" | "approved" | "rejected" | "revision_requested"
+      asset_type: "image" | "video" | "audio" | "text" | "ai_model"
+      notification_type:
+        | "verification_update"
+        | "subscription_event"
+        | "asset_update"
+        | "admin_action"
+        | "system"
+      plan_interval: "monthly" | "annual"
+      subscription_status: "active" | "canceled" | "past_due" | "trialing"
+      verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +582,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["performer", "admin"],
+      asset_status: ["pending", "approved", "rejected", "revision_requested"],
+      asset_type: ["image", "video", "audio", "text", "ai_model"],
+      notification_type: [
+        "verification_update",
+        "subscription_event",
+        "asset_update",
+        "admin_action",
+        "system",
+      ],
+      plan_interval: ["monthly", "annual"],
+      subscription_status: ["active", "canceled", "past_due", "trialing"],
+      verification_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const

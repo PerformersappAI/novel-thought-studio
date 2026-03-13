@@ -6,10 +6,7 @@ import { Link } from "react-router-dom";
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Grid background */}
       <div className="absolute inset-0 grid-pattern opacity-40" />
-      
-      {/* Gradient orbs */}
       <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/10 blur-[120px] animate-pulse-glow" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full bg-accent/10 blur-[120px] animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
 
@@ -27,15 +24,15 @@ const HeroSection = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card glow-blue mb-8"
           >
             <Shield className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Identity-First AI Licensing</span>
+            <span className="text-sm font-medium text-primary">Digital Rights Registry for Performers</span>
           </motion.div>
 
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
-            <span className="text-foreground">Own Your </span>
+            <span className="text-foreground">Protect Your </span>
             <span className="text-gradient-blue">Likeness.</span>
             <br />
-            <span className="text-foreground">License It. </span>
-            <span className="text-gradient-gold">Get Paid.</span>
+            <span className="text-foreground">Register. Verify. </span>
+            <span className="text-gradient-gold">Shield.</span>
           </h1>
 
           <motion.p
@@ -44,8 +41,8 @@ const HeroSection = () => {
             transition={{ delay: 0.5 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            The first marketplace where creators control how AI uses their face, voice, and identity. 
-            Set your terms. Track usage. Earn royalties.
+            The trusted registry for performers to register their likeness-based assets, 
+            verify ownership, and receive certified protection against unauthorized AI use.
           </motion.p>
 
           <motion.div
@@ -56,18 +53,17 @@ const HeroSection = () => {
           >
             <Button asChild size="lg" className="font-display text-base px-8 h-13 glow-blue">
               <Link to="/signup">
-                Start as Creator
+                Register Your Likeness
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="font-display text-base px-8 h-13 border-border/60 hover:border-primary/50">
-              <Link to="/signup">
-                License Talent
+              <Link to="/login">
+                Sign In
               </Link>
             </Button>
           </motion.div>
 
-          {/* Stats row */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -75,10 +71,10 @@ const HeroSection = () => {
             className="flex flex-wrap justify-center gap-8 md:gap-16 mt-16 pt-8 border-t border-border/30"
           >
             {[
-              { value: "12K+", label: "Creators Listed" },
-              { value: "48K", label: "Licenses Issued" },
-              { value: "$2.4M", label: "Creator Earnings" },
-              { value: "99.9%", label: "Uptime Security" },
+              { value: "10K+", label: "Performers Protected" },
+              { value: "52K", label: "Assets Registered" },
+              { value: "100%", label: "Verified Ownership" },
+              { value: "24/7", label: "Active Monitoring" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>

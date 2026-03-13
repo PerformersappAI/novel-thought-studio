@@ -1,18 +1,31 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Will connect to Supabase auth later
+    setLoading(true);
+    const { error } = await signIn(email, password);
+    setLoading(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -20,11 +33,7 @@ const Login = () => {
       <div className="absolute inset-0 grid-pattern opacity-20" />
       <div className="absolute top-1/3 -left-32 w-96 h-96 rounded-full bg-primary/10 blur-[120px]" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md mx-4 relative z-10"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md mx-4 relative z-10">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to home
         </Link>
@@ -32,20 +41,22 @@ const Login = () => {
         <div className="glass-card rounded-xl p-8 glow-blue">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-6 h-6 text-primary" />
-            <span className="font-display text-xl font-bold text-foreground">LikenessVault</span>
+            <span className="font-display text-xl font-bold text-foreground">Replica Shield</span>
           </div>
           <p className="text-muted-foreground text-sm mb-8">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full font-display">Sign In</Button>
+            <Button type="submit" className="w-full font-display" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
           </form>
 
           <p className="text-sm text-muted-foreground text-center mt-6">
