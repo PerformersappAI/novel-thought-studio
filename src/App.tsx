@@ -20,6 +20,11 @@ import AdminBlog from "./pages/AdminBlog";
 import Education from "./pages/Education";
 import BlogPost from "./pages/BlogPost";
 import Tools from "./pages/Tools";
+import ContractGenerator from "./pages/ContractGenerator";
+import InvoiceBuilder from "./pages/InvoiceBuilder";
+import DMCATakedown from "./pages/DMCATakedown";
+import MediaKitBuilder from "./pages/MediaKitBuilder";
+import AvatarCreator from "./pages/AvatarCreator";
 import LikenessMonitor from "./pages/LikenessMonitor";
 import NotFound from "./pages/NotFound";
 
@@ -49,6 +54,11 @@ const App = () => (
             <Route path="/education" element={<Education />} />
             <Route path="/education/:slug" element={<BlogPost />} />
             <Route path="/tools" element={<Tools />} />
+            <Route path="/tools/contracts" element={<ContractGenerator />} />
+            <Route path="/tools/invoices" element={<InvoiceBuilder />} />
+            <Route path="/tools/dmca" element={<DMCATakedown />} />
+            <Route path="/tools/media-kit" element={<MediaKitBuilder />} />
+            <Route path="/tools/avatar" element={<AvatarCreator />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

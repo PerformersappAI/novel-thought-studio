@@ -3,46 +3,52 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, FileText, Receipt, ScanFace, Palette, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, User, FileText, Receipt, ScanFace, Palette, Shield } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 const tools = [
   {
-    icon: User,
-    title: "Avatar Creator",
-    description: "Generate AI-safe digital avatars from your registered likeness assets.",
-    status: "coming_soon" as const,
-  },
-  {
     icon: FileText,
     title: "Contract Generator",
     description: "Create legally-binding contracts for likeness usage, licensing, and permissions.",
-    status: "coming_soon" as const,
+    link: "/tools/contracts",
+    status: "active" as const,
   },
   {
     icon: Receipt,
     title: "Invoice Builder",
     description: "Build professional invoices for your creative and performance work.",
-    status: "coming_soon" as const,
+    link: "/tools/invoices",
+    status: "active" as const,
   },
   {
     icon: ScanFace,
     title: "Digital Likeness Scanner",
     description: "Scan the web for unauthorized use of your registered likeness.",
-    status: "coming_soon" as const,
-  },
-  {
-    icon: Palette,
-    title: "Media Kit Builder",
-    description: "Create a shareable media kit with your verified credentials and assets.",
-    status: "coming_soon" as const,
+    link: "/dashboard/monitor",
+    status: "active" as const,
   },
   {
     icon: Shield,
     title: "DMCA Takedown Assistant",
     description: "Generate DMCA takedown notices for unauthorized use of your likeness.",
-    status: "coming_soon" as const,
+    link: "/tools/dmca",
+    status: "active" as const,
+  },
+  {
+    icon: Palette,
+    title: "Media Kit Builder",
+    description: "Create a shareable media kit with your verified credentials and assets.",
+    link: "/tools/media-kit",
+    status: "active" as const,
+  },
+  {
+    icon: User,
+    title: "Avatar Creator",
+    description: "Generate AI-safe digital avatars from your registered likeness assets.",
+    link: "/tools/avatar",
+    status: "beta" as const,
   },
 ];
 
@@ -66,18 +72,24 @@ const Tools = () => {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {tools.map((tool) => (
-              <Card key={tool.title} className="glass-card border-border/30 hover:border-primary/40 transition-all">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-lg bg-primary/10">
-                      <tool.icon className="w-6 h-6 text-primary" />
+              <Link key={tool.title} to={tool.link}>
+                <Card className="glass-card border-border/30 hover:border-primary/40 transition-all group cursor-pointer h-full">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 rounded-lg bg-primary/10">
+                        <tool.icon className="w-6 h-6 text-primary" />
+                      </div>
+                      {tool.status === "beta" ? (
+                        <Badge className="bg-accent text-accent-foreground text-xs">Beta</Badge>
+                      ) : (
+                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      )}
                     </div>
-                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
-                  </div>
-                  <h3 className="font-display font-semibold text-lg mb-2">{tool.title}</h3>
-                  <p className="text-sm text-muted-foreground">{tool.description}</p>
-                </CardContent>
-              </Card>
+                    <h3 className="font-display font-semibold text-lg mb-2">{tool.title}</h3>
+                    <p className="text-sm text-muted-foreground">{tool.description}</p>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </motion.div>
