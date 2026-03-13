@@ -28,7 +28,7 @@ const HeroSection = () => {
             className="h-[36rem] md:h-[56rem] w-auto mx-auto mb-0"
           />
 
-          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
+          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
             <span className="text-foreground">Protect Your </span>
             <span className="text-gradient-blue">Likeness.</span>
             <br />
