@@ -16,16 +16,21 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-4xl mx-auto text-center"
+          className="max-w-5xl mx-auto text-center"
         >
-          <motion.img
-            src={logo}
-            alt="Replica Shield"
-            initial={{ opacity: 0, scale: 0.9 }}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="h-[36rem] md:h-[56rem] w-auto mx-auto mb-0"
-          />
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="relative w-full rounded-2xl overflow-hidden mb-8 -mx-4 md:-mx-8 lg:-mx-16"
+          >
+            <img
+              src={heroCreators}
+              alt="Content creators filming in a professional studio with ring light"
+              className="w-full object-cover max-h-[32rem]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          </motion.div>
 
           <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
             <span className="text-foreground">Protect Your </span>
@@ -62,19 +67,6 @@ const HeroSection = () => {
                 Sign In
               </Link>
             </Button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="mt-1 -mx-4 md:-mx-8 lg:-mx-16"
-          >
-            <img
-              src={performersHero}
-              alt="Performers protected by Replica Shield"
-              className="w-full rounded-xl opacity-90"
-            />
           </motion.div>
 
           <motion.div
