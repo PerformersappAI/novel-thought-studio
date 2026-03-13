@@ -30,7 +30,7 @@ const HowItWorks = () => {
         </motion.div>
 
         {/* Horizontal step bar */}
-        <div className="max-w-4xl mx-auto mb-12 overflow-x-auto">
+        <div className="max-w-4xl mx-auto mb-12 overflow-x-auto pt-2">
           <div className="flex items-center justify-center gap-0 min-w-max mx-auto px-4">
             {steps.map((step, i) => {
               const isActive = i === activeStep;
