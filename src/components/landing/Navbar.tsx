@@ -37,7 +37,7 @@ const Navbar = () => {
       <div className="container px-4 h-16 flex items-center justify-between">
         {/* Left — Nav links (desktop) */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {anchorLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => handleAnchorClick(link.href)}
@@ -45,6 +45,15 @@ const Navbar = () => {
             >
               {link.label}
             </button>
+          ))}
+          {routeLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-display"
+            >
+              {link.label}
+            </Link>
           ))}
         </div>
 
