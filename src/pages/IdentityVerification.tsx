@@ -1,15 +1,15 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, AlertTriangle, Clock, Upload } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import StepIndicator from "@/components/StepIndicator";
 
 const IdentityVerification = () => {
   const { user } = useAuth();
@@ -62,7 +62,6 @@ const IdentityVerification = () => {
       toast({ title: "Submitted!", description: "Your identity verification is pending review." });
       setGovId(null);
       setSelfie(null);
-      // Refresh
       const { data } = await supabase.from("identity_verifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
       setVerification(data);
     } catch (err: any) {
@@ -80,10 +79,12 @@ const IdentityVerification = () => {
   return (
     <DashboardLayout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="font-display text-2xl md:text-3xl font-bold">Identity Verification</h1>
           <p className="text-muted-foreground mt-1">Verify your identity to unlock full registry access</p>
         </div>
+
+        <StepIndicator currentStep={1} className="mb-8" />
 
         {!loading && verification ? (
           <Card className="glass-card border-border/30 max-w-xl">
@@ -110,19 +111,20 @@ const IdentityVerification = () => {
         ) : !loading ? (
           <Card className="glass-card border-border/30 max-w-xl glow-blue">
             <CardHeader>
-              <CardTitle className="font-display text-lg">Submit Verification</CardTitle>
+              <CardTitle className="font-display text-lg">Step 2: Verify Your Identity</CardTitle>
+              <p className="text-sm text-muted-foreground">Upload a government-issued ID and a clear selfie so our team can confirm you are who you say you are.</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>Government-Issued ID</Label>
                   <Input type="file" accept="image/*" onChange={(e) => setGovId(e.target.files?.[0] ?? null)} required />
-                  <p className="text-xs text-muted-foreground">Passport, driver's license, or national ID card</p>
+                  <p className="text-xs text-muted-foreground">Passport, driver's license, or national ID card. Must be clear and unobstructed.</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Live Selfie</Label>
                   <Input type="file" accept="image/*" onChange={(e) => setSelfie(e.target.files?.[0] ?? null)} required />
-                  <p className="text-xs text-muted-foreground">Clear, well-lit photo of your face</p>
+                  <p className="text-xs text-muted-foreground">A clear, well-lit photo of your face. No sunglasses or hats.</p>
                 </div>
                 <Button type="submit" disabled={uploading} className="font-display">
                   {uploading ? "Submitting..." : "Submit for Verification"}

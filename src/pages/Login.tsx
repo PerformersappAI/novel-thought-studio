@@ -3,10 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -39,10 +40,7 @@ const Login = () => {
         </Link>
 
         <div className="glass-card rounded-xl p-8 glow-blue">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-6 h-6 text-primary" />
-            <span className="font-display text-xl font-bold text-foreground">Replica Shield</span>
-          </div>
+          <img src={logo} alt="Replica Shield" className="h-10 w-auto mb-2" />
           <p className="text-muted-foreground text-sm mb-8">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
