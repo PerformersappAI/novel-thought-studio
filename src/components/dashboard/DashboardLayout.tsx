@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
@@ -14,6 +14,7 @@ const performerLinks = [
   { to: "/dashboard/assets", icon: Upload, label: "My Assets" },
   { to: "/dashboard/certificates", icon: FileText, label: "Certificates" },
   { to: "/dashboard/verification", icon: CheckSquare, label: "Verification" },
+  { to: "/dashboard/monitor", icon: Radar, label: "Likeness Monitor" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 

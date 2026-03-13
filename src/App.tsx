@@ -20,6 +20,7 @@ import AdminBlog from "./pages/AdminBlog";
 import Education from "./pages/Education";
 import BlogPost from "./pages/BlogPost";
 import Tools from "./pages/Tools";
+import LikenessMonitor from "./pages/LikenessMonitor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/dashboard/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/dashboard/legal" element={<ProtectedRoute><AdminLegalLogs /></ProtectedRoute>} />
             <Route path="/dashboard/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
+            <Route path="/dashboard/monitor" element={<ProtectedRoute><LikenessMonitor /></ProtectedRoute>} />
             <Route path="/education" element={<Education />} />
             <Route path="/education/:slug" element={<BlogPost />} />
             <Route path="/tools" element={<Tools />} />
