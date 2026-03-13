@@ -3,35 +3,43 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroCreators from "@/assets/hero-creators.jpg";
+import replicaLogo from "@/assets/replica-shield-logo.png";
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 grid-pattern opacity-40" />
-      <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/10 blur-[120px] animate-pulse-glow" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full bg-accent/10 blur-[120px] animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
+      {/* Full-bleed background image */}
+      <img
+        src={heroCreators}
+        alt="Content creators filming in a professional studio"
+        className="absolute inset-0 w-full h-full object-cover opacity-30"
+      />
+      {/* Gradient overlays for seamless fade */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/30" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(var(--background))_75%)]" />
+
+      {/* Grid pattern */}
+      <div className="absolute inset-0 grid-pattern opacity-20" />
+
+      {/* Corner logo */}
+      <motion.img
+        src={replicaLogo}
+        alt="Replica Shield"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.7 }}
+        transition={{ delay: 1.2, duration: 1 }}
+        className="absolute top-6 right-6 w-32 md:w-40 z-20"
+      />
 
       <div className="container relative z-10 px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-5xl mx-auto text-center"
+          className="max-w-3xl mx-auto text-center"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="relative w-full rounded-2xl overflow-hidden mb-8 -mx-4 md:-mx-8 lg:-mx-16"
-          >
-            <img
-              src={heroCreators}
-              alt="Content creators filming in a professional studio with ring light"
-              className="w-full object-cover max-h-[32rem]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          </motion.div>
-
           <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
             <span className="text-foreground">Protect Your </span>
             <span className="text-gradient-blue">Likeness.</span>
