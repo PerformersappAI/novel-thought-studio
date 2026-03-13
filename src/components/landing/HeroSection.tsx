@@ -21,24 +21,24 @@ const HeroSection = () => {
         {/* Grid pattern */}
         <div className="absolute inset-0 grid-pattern opacity-10" />
 
-        {/* Logo inside image, bottom-right corner */}
+      </div>
+
+      {/* Text content below */}
+      <div className="container px-4 py-10 md:py-14 relative">
+        {/* Replica Shield seal placement per marked reference */}
         <motion.img
           src={replicaLogo}
           alt="Replica Shield"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.7 }}
           transition={{ delay: 1, duration: 1 }}
-          className="absolute bottom-[-6%] right-[4%] w-[20rem] md:w-[40rem] lg:w-[44rem] scale-x-110 origin-bottom-right z-10"
+          className="pointer-events-none absolute right-[2%] bottom-[6rem] w-[20rem] md:w-[40rem] lg:w-[44rem] scale-x-110 origin-bottom-right z-0"
         />
-      </div>
-
-      {/* Text content below */}
-      <div className="container px-4 py-10 md:py-14">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-3xl mx-auto text-center"
+          className="relative z-10 max-w-3xl mx-auto text-center"
         >
           <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
             <span className="text-foreground">Protect Your </span>
