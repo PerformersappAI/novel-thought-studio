@@ -45,32 +45,19 @@ const HowItWorks = () => {
                   >
                     <div
                       className={cn(
-                        "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 relative",
-                        isActive && isPrimary && "bg-primary/20 border-2 border-primary shadow-[0_0_24px_hsl(210_100%_56%/0.5)] scale-110",
-                        isActive && !isPrimary && "bg-accent/20 border-2 border-accent shadow-[0_0_24px_hsl(45_93%_58%/0.5)] scale-110",
-                        !isActive && "bg-secondary/50 border border-border/50 group-hover:border-primary/30"
+                        "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300",
+                        isActive && isPrimary && "scale-110",
+                        isActive && !isPrimary && "scale-110",
                       )}
                     >
                       <Icon
                         className={cn(
-                          "w-6 h-6 transition-colors",
-                          isActive && isPrimary && "text-primary",
-                          isActive && !isPrimary && "text-accent",
-                          !isActive && "text-muted-foreground/60 group-hover:text-muted-foreground"
+                          "w-7 h-7 transition-colors duration-300",
+                          isActive && isPrimary && "text-primary drop-shadow-[0_0_8px_hsl(210_100%_56%/0.6)]",
+                          isActive && !isPrimary && "text-accent drop-shadow-[0_0_8px_hsl(45_93%_58%/0.6)]",
+                          !isActive && "text-muted-foreground/40 group-hover:text-muted-foreground/70"
                         )}
                       />
-                      {isActive && (
-                        <div className={cn(
-                          "absolute inset-0 rounded-full animate-pulse opacity-30",
-                          isPrimary ? "bg-primary/30" : "bg-accent/30"
-                        )} />
-                      )}
-                      <span className={cn(
-                        "absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center",
-                        isActive ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
-                      )}>
-                        {i + 1}
-                      </span>
                     </div>
                     <span
                       className={cn(

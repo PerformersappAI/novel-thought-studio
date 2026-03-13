@@ -58,9 +58,9 @@ const Navbar = () => {
         </div>
 
         {/* Center — Brand name */}
-        <Link to="/" className="hidden md:block font-display font-bold text-lg tracking-tight">
-          <span className="text-gradient-blue">Replica</span>{" "}
-          <span className="text-gradient-gold">Shield</span>
+        <Link to="/" className="hidden md:block font-display font-bold text-2xl tracking-tight opacity-60 hover:opacity-80 transition-opacity">
+          <span className="text-foreground">Replica</span>{" "}
+          <span className="text-muted-foreground">Shield</span>
         </Link>
 
         {/* Right — Auth buttons (desktop) */}
