@@ -40,7 +40,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 leading-relaxed"
+            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-3 leading-relaxed"
           >
             The trusted registry for performers to register their likeness-based assets, 
             verify ownership, and receive certified protection against unauthorized AI use.
