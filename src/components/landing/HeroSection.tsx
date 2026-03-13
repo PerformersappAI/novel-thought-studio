@@ -28,7 +28,7 @@ const HeroSection = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.7 }}
           transition={{ delay: 1, duration: 1 }}
-          className="absolute bottom-[2%] right-[18%] w-64 md:w-80 z-10"
+          className="absolute bottom-[-6%] right-[4%] w-[20rem] md:w-[40rem] lg:w-[44rem] scale-x-110 origin-bottom-right z-10"
         />
       </div>
 
