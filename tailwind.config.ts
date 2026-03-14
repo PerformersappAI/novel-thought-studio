@@ -53,6 +53,7 @@ export default {
         },
         gold: "hsl(var(--gold))",
         "electric-blue": "hsl(var(--electric-blue))",
+        "nvidia-green": "hsl(var(--nvidia-green))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

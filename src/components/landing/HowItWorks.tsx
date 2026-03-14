@@ -4,12 +4,12 @@ import { UserPlus, ShieldCheck, Upload, Search, FileCheck, Award } from "lucide-
 import { cn } from "@/lib/utils";
 
 const steps = [
-  { icon: UserPlus, title: "Create Account", desc: "Sign up with your email and build your performer profile. It only takes a minute to get started.", color: "primary" },
-  { icon: ShieldCheck, title: "Verify Identity", desc: "Upload a government-issued ID and a clear selfie. Our team verifies your identity to ensure authenticity.", color: "primary" },
-  { icon: Upload, title: "Upload Assets", desc: "Register your images, voice samples, video clips, or AI model files. Each is hashed and timestamped for ownership proof.", color: "accent" },
-  { icon: Search, title: "Get Reviewed", desc: "Our admin team reviews your submissions, verifies authenticity, and approves your registry entries.", color: "accent" },
-  { icon: Award, title: "Get Certified", desc: "Receive a unique Registry ID and downloadable certificate with cryptographic proof of ownership.", color: "primary" },
-  { icon: FileCheck, title: "Track & Monitor", desc: "Monitor where your likeness is used. Get alerts on potential misuse. Maintain a full audit trail.", color: "accent" },
+  { icon: UserPlus, title: "Create Account", desc: "Sign up with your email and build your performer profile. It only takes a minute to get started." },
+  { icon: ShieldCheck, title: "Verify Identity", desc: "Upload a government-issued ID and a clear selfie. Our team verifies your identity to ensure authenticity." },
+  { icon: Upload, title: "Upload Assets", desc: "Register your images, voice samples, video clips, or AI model files. Each is hashed and timestamped for ownership proof." },
+  { icon: Search, title: "Get Reviewed", desc: "Our admin team reviews your submissions, verifies authenticity, and approves your registry entries." },
+  { icon: Award, title: "Get Certified", desc: "Receive a unique Registry ID and downloadable certificate with cryptographic proof of ownership." },
+  { icon: FileCheck, title: "Track & Monitor", desc: "Monitor where your likeness is used. Get alerts on potential misuse. Maintain a full audit trail." },
 ];
 
 const HowItWorks = () => {
@@ -35,7 +35,6 @@ const HowItWorks = () => {
             {steps.map((step, i) => {
               const isActive = i === activeStep;
               const Icon = step.icon;
-              const isPrimary = step.color === "primary";
 
               return (
                 <div key={step.title} className="flex items-center">
@@ -46,15 +45,13 @@ const HowItWorks = () => {
                     <div
                       className={cn(
                         "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300",
-                        isActive && isPrimary && "scale-110",
-                        isActive && !isPrimary && "scale-110",
+                        isActive && "scale-110",
                       )}
                     >
                       <Icon
                         className={cn(
                           "w-7 h-7 transition-colors duration-300",
-                          isActive && isPrimary && "text-primary drop-shadow-[0_0_8px_hsl(210_100%_56%/0.6)]",
-                          isActive && !isPrimary && "text-accent drop-shadow-[0_0_8px_hsl(45_93%_58%/0.6)]",
+                          isActive && "text-primary drop-shadow-[0_0_8px_hsl(80_100%_36%/0.6)]",
                           !isActive && "text-muted-foreground/40 group-hover:text-muted-foreground/70"
                         )}
                       />
@@ -62,8 +59,7 @@ const HowItWorks = () => {
                     <span
                       className={cn(
                         "text-[11px] font-display font-medium text-center leading-tight max-w-[80px]",
-                        isActive && isPrimary && "text-primary",
-                        isActive && !isPrimary && "text-accent",
+                        isActive && "text-primary",
                         !isActive && "text-muted-foreground/60"
                       )}
                     >
@@ -95,15 +91,9 @@ const HowItWorks = () => {
             transition={{ duration: 0.25 }}
             className="max-w-2xl mx-auto"
           >
-            <div className={cn(
-              "glass-card rounded-xl p-8 text-center",
-              steps[activeStep].color === "primary" ? "glow-blue" : "glow-gold"
-            )}>
-              <div className={cn(
-                "w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center",
-                steps[activeStep].color === "primary" ? "bg-primary/10" : "bg-accent/10"
-              )}>
-                {(() => { const Icon = steps[activeStep].icon; return <Icon className={cn("w-8 h-8", steps[activeStep].color === "primary" ? "text-primary" : "text-accent")} />; })()}
+            <div className="glass-card rounded-xl p-8 text-center glow-green">
+              <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10">
+                {(() => { const Icon = steps[activeStep].icon; return <Icon className="w-8 h-8 text-primary" />; })()}
               </div>
               <h3 className="font-display text-xl font-bold text-foreground mb-3">
                 Step {activeStep + 1}: {steps[activeStep].title}
