@@ -53,7 +53,7 @@ const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className={`glass-card rounded-xl p-8 flex flex-col ${plan.highlight ? "border-primary/50 glow-blue relative" : ""}`}
+              className={`glass-card rounded-xl p-8 flex flex-col ${plan.highlight ? "border-primary/50 glow-green relative" : ""}`}
             >
               {plan.highlight && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold font-display">
@@ -76,7 +76,7 @@ const PricingSection = () => {
                   </li>
                 ))}
               </ul>
-              <Button asChild variant={plan.highlight ? "default" : "outline"} className={`w-full font-display ${plan.highlight ? "glow-blue" : ""}`}>
+              <Button asChild variant={plan.highlight ? "default" : "outline"} className={`w-full font-display ${plan.highlight ? "glow-green" : ""}`}>
                 <Link to="/signup">{plan.cta}</Link>
               </Button>
             </motion.div>
