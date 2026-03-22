@@ -318,35 +318,65 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string | null
+          admin_notes: string | null
           avatar_url: string | null
           bio: string | null
+          company_name: string | null
           created_at: string
           display_name: string | null
           full_name: string
           id: string
+          legal_accepted_at: string | null
           phone: string | null
+          production_type: string | null
+          slug: string | null
+          stage_name: string | null
+          union_affiliation: string | null
+          union_id: string | null
+          union_verified: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          account_type?: string | null
+          admin_notes?: string | null
           avatar_url?: string | null
           bio?: string | null
+          company_name?: string | null
           created_at?: string
           display_name?: string | null
           full_name?: string
           id?: string
+          legal_accepted_at?: string | null
           phone?: string | null
+          production_type?: string | null
+          slug?: string | null
+          stage_name?: string | null
+          union_affiliation?: string | null
+          union_id?: string | null
+          union_verified?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          account_type?: string | null
+          admin_notes?: string | null
           avatar_url?: string | null
           bio?: string | null
+          company_name?: string | null
           created_at?: string
           display_name?: string | null
           full_name?: string
           id?: string
+          legal_accepted_at?: string | null
           phone?: string | null
+          production_type?: string | null
+          slug?: string | null
+          stage_name?: string | null
+          union_affiliation?: string | null
+          union_id?: string | null
+          union_verified?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -405,6 +435,42 @@ export type Database = {
           status?: Database["public"]["Enums"]["asset_status"]
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reported_violations: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string
+          id: string
+          screenshot_url: string | null
+          status: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          url?: string
           user_id?: string
         }
         Relationships: []
@@ -525,7 +591,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "performer" | "admin"
+      app_role: "performer" | "admin" | "producer"
       asset_status: "pending" | "approved" | "rejected" | "revision_requested"
       asset_type: "image" | "video" | "audio" | "text" | "ai_model"
       notification_type:
@@ -664,7 +730,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["performer", "admin"],
+      app_role: ["performer", "admin", "producer"],
       asset_status: ["pending", "approved", "rejected", "revision_requested"],
       asset_type: ["image", "video", "audio", "text", "ai_model"],
       notification_type: [
