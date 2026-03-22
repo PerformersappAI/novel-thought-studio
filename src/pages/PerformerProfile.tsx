@@ -5,7 +5,6 @@ import { ArrowLeft, ShieldCheck, FileImage, FileAudio, FileVideo } from "lucide-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo.png";
 
 const assetTypeIcons: Record<string, any> = {
   image: FileImage, audio: FileAudio, video: FileVideo,
@@ -15,6 +14,7 @@ const PerformerProfile = () => {
   const { slug } = useParams<{ slug: string }>();
   const [profile, setProfile] = useState<any>(null);
   const [assetTypes, setAssetTypes] = useState<string[]>([]);
+  const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,14 +27,20 @@ const PerformerProfile = () => {
 
       if (data) {
         setProfile(data);
-        // Get unique asset types for this performer
         const { data: assets } = await supabase
           .from("registry_assets")
           .select("asset_type")
           .eq("user_id", data.user_id)
           .eq("status", "approved");
-        const types = [...new Set((assets ?? []).map((a: any) => a.asset_type))];
-        setAssetTypes(types);
+        setAssetTypes([...new Set((assets ?? []).map((a: any) => a.asset_type))]);
+
+        const { data: ver } = await supabase
+          .from("identity_verifications")
+          .select("status")
+          .eq("user_id", data.user_id)
+          .eq("status", "approved")
+          .maybeSingle();
+        setVerified(!!ver);
       }
       setLoading(false);
     };
@@ -60,21 +66,6 @@ const PerformerProfile = () => {
     );
   }
 
-  // Check verification status
-  const [verified, setVerified] = useState(false);
-  useEffect(() => {
-    const checkVerification = async () => {
-      const { data } = await supabase
-        .from("identity_verifications")
-        .select("status")
-        .eq("user_id", profile.user_id)
-        .eq("status", "approved")
-        .maybeSingle();
-      setVerified(!!data);
-    };
-    if (profile) checkVerification();
-  }, [profile]);
-
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 grid-pattern opacity-20" />
@@ -95,9 +86,7 @@ const PerformerProfile = () => {
                 <div>
                   <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
                     {profile.display_name || profile.full_name}
-                    {verified && (
-                      <ShieldCheck className="w-5 h-5 text-primary" />
-                    )}
+                    {verified && <ShieldCheck className="w-5 h-5 text-primary" />}
                   </h1>
                   {profile.stage_name && (
                     <p className="text-muted-foreground text-sm">aka {profile.stage_name}</p>
@@ -105,20 +94,13 @@ const PerformerProfile = () => {
                 </div>
               </div>
 
-              {profile.bio && (
-                <p className="text-muted-foreground text-sm mb-6">{profile.bio}</p>
-              )}
+              {profile.bio && <p className="text-muted-foreground text-sm mb-6">{profile.bio}</p>}
 
               <div className="flex flex-wrap gap-2 mb-6">
-                {verified && (
-                  <Badge className="bg-primary/10 text-primary border-primary/30">Verified</Badge>
-                )}
-                {profile.union_affiliation && profile.union_affiliation !== "non-union" && (
-                  <Badge variant="secondary" className="uppercase">{profile.union_affiliation}</Badge>
-                )}
-                {profile.union_affiliation === "non-union" && (
-                  <Badge variant="secondary">Non-Union</Badge>
-                )}
+                {verified && <Badge className="bg-primary/10 text-primary border-primary/30">Verified</Badge>}
+                <Badge variant="secondary" className="uppercase">
+                  {profile.union_affiliation === "non-union" ? "Non-Union" : profile.union_affiliation}
+                </Badge>
               </div>
 
               {assetTypes.length > 0 && (
