@@ -16,7 +16,7 @@ const HowItWorks = () => {
   const [activeStep, setActiveStep] = useState(0);
 
   return (
-    <section id="how-it-works" className="py-24 relative">
+    <section id="how-it-works" className="py-24 relative bg-secondary/30">
       <div className="absolute inset-0 grid-pattern opacity-20" />
       <div className="container relative z-10 px-4">
         <motion.div
@@ -26,7 +26,7 @@ const HowItWorks = () => {
           className="text-center mb-16"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">How It Works</h2>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">From registration to certified protection in six simple steps.</p>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto font-body">From registration to certified protection in six simple steps.</p>
         </motion.div>
 
         {/* Horizontal step bar */}
@@ -51,14 +51,14 @@ const HowItWorks = () => {
                       <Icon
                         className={cn(
                           "w-7 h-7 transition-colors duration-300",
-                          isActive && "text-primary drop-shadow-[0_0_8px_hsl(80_100%_36%/0.6)]",
+                          isActive && "text-primary drop-shadow-[0_0_8px_hsl(351_83%_42%/0.6)]",
                           !isActive && "text-muted-foreground/40 group-hover:text-muted-foreground/70"
                         )}
                       />
                     </div>
                     <span
                       className={cn(
-                        "text-[11px] font-display font-medium text-center leading-tight max-w-[80px]",
+                        "text-[11px] font-body font-medium text-center leading-tight max-w-[80px]",
                         isActive && "text-primary",
                         !isActive && "text-muted-foreground/60"
                       )}
@@ -71,7 +71,7 @@ const HowItWorks = () => {
                     <div
                       className={cn(
                         "w-10 md:w-16 h-0.5 mx-2 mt-[-20px]",
-                        i < activeStep ? "bg-primary/60" : "bg-border/40"
+                        i < activeStep ? "bg-primary/60" : "bg-white/[0.08]"
                       )}
                     />
                   )}
@@ -91,14 +91,14 @@ const HowItWorks = () => {
             transition={{ duration: 0.25 }}
             className="max-w-2xl mx-auto"
           >
-            <div className="glass-card rounded-xl p-8 text-center glow-green">
+            <div className="glass-card rounded-xl p-8 text-center glow-red">
               <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10">
                 {(() => { const Icon = steps[activeStep].icon; return <Icon className="w-8 h-8 text-primary" />; })()}
               </div>
               <h3 className="font-display text-xl font-bold text-foreground mb-3">
                 Step {activeStep + 1}: {steps[activeStep].title}
               </h3>
-              <p className="text-muted-foreground leading-relaxed">{steps[activeStep].desc}</p>
+              <p className="text-muted-foreground leading-relaxed font-body">{steps[activeStep].desc}</p>
             </div>
           </motion.div>
         </AnimatePresence>

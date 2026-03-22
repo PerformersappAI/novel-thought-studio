@@ -42,7 +42,7 @@ const PricingSection = () => {
           className="text-center mb-16"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">Simple Pricing</h2>
-          <p className="text-muted-foreground text-lg">Start free. Upgrade when you need full protection.</p>
+          <p className="text-muted-foreground text-lg font-body">Start free. Upgrade when you need full protection.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -53,10 +53,10 @@ const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className={`glass-card rounded-xl p-8 flex flex-col ${plan.highlight ? "border-primary/50 glow-green relative" : ""}`}
+              className={`glass-card rounded-xl p-8 flex flex-col relative overflow-hidden ${plan.highlight ? "border-primary/50 glow-red" : ""}`}
             >
               {plan.highlight && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold font-display">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold font-body">
                   Most Popular
                 </div>
               )}
@@ -64,19 +64,19 @@ const PricingSection = () => {
                 <h3 className="font-display text-lg font-semibold text-foreground">{plan.name}</h3>
                 <div className="mt-2">
                   <span className="font-display text-4xl font-bold text-foreground">{plan.price}</span>
-                  {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
+                  {plan.period && <span className="text-muted-foreground font-body">{plan.period}</span>}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">{plan.desc}</p>
+                <p className="text-sm text-muted-foreground mt-2 font-body">{plan.desc}</p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                    <Check className="w-4 h-4 text-primary shrink-0" />
+                  <li key={f} className="flex items-center gap-2 text-sm text-foreground font-body">
+                    <Check className="w-4 h-4 text-accent shrink-0" />
                     {f}
                   </li>
                 ))}
               </ul>
-              <Button asChild variant={plan.highlight ? "default" : "outline"} className={`w-full font-display ${plan.highlight ? "glow-green" : ""}`}>
+              <Button asChild variant={plan.highlight ? "default" : "outline"} className={`w-full font-body ${plan.highlight ? "glow-red" : "border-white/[0.15] hover:border-white/30"}`}>
                 <Link to="/signup">{plan.cta}</Link>
               </Button>
             </motion.div>

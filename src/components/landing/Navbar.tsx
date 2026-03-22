@@ -33,15 +33,25 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.08] bg-background/70 backdrop-blur-xl">
       <div className="container px-4 h-16 flex items-center justify-between">
-        {/* Left — Nav links (desktop) */}
+        {/* Left — Logo */}
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
+            <span className="font-display text-sm font-bold text-primary-foreground">R</span>
+          </div>
+          <span className="font-display text-xl font-bold tracking-tight text-foreground">
+            Replica Shield
+          </span>
+        </Link>
+
+        {/* Center — Nav links (desktop) */}
         <div className="hidden md:flex items-center gap-8">
           {anchorLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => handleAnchorClick(link.href)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-display"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
             >
               {link.label}
             </button>
@@ -50,30 +60,24 @@ const Navbar = () => {
             <Link
               key={link.href}
               to={link.href}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-display"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
             >
               {link.label}
             </Link>
           ))}
         </div>
 
-        {/* Center — Brand name */}
-        <Link to="/" className="hidden md:block font-display font-bold text-2xl tracking-tight opacity-60 hover:opacity-80 transition-opacity">
-          <span className="text-foreground">Replica</span>{" "}
-          <span className="text-muted-foreground">Shield</span>
-        </Link>
-
         {/* Right — Auth buttons (desktop) */}
         <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
               <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
-              <Button variant="outline" size="sm" onClick={signOut} className="font-display">Sign Out</Button>
+              <Button variant="outline" size="sm" onClick={signOut} className="font-body border-white/[0.15] hover:border-white/30">Sign Out</Button>
             </>
           ) : (
             <>
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link>
-              <Button asChild size="sm" className="font-display">
+              <Button asChild size="sm" className="font-body glow-red">
                 <Link to="/signup">Get Started</Link>
               </Button>
             </>
@@ -81,14 +85,19 @@ const Navbar = () => {
         </div>
 
         {/* Mobile hamburger */}
-        <div className="md:hidden flex items-center justify-between w-full">
+        <div className="md:hidden flex items-center gap-3">
+          {!user && (
+            <Button asChild size="sm" className="font-body glow-red">
+              <Link to="/signup">Get Started</Link>
+            </Button>
+          )}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64">
+            <SheetContent side="left" className="w-64 bg-card border-white/[0.08]">
               <SheetHeader>
                 <SheetTitle className="font-display">Menu</SheetTitle>
               </SheetHeader>
@@ -97,7 +106,7 @@ const Navbar = () => {
                   <button
                     key={link.href}
                     onClick={() => handleAnchorClick(link.href)}
-                    className="text-left text-sm text-muted-foreground hover:text-foreground transition-colors font-display"
+                    className="text-left text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
                   >
                     {link.label}
                   </button>
@@ -107,21 +116,21 @@ const Navbar = () => {
                     key={link.href}
                     to={link.href}
                     onClick={() => setOpen(false)}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors font-display"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
                   >
                     {link.label}
                   </Link>
                 ))}
-                <div className="border-t border-border/30 pt-4 flex flex-col gap-3">
+                <div className="border-t border-white/[0.08] pt-4 flex flex-col gap-3">
                   {user ? (
                     <>
                       <Link to="/dashboard" onClick={() => setOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">Dashboard</Link>
-                      <Button variant="outline" size="sm" onClick={() => { signOut(); setOpen(false); }} className="font-display">Sign Out</Button>
+                      <Button variant="outline" size="sm" onClick={() => { signOut(); setOpen(false); }} className="font-body border-white/[0.15]">Sign Out</Button>
                     </>
                   ) : (
                     <>
                       <Link to="/login" onClick={() => setOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">Login</Link>
-                      <Button asChild size="sm" className="font-display">
+                      <Button asChild size="sm" className="font-body">
                         <Link to="/signup" onClick={() => setOpen(false)}>Get Started</Link>
                       </Button>
                     </>
@@ -130,12 +139,6 @@ const Navbar = () => {
               </div>
             </SheetContent>
           </Sheet>
-
-          {!user && (
-            <Button asChild size="sm" className="font-display">
-              <Link to="/signup">Get Started</Link>
-            </Button>
-          )}
         </div>
       </div>
     </nav>
