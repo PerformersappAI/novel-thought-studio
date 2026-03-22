@@ -20,7 +20,7 @@ const TrustSection = () => {
           className="text-center mb-16"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">Built on Trust & Security</h2>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">Enterprise-grade protection for your most valuable asset — your identity.</p>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto font-body">Enterprise-grade protection for your most valuable asset — your identity.</p>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -31,13 +31,15 @@ const TrustSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-xl p-6 text-center group hover:glow-green transition-all duration-500"
+              className="glass-card rounded-xl p-6 text-center group hover:glow-red transition-all duration-500 relative overflow-hidden"
             >
               <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
                 <feature.icon className="w-7 h-7 text-primary" />
               </div>
               <h3 className="font-display font-semibold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed font-body">{feature.desc}</p>
+              {/* Crimson bottom-border reveal on hover */}
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
             </motion.div>
           ))}
         </div>

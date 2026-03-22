@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Shield, CheckCircle, Fingerprint } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroCreators from "@/assets/hero-creators.jpg";
 
-const FloatingNode = ({ x, y, delay }: { x: string; y: string; delay: number }) => (
+const TrustChip = ({ children, delay }: { children: React.ReactNode; delay: number }) => (
   <motion.div
-    className="absolute w-1.5 h-1.5 rounded-full bg-primary/40"
-    style={{ left: x, top: y }}
-    animate={{ opacity: [0.2, 0.8, 0.2], scale: [1, 1.5, 1] }}
-    transition={{ duration: 3, delay, repeat: Infinity, ease: "easeInOut" }}
-  />
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.5 }}
+    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] text-xs font-body text-muted-foreground backdrop-blur-sm"
+  >
+    {children}
+  </motion.div>
 );
 
 const HeroSection = () => {
@@ -21,27 +23,19 @@ const HeroSection = () => {
       <div className="absolute inset-0 grid-pattern opacity-40" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
-      {/* Ambient glow spots */}
+      {/* Ambient glow — crimson */}
       <motion.div
-        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full opacity-20"
-        style={{ background: "radial-gradient(circle, hsl(80 100% 36% / 0.15), transparent 70%)" }}
-        animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
+        className="absolute top-1/3 left-1/3 w-[600px] h-[600px] rounded-full opacity-20"
+        style={{ background: "radial-gradient(circle, hsl(351 83% 42% / 0.2), transparent 70%)" }}
+        animate={{ scale: [1, 1.1, 1], opacity: [0.12, 0.22, 0.12] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-15"
-        style={{ background: "radial-gradient(circle, hsl(210 100% 56% / 0.1), transparent 70%)" }}
-        animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.2, 0.1] }}
+        style={{ background: "radial-gradient(circle, hsl(42 63% 55% / 0.1), transparent 70%)" }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.18, 0.08] }}
         transition={{ duration: 8, delay: 2, repeat: Infinity, ease: "easeInOut" }}
       />
-
-      {/* Floating nodes */}
-      <FloatingNode x="10%" y="20%" delay={0} />
-      <FloatingNode x="85%" y="15%" delay={1.2} />
-      <FloatingNode x="70%" y="70%" delay={0.6} />
-      <FloatingNode x="20%" y="80%" delay={1.8} />
-      <FloatingNode x="50%" y="30%" delay={2.4} />
-      <FloatingNode x="35%" y="60%" delay={0.9} />
 
       {/* Main content */}
       <div className="container px-4 relative z-10 py-12 md:py-0">
@@ -59,22 +53,22 @@ const HeroSection = () => {
               transition={{ delay: 0.2 }}
               className="inline-block mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/5"
             >
-              <span className="text-xs font-display font-medium text-primary tracking-wider uppercase">
+              <span className="text-xs font-body font-medium text-primary tracking-wider uppercase">
                 The Industry Standard for Likeness Protection
               </span>
             </motion.div>
 
             <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-5 leading-[1.1]">
-              <span className="text-foreground">Your Digital Double,</span>
+              <span className="text-foreground">Own Your Identity.</span>
               <br />
-              <span className="text-gradient-green">Ready to Perform.</span>
+              <span className="text-gradient-gold">Control Your Likeness.</span>
             </h1>
 
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="text-base md:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed"
+              className="text-base md:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed font-body"
             >
               Register, verify, and shield your likeness-based assets with
               cryptographic proof of ownership. The trusted registry for performers
@@ -90,7 +84,7 @@ const HeroSection = () => {
               <Button
                 asChild
                 size="lg"
-                className="font-display text-base font-semibold px-8 h-13 glow-green"
+                className="font-body text-base font-semibold px-8 h-13 glow-red"
               >
                 <Link to="/signup">
                   Register Your Likeness
@@ -101,68 +95,105 @@ const HeroSection = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="font-display text-base px-8 h-13 border-border/60 hover:border-primary/50"
+                className="font-body text-base px-8 h-13 border-white/[0.15] hover:border-white/30"
               >
                 <Link to="/login">Sign In</Link>
               </Button>
             </motion.div>
+
+            {/* Trust chips */}
+            <div className="flex flex-wrap gap-2 mt-6 justify-center md:justify-start">
+              <TrustChip delay={1.0}>
+                <CheckCircle className="w-3.5 h-3.5 text-accent" />
+                Identity Verified
+              </TrustChip>
+              <TrustChip delay={1.2}>
+                <Shield className="w-3.5 h-3.5 text-primary" />
+                AI-Protected Likeness
+              </TrustChip>
+              <TrustChip delay={1.4}>
+                <Fingerprint className="w-3.5 h-3.5 text-accent" />
+                Biometric Secured
+              </TrustChip>
+            </div>
           </motion.div>
 
-          {/* Right — Hexagonal image */}
+          {/* Right — Floating credential card */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
             className="flex-shrink-0 relative"
           >
-            {/* Outer glow ring */}
-            <div className="absolute inset-0 hexagon-clip bg-gradient-to-br from-primary/30 via-electric-blue/20 to-primary/30 scale-[1.04] blur-sm" />
-            
-            {/* Pulsing border glow */}
-            <motion.div
-              className="absolute inset-0 hexagon-clip"
-              style={{
-                background: "linear-gradient(135deg, hsl(80 100% 36% / 0.3), hsl(210 100% 56% / 0.2), hsl(80 100% 36% / 0.3))",
-              }}
-              animate={{ opacity: [0.4, 0.8, 0.4] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
+            {/* Card container */}
+            <div className="relative w-[300px] md:w-[360px] rounded-2xl overflow-hidden glass-card group">
+              {/* Card image */}
+              <div className="relative h-[200px] md:h-[240px] overflow-hidden">
+                <img
+                  src={heroCreators}
+                  alt="Performers protected by Replica Shield"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+                <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-accent/90 text-accent-foreground text-[10px] font-body font-semibold uppercase tracking-wider">
+                  Verified
+                </div>
+              </div>
 
-            {/* Image container */}
-            <div className="relative w-[280px] h-[320px] md:w-[380px] md:h-[430px] lg:w-[420px] lg:h-[480px] hexagon-clip overflow-hidden">
-              <img
-                src={heroCreators}
-                alt="Performers protected by Replica Shield"
-                className="w-full h-full object-cover"
-              />
-              {/* Digital overlay effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-primary/10" />
-              <div className="absolute inset-0 grid-pattern opacity-20" />
+              {/* Card body */}
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-display font-semibold text-foreground text-sm">Replica Shield</p>
+                    <p className="text-[11px] text-muted-foreground font-body">Digital Likeness Registry</p>
+                  </div>
+                </div>
+                <div className="space-y-1.5 text-xs font-body text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Registry ID</span>
+                    <span className="text-foreground font-medium">RS-2026-00482</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Assets Protected</span>
+                    <span className="text-foreground font-medium">12</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Likeness Status</span>
+                    <span className="text-accent font-medium">Active</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Crimson hover border reveal */}
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
             </div>
 
-            {/* Corner accent lines */}
+            {/* Floating decorative accent */}
             <motion.div
-              className="absolute -top-3 -right-3 w-16 h-16 border-t-2 border-r-2 border-primary/40 rounded-tr-lg"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              className="absolute -top-4 -right-4 w-20 h-20 border-t-2 border-r-2 border-primary/30 rounded-tr-xl"
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 4, repeat: Infinity }}
             />
             <motion.div
-              className="absolute -bottom-3 -left-3 w-16 h-16 border-b-2 border-l-2 border-primary/40 rounded-bl-lg"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              className="absolute -bottom-4 -left-4 w-20 h-20 border-b-2 border-l-2 border-accent/30 rounded-bl-xl"
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 4, delay: 2, repeat: Infinity }}
             />
           </motion.div>
         </div>
       </div>
 
-      {/* Stats bar */}
+      {/* Stats bar — crimson */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="relative z-10 mt-16 md:mt-24 w-full border-t border-border/30"
+        className="relative z-10 mt-16 md:mt-24 w-full bg-primary"
       >
-        <div className="container px-4 py-8 flex flex-wrap justify-center gap-8 md:gap-16">
+        <div className="container px-4 py-6 flex flex-wrap justify-center gap-8 md:gap-16">
           {[
             { value: "10K+", label: "Performers Protected" },
             { value: "52K", label: "Assets Registered" },
@@ -170,10 +201,10 @@ const HeroSection = () => {
             { value: "24/7", label: "Active Monitoring" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="font-display text-2xl md:text-3xl font-bold text-primary">
+              <div className="font-display text-2xl md:text-3xl font-bold text-primary-foreground">
                 {stat.value}
               </div>
-              <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+              <div className="text-sm text-primary-foreground/70 mt-1 font-body">{stat.label}</div>
             </div>
           ))}
         </div>
