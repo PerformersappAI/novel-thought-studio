@@ -82,10 +82,25 @@ const MyAssets = () => {
             <h1 className="font-display text-2xl md:text-3xl font-bold">My Assets</h1>
             <p className="text-muted-foreground mt-1">Register and manage your likeness assets</p>
           </div>
-          <Button onClick={() => setShowUpload(!showUpload)} className="font-display">
+          <Button onClick={() => setShowUpload(!showUpload)} className="font-display" disabled={!uploadLimits.canUpload}>
             <Plus className="w-4 h-4 mr-1" /> New Asset
           </Button>
         </div>
+
+        {!uploadLimits.loading && (
+          <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
+            <span>{uploadLimits.tierName} tier</span>
+            <span>·</span>
+            <span>{uploadLimits.currentCount} / {uploadLimits.maxAssets === Infinity ? "∞" : uploadLimits.maxAssets} assets</span>
+            <span>·</span>
+            <span>{uploadLimits.dailyCount} / 10 today</span>
+            {!uploadLimits.canUpload && (
+              <Badge variant="secondary" className="bg-destructive/10 text-destructive">
+                <AlertTriangle className="w-3 h-3 mr-1" /> Limit reached
+              </Badge>
+            )}
+          </div>
+        )}
 
         <StepIndicator currentStep={2} className="mb-8" />
 
