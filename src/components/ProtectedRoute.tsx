@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import LegalAgreementGate from "@/components/LegalAgreementGate";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -13,7 +14,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+
+  return <LegalAgreementGate>{children}</LegalAgreementGate>;
 };
 
 export default ProtectedRoute;
