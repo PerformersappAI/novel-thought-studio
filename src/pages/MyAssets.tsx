@@ -22,6 +22,7 @@ const assetTypeIcons: Record<string, any> = {
 const MyAssets = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const uploadLimits = useUploadLimit();
   const [assets, setAssets] = useState<any[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
