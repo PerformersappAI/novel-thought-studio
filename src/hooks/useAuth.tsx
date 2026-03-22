@@ -2,16 +2,18 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
-type UserRole = "performer" | "admin";
+type UserRole = "performer" | "producer" | "admin";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   role: UserRole | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
+  legalAccepted: boolean | null;
+  signUp: (email: string, password: string, fullName: string, meta?: Record<string, string>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  markLegalAccepted: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -23,6 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [legalAccepted, setLegalAccepted] = useState<boolean | null>(null);
 
   const fetchRole = async (userId: string) => {
     const { data } = await supabase
@@ -33,15 +36,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole((data?.role as UserRole) ?? "performer");
   };
 
+  const fetchLegalStatus = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("legal_accepted_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    setLegalAccepted(!!data?.legal_accepted_at);
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => fetchRole(session.user.id), 0);
+          setTimeout(() => {
+            fetchRole(session.user.id);
+            fetchLegalStatus(session.user.id);
+          }, 0);
         } else {
           setRole(null);
+          setLegalAccepted(null);
         }
         setLoading(false);
       }
@@ -52,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchRole(session.user.id);
+        fetchLegalStatus(session.user.id);
       }
       setLoading(false);
     });
@@ -59,12 +76,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, meta?: Record<string, string>) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: fullName, ...meta },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -80,8 +97,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const markLegalAccepted = async () => {
+    if (!user) return;
+    await supabase.from("profiles").update({ legal_accepted_at: new Date().toISOString() } as any).eq("user_id", user.id);
+    setLegalAccepted(true);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, role, loading, legalAccepted, signUp, signIn, signOut, markLegalAccepted }}>
       {children}
     </AuthContext.Provider>
   );

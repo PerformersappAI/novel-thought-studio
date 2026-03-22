@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Plus, FileImage, FileAudio, FileVideo, FileText, Cpu } from "lucide-react";
+import { Upload, Plus, FileImage, FileAudio, FileVideo, FileText, Cpu, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import StepIndicator from "@/components/StepIndicator";
+import { useUploadLimit } from "@/hooks/useUploadLimit";
 
 const assetTypeIcons: Record<string, any> = {
   image: FileImage, audio: FileAudio, video: FileVideo, text: FileText, ai_model: Cpu,
@@ -21,6 +22,7 @@ const assetTypeIcons: Record<string, any> = {
 const MyAssets = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const uploadLimits = useUploadLimit();
   const [assets, setAssets] = useState<any[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -80,10 +82,25 @@ const MyAssets = () => {
             <h1 className="font-display text-2xl md:text-3xl font-bold">My Assets</h1>
             <p className="text-muted-foreground mt-1">Register and manage your likeness assets</p>
           </div>
-          <Button onClick={() => setShowUpload(!showUpload)} className="font-display">
+          <Button onClick={() => setShowUpload(!showUpload)} className="font-display" disabled={!uploadLimits.canUpload}>
             <Plus className="w-4 h-4 mr-1" /> New Asset
           </Button>
         </div>
+
+        {!uploadLimits.loading && (
+          <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
+            <span>{uploadLimits.tierName} tier</span>
+            <span>·</span>
+            <span>{uploadLimits.currentCount} / {uploadLimits.maxAssets === Infinity ? "∞" : uploadLimits.maxAssets} assets</span>
+            <span>·</span>
+            <span>{uploadLimits.dailyCount} / 10 today</span>
+            {!uploadLimits.canUpload && (
+              <Badge variant="secondary" className="bg-destructive/10 text-destructive">
+                <AlertTriangle className="w-3 h-3 mr-1" /> Limit reached
+              </Badge>
+            )}
+          </div>
+        )}
 
         <StepIndicator currentStep={2} className="mb-8" />
 

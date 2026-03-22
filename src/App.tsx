@@ -26,6 +26,8 @@ import DMCATakedown from "./pages/DMCATakedown";
 import MediaKitBuilder from "./pages/MediaKitBuilder";
 import AvatarCreator from "./pages/AvatarCreator";
 import LikenessMonitor from "./pages/LikenessMonitor";
+import ReportViolation from "./pages/ReportViolation";
+import PerformerProfile from "./pages/PerformerProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +43,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/performer/:slug" element={<PerformerProfile />} />
             <Route path="/dashboard" element={<ProtectedRoute><PerformerDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/assets" element={<ProtectedRoute><MyAssets /></ProtectedRoute>} />
             <Route path="/dashboard/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
@@ -51,6 +54,7 @@ const App = () => (
             <Route path="/dashboard/legal" element={<ProtectedRoute><AdminLegalLogs /></ProtectedRoute>} />
             <Route path="/dashboard/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
             <Route path="/dashboard/monitor" element={<ProtectedRoute><LikenessMonitor /></ProtectedRoute>} />
+            <Route path="/dashboard/violations" element={<ProtectedRoute><ReportViolation /></ProtectedRoute>} />
             <Route path="/education" element={<Education />} />
             <Route path="/education/:slug" element={<BlogPost />} />
             <Route path="/tools" element={<Tools />} />

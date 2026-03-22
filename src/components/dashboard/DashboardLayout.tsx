@@ -15,6 +15,13 @@ const performerLinks = [
   { to: "/dashboard/certificates", icon: FileText, label: "Certificates" },
   { to: "/dashboard/verification", icon: CheckSquare, label: "Verification" },
   { to: "/dashboard/monitor", icon: Radar, label: "Likeness Monitor" },
+  { to: "/dashboard/violations", icon: ScrollText, label: "Report Violation" },
+  { to: "/dashboard/settings", icon: Settings, label: "Settings" },
+];
+
+const producerLinks = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
+  { to: "/dashboard/scan", icon: Radar, label: "Scan Registry" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -22,6 +29,7 @@ const adminLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
   { to: "/dashboard/review", icon: CheckSquare, label: "Review Queue" },
   { to: "/dashboard/users", icon: Users, label: "Users" },
+  { to: "/dashboard/violations", icon: ScrollText, label: "Violations" },
   { to: "/dashboard/legal", icon: ScrollText, label: "Legal Logs" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
@@ -29,7 +37,7 @@ const adminLinks = [
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   const { role, signOut, user } = useAuth();
-  const links = role === "admin" ? adminLinks : performerLinks;
+  const links = role === "admin" ? adminLinks : role === "producer" ? producerLinks : performerLinks;
 
   return (
     <div className="min-h-screen bg-background flex">
