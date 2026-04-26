@@ -335,6 +335,14 @@ const OnboardingFaceCapture = () => {
             </p>
           </header>
 
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+
           {!cameraOpen && !allCaptured && (
             <div className="rounded-xl border-2 border-primary/40 bg-card/40 p-6 space-y-4">
               <div className="flex items-center gap-2">
