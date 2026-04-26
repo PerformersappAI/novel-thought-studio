@@ -32,7 +32,7 @@ export const ARTICLE_CATEGORIES: ("All" | ArticleCategory)[] = [
   "Industry",
 ];
 
-const AUTHOR = "ReplicaShield Legal Team";
+const AUTHOR = "ClaimMyFace Legal Team";
 
 export const educationArticles: EducationArticle[] = [
   {
@@ -118,7 +118,7 @@ export const educationArticles: EducationArticle[] = [
         heading: "Step 1: Register a Verified Reference",
         body: [
           "Before you can claim something is an unauthorized replica, you need an authoritative reference of the original. A registered, hashed, time-stamped sample of your face and voice gives you that anchor.",
-          "ReplicaShield does this for you: identity-verified upload, cryptographic hash, and a registry record you can point to in any takedown.",
+          "ClaimMyFace does this for you: identity-verified upload, cryptographic hash, and a registry record you can point to in any takedown.",
         ],
       },
       {
@@ -144,7 +144,7 @@ export const educationArticles: EducationArticle[] = [
       {
         heading: "Step 5: Have a Takedown Workflow Ready",
         body: [
-          "When you find misuse, speed matters. Have your DMCA template, your registry certificate, and your legal contact ready to deploy in under an hour. ReplicaShield's DMCA Assistant pre-fills these for you.",
+          "When you find misuse, speed matters. Have your DMCA template, your registry certificate, and your legal contact ready to deploy in under an hour. ClaimMyFace's DMCA Assistant pre-fills these for you.",
         ],
       },
     ],
@@ -314,7 +314,7 @@ export const educationArticles: EducationArticle[] = [
         heading: "What Goes in the Notice",
         body: [
           "Identification of the original work (your registered likeness reference), identification of the infringing material with URL, your contact info, a statement of good-faith belief, a statement under penalty of perjury that you're authorized to act, and your signature.",
-          "ReplicaShield's DMCA Assistant assembles all of this from your registry record automatically.",
+          "ClaimMyFace's DMCA Assistant assembles all of this from your registry record automatically.",
         ],
       },
       {
@@ -498,7 +498,7 @@ export const educationArticles: EducationArticle[] = [
       {
         heading: "How to Translate Union Language Into Your Rider",
         body: [
-          "Adopt the consent, compensation, and use-restriction structure verbatim where possible. ReplicaShield's Contract Generator includes a SAG-AFTRA-aligned AI rider you can drop in.",
+          "Adopt the consent, compensation, and use-restriction structure verbatim where possible. ClaimMyFace's Contract Generator includes a SAG-AFTRA-aligned AI rider you can drop in.",
         ],
       },
     ],
@@ -689,7 +689,7 @@ export const educationArticles: EducationArticle[] = [
       {
         question: "Do I need a lawyer to write this?",
         answer:
-          "ReplicaShield's Contract Generator produces a SAG-AFTRA-aligned starting point. For high-value deals, have an entertainment attorney review.",
+          "ClaimMyFace's Contract Generator produces a SAG-AFTRA-aligned starting point. For high-value deals, have an entertainment attorney review.",
       },
     ],
     relatedSlugs: [

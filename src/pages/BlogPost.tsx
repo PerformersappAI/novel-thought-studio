@@ -41,7 +41,7 @@ const SidebarCTA = () => (
         Protect Your Likeness
       </h3>
       <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-        Register your verified voice and image in the ReplicaShield registry —
+        Register your verified voice and image in the ClaimMyFace registry —
         free to start.
       </p>
       <Button asChild className="w-full font-display glow-red">

@@ -61,13 +61,13 @@ const Signup = () => {
         <StepIndicator currentStep={0} className="mb-8" />
 
         <div className="glass-card rounded-xl p-8 glow-blue">
-          <img src={logo} alt="Replica Shield" className="h-10 w-auto mb-2" />
+          <img src={logo} alt="ClaimMyFace" className="h-10 w-auto mb-2" />
           
           <AnimatePresence mode="wait">
             {step === 0 && (
               <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <p className="text-muted-foreground text-sm mb-2">Step 1: Choose your account type</p>
-                <p className="text-xs text-muted-foreground mb-6">Select how you'll use ReplicaShield.</p>
+                <p className="text-xs text-muted-foreground mb-6">Select how you'll use ClaimMyFace.</p>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <button
                     onClick={() => setAccountType("performer")}

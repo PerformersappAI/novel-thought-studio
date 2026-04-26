@@ -44,7 +44,7 @@ const RegistryFeatures = () => {
           className="text-center mb-16"
         >
           <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold font-body mb-4 border border-primary/20">
-            Replica Shield Registry
+            ClaimMyFace Registry
           </span>
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
             Your Digital Identity, <span className="text-gradient-crimson">Protected</span>

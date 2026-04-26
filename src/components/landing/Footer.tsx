@@ -22,14 +22,14 @@ const Footer = () => {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
-              Ready to Protect Your Likeness?
+              Ready to Claim Your Face?
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8 font-body">
-              Join thousands of performers who trust Replica Shield to secure their digital identity.
+              Join thousands of performers who trust ClaimMyFace to register and defend their likeness.
             </p>
             <Button asChild size="lg" className="font-body text-base font-semibold px-8 h-13 glow-red">
               <Link to="/signup">
-                Get Started Now
+                Claim My Face
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
@@ -45,12 +45,12 @@ const Footer = () => {
             <div className="md:col-span-1">
               <Link to="/" className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-                  <span className="font-display text-xs font-bold text-primary-foreground">R</span>
+                  <span className="font-display text-xs font-bold text-primary-foreground">C</span>
                 </div>
-                <span className="font-display text-lg font-bold text-foreground">Replica Shield</span>
+                <span className="font-display text-lg font-bold text-foreground">ClaimMyFace</span>
               </Link>
               <p className="text-sm text-muted-foreground font-body leading-relaxed">
-                Own Your Identity. Control Your Likeness.
+                My Face. My Claim.
               </p>
             </div>
 
@@ -88,7 +88,7 @@ const Footer = () => {
 
           <div className="border-t border-white/[0.08] pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground font-body">
-              © 2026 Replica Shield / Roberts Entertainment · PerformersappAI. All rights reserved.
+              © 2026 ClaimMyFace / Roberts Entertainment / PerformersappAI. All rights reserved.
             </p>
             <div className="flex items-center gap-3">
               <span className="text-[10px] text-muted-foreground/60 font-body uppercase tracking-wider">SOC 2 Compliant</span>
