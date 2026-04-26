@@ -54,14 +54,14 @@ const HeroSection = () => {
               className="inline-block mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/5"
             >
               <span className="text-xs font-body font-medium text-primary tracking-wider uppercase">
-                The Industry Standard for Likeness Protection
+                The Performer Standard for Face & Likeness Protection
               </span>
             </motion.div>
 
             <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-5 leading-[1.1]">
-              <span className="text-foreground">Own Your Identity.</span>
+              <span className="text-foreground">My Face.</span>
               <br />
-              <span className="text-gradient-gold">Control Your Likeness.</span>
+              <span className="text-gradient-gold">My Claim.</span>
             </h1>
 
             <motion.p
@@ -70,9 +70,9 @@ const HeroSection = () => {
               transition={{ delay: 0.5 }}
               className="text-base md:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed font-body"
             >
-              Register, verify, and shield your likeness-based assets with
-              cryptographic proof of ownership. The trusted registry for performers
-              in the age of AI.
+              The independent registry that proves you own your face — before
+              someone else profits from it. Built for every performer, not just
+              the famous ones.
             </motion.p>
 
             <motion.div
@@ -87,7 +87,7 @@ const HeroSection = () => {
                 className="font-body text-base font-semibold px-8 h-13 glow-red"
               >
                 <Link to="/signup">
-                  Register Your Likeness
+                  Claim My Face
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
@@ -97,7 +97,7 @@ const HeroSection = () => {
                 size="lg"
                 className="font-body text-base px-8 h-13 border-white/[0.15] hover:border-white/30"
               >
-                <Link to="/login">Sign In</Link>
+                <a href="#how-it-works">See How It Works</a>
               </Button>
             </motion.div>
 
@@ -109,11 +109,11 @@ const HeroSection = () => {
               </TrustChip>
               <TrustChip delay={1.2}>
                 <Shield className="w-3.5 h-3.5 text-primary" />
-                AI-Protected Likeness
+                Face Registered
               </TrustChip>
               <TrustChip delay={1.4}>
                 <Fingerprint className="w-3.5 h-3.5 text-accent" />
-                Biometric Secured
+                Legally Protected
               </TrustChip>
             </div>
           </motion.div>
@@ -131,7 +131,7 @@ const HeroSection = () => {
               <div className="relative h-[200px] md:h-[240px] overflow-hidden">
                 <img
                   src={heroCreators}
-                  alt="Performers protected by Replica Shield"
+                  alt="Performers protected by ClaimMyFace"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
@@ -147,22 +147,22 @@ const HeroSection = () => {
                     <Shield className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-display font-semibold text-foreground text-sm">Replica Shield</p>
-                    <p className="text-[11px] text-muted-foreground font-body">Digital Likeness Registry</p>
+                    <p className="font-display font-semibold text-foreground text-sm">ClaimMyFace Digital Registry</p>
+                    <p className="text-[11px] text-muted-foreground font-body">Face & Likeness Protection</p>
                   </div>
                 </div>
                 <div className="space-y-1.5 text-xs font-body text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Registry ID</span>
-                    <span className="text-foreground font-medium">RS-2026-00482</span>
+                    <span className="text-foreground font-medium">CMF-2026-00482</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Assets Protected</span>
                     <span className="text-foreground font-medium">12</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Likeness Status</span>
-                    <span className="text-accent font-medium">Active</span>
+                    <span>Face Status</span>
+                    <span className="text-primary font-medium">Claimed & Protected</span>
                   </div>
                 </div>
               </div>
@@ -196,7 +196,7 @@ const HeroSection = () => {
         <div className="container px-4 py-6 flex flex-wrap justify-center gap-8 md:gap-16">
           {[
             { value: "10K+", label: "Performers Protected" },
-            { value: "52K", label: "Assets Registered" },
+            { value: "52K", label: "Faces Registered" },
             { value: "100%", label: "Verified Ownership" },
             { value: "24/7", label: "Active Monitoring" },
           ].map((stat) => (

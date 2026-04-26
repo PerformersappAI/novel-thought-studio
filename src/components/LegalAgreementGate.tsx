@@ -52,7 +52,7 @@ const LegalAgreementGate = ({ children }: { children: React.ReactNode }) => {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-2xl relative z-10">
         <div className="glass-card rounded-xl p-8 glow-blue">
           <div className="flex items-center gap-3 mb-6">
-            <img src={logo} alt="Replica Shield" className="h-10 w-auto" />
+            <img src={logo} alt="ClaimMyFace" className="h-10 w-auto" />
           </div>
           <h2 className="font-display text-xl font-bold text-foreground mb-1">Legal Agreements</h2>
           <p className="text-sm text-muted-foreground mb-6">

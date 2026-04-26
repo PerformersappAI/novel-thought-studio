@@ -40,7 +40,7 @@ const Login = () => {
         </Link>
 
         <div className="glass-card rounded-xl p-8 glow-blue">
-          <img src={logo} alt="Replica Shield" className="h-10 w-auto mb-2" />
+          <img src={logo} alt="ClaimMyFace" className="h-10 w-auto mb-2" />
           <p className="text-muted-foreground text-sm mb-8">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -38,10 +38,10 @@ const Navbar = () => {
         {/* Left — Logo */}
         <Link to="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-            <span className="font-display text-sm font-bold text-primary-foreground">R</span>
+            <span className="font-display text-sm font-bold text-primary-foreground">C</span>
           </div>
           <span className="font-display text-xl font-bold tracking-tight text-foreground">
-            Replica Shield
+            ClaimMyFace
           </span>
         </Link>
 
@@ -78,7 +78,7 @@ const Navbar = () => {
             <>
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link>
               <Button asChild size="sm" className="font-body glow-red">
-                <Link to="/signup">Get Started</Link>
+                <Link to="/signup">Claim My Face →</Link>
               </Button>
             </>
           )}
@@ -88,7 +88,7 @@ const Navbar = () => {
         <div className="md:hidden flex items-center gap-3">
           {!user && (
             <Button asChild size="sm" className="font-body glow-red">
-              <Link to="/signup">Get Started</Link>
+              <Link to="/signup">Claim My Face →</Link>
             </Button>
           )}
           <Sheet open={open} onOpenChange={setOpen}>
@@ -131,7 +131,7 @@ const Navbar = () => {
                     <>
                       <Link to="/login" onClick={() => setOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">Login</Link>
                       <Button asChild size="sm" className="font-body">
-                        <Link to="/signup" onClick={() => setOpen(false)}>Get Started</Link>
+                        <Link to="/signup" onClick={() => setOpen(false)}>Claim My Face →</Link>
                       </Button>
                     </>
                   )}
