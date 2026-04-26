@@ -64,6 +64,14 @@ const PerformerProfileTab = () => {
 
   const save = async () => {
     if (!user) return;
+    if (!form.legal_name?.trim()) {
+      toast({ title: "Legal name required", variant: "destructive" });
+      return;
+    }
+    if (!form.stage_name?.trim()) {
+      toast({ title: "Stage name required", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
