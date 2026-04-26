@@ -63,7 +63,78 @@ const PerformerDashboard = () => {
           <p className="text-muted-foreground mt-1">Welcome back. Here's your registry overview.</p>
         </div>
 
-        {verified && stats.totalAssets > 0 && (
+        {!faceRegistered && (
+          <Card className="border-2 border-[#C0392B] bg-gradient-to-br from-[#C0392B]/20 via-[#C0392B]/5 to-transparent mb-8">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex items-start gap-4 mb-5">
+                <div className="w-12 h-12 rounded-xl bg-[#C0392B] flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold tracking-widest text-[#C0392B] uppercase mb-1">Step 1 — Get Started</div>
+                  <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">Start Building Your Face Profile</h2>
+                  <p className="text-sm md:text-base text-muted-foreground mt-1">
+                    Register your face with 3 quick photos. This creates your timestamped, cryptographic claim of likeness ownership.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/onboarding/profile">
+                  <Button size="lg" className="bg-[#C0392B] hover:bg-[#C0392B]/90 text-white">
+                    Start Building Your Face Profile <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+                <Link to="/dashboard/monitoring">
+                  <Button size="lg" variant="outline">
+                    <Eye className="w-4 h-4 mr-2" /> Preview Monitoring
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {faceRegistered && verified && stats.totalAssets > 0 && (
+          <Card className="border-2 border-[#C0392B] bg-gradient-to-r from-[#C0392B]/15 to-transparent mb-8">
+            <CardContent className="p-5 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-lg bg-[#C0392B] flex items-center justify-center shrink-0">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">Your face is registered. Get your official certificate.</div>
+                  <div className="text-sm text-muted-foreground">Timestamped, cryptographic proof of likeness ownership.</div>
+                </div>
+              </div>
+              <Link to="/dashboard/certificate">
+                <Button className="bg-[#C0392B] hover:bg-[#C0392B]/90 text-white">
+                  Download My Face Certificate <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {faceRegistered && (
+          <Card className="border border-border/30 bg-card/50 mb-8">
+            <CardContent className="p-5 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Eye className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">Next: scan the web for unauthorized use of your likeness.</div>
+                  <div className="text-sm text-muted-foreground">Cross-platform monitoring across TikTok, Instagram, YouTube and more.</div>
+                </div>
+              </div>
+              <Link to="/dashboard/monitoring">
+                <Button variant="default">
+                  Open Monitoring <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
           <Card className="border-2 border-[#C0392B] bg-gradient-to-r from-[#C0392B]/15 to-transparent mb-8">
             <CardContent className="p-5 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-4">
