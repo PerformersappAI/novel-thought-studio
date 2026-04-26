@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, ShieldCheck, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Upload, FileText, ShieldCheck, Clock, TrendingUp, AlertTriangle, Award, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,6 +13,7 @@ const PerformerDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ totalAssets: 0, pending: 0, approved: 0, certificates: 0 });
   const [recentAssets, setRecentAssets] = useState<any[]>([]);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -26,9 +29,11 @@ const PerformerDashboard = () => {
       const { count: pending } = await supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "pending");
       const { count: approved } = await supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved");
       const { count: certs } = await supabase.from("certificates").select("*", { count: "exact", head: true }).eq("user_id", user.id);
+      const { data: ver } = await supabase.from("identity_verifications").select("status").eq("user_id", user.id).maybeSingle();
 
       setStats({ totalAssets: total ?? 0, pending: pending ?? 0, approved: approved ?? 0, certificates: certs ?? 0 });
       setRecentAssets(assets ?? []);
+      setVerified(ver?.status === "approved");
     };
     fetchData();
   }, [user]);
@@ -54,6 +59,27 @@ const PerformerDashboard = () => {
           <h1 className="font-display text-2xl md:text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground mt-1">Welcome back. Here's your registry overview.</p>
         </div>
+
+        {verified && stats.totalAssets > 0 && (
+          <Card className="border-2 border-[#C0392B] bg-gradient-to-r from-[#C0392B]/15 to-transparent mb-8">
+            <CardContent className="p-5 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-lg bg-[#C0392B] flex items-center justify-center shrink-0">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">Your face is registered. Get your official certificate.</div>
+                  <div className="text-sm text-muted-foreground">Timestamped, cryptographic proof of likeness ownership.</div>
+                </div>
+              </div>
+              <Link to="/dashboard/certificate">
+                <Button className="bg-[#C0392B] hover:bg-[#C0392B]/90 text-white">
+                  Download My Face Certificate <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {statCards.map((stat) => (

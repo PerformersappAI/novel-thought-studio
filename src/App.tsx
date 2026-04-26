@@ -11,6 +11,8 @@ import Signup from "./pages/Signup";
 import PerformerDashboard from "./pages/PerformerDashboard";
 import MyAssets from "./pages/MyAssets";
 import Certificates from "./pages/Certificates";
+import Certificate from "./pages/Certificate";
+import PublicVerify from "./pages/PublicVerify";
 import IdentityVerification from "./pages/IdentityVerification";
 import AdminReviewQueue from "./pages/AdminReviewQueue";
 import Settings from "./pages/Settings";
@@ -47,6 +49,8 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><PerformerDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/assets" element={<ProtectedRoute><MyAssets /></ProtectedRoute>} />
             <Route path="/dashboard/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
+            <Route path="/dashboard/certificate" element={<ProtectedRoute><Certificate /></ProtectedRoute>} />
+            <Route path="/verify/:id" element={<PublicVerify />} />
             <Route path="/dashboard/verification" element={<ProtectedRoute><IdentityVerification /></ProtectedRoute>} />
             <Route path="/dashboard/review" element={<ProtectedRoute><AdminReviewQueue /></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
