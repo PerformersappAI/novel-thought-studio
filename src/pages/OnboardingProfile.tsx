@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import TrustBanner from "@/components/onboarding/TrustBanner";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
+import LinkPreviewInput from "@/components/onboarding/LinkPreviewInput";
 
 const UNIONS = ["SAG-AFTRA", "Fi-Core", "Non-Union", "ACTRA", "Equity", "Other"];
 const TYPES = ["Actor", "Voice Actor", "Musician", "Dancer", "Stunt Performer", "Model", "Content Creator", "Other"];
@@ -103,6 +104,10 @@ const OnboardingProfile = () => {
     if (!user) return;
     if (!form.legal_name.trim()) {
       toast({ title: "Legal name required", variant: "destructive" });
+      return;
+    }
+    if (!form.stage_name.trim()) {
+      toast({ title: "Stage / Performer name required", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -200,8 +205,8 @@ const OnboardingProfile = () => {
               <Input value={form.legal_name} onChange={(e) => update("legal_name", e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label>Stage / Performer Name</Label>
-              <Input value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} />
+              <Label>Stage / Performer Name *</Label>
+              <Input value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
@@ -249,10 +254,11 @@ const OnboardingProfile = () => {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Website or IMDb URL</Label>
-              <Input
+              <LinkPreviewInput
+                type="imdb"
                 placeholder="https://imdb.com/name/..."
                 value={form.imdb_url}
-                onChange={(e) => update("imdb_url", e.target.value)}
+                onChange={(v) => update("imdb_url", v)}
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
@@ -265,20 +271,40 @@ const OnboardingProfile = () => {
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label>Agency / Manager (optional)</Label>
-              <Input value={form.agency_name} onChange={(e) => update("agency_name", e.target.value)} />
+              <Label>Agency / Manager Website (optional)</Label>
+              <LinkPreviewInput
+                type="url"
+                placeholder="agency.com"
+                value={form.agency_name}
+                onChange={(v) => update("agency_name", v)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Instagram</Label>
-              <Input placeholder="@handle" value={form.instagram_handle} onChange={(e) => update("instagram_handle", e.target.value)} />
+              <LinkPreviewInput
+                type="instagram"
+                placeholder="@handle"
+                value={form.instagram_handle}
+                onChange={(v) => update("instagram_handle", v)}
+              />
             </div>
             <div className="space-y-2">
               <Label>TikTok</Label>
-              <Input placeholder="@handle" value={form.tiktok_handle} onChange={(e) => update("tiktok_handle", e.target.value)} />
+              <LinkPreviewInput
+                type="tiktok"
+                placeholder="@handle"
+                value={form.tiktok_handle}
+                onChange={(v) => update("tiktok_handle", v)}
+              />
             </div>
             <div className="space-y-2">
               <Label>YouTube</Label>
-              <Input placeholder="@handle" value={form.youtube_handle} onChange={(e) => update("youtube_handle", e.target.value)} />
+              <LinkPreviewInput
+                type="youtube"
+                placeholder="@handle"
+                value={form.youtube_handle}
+                onChange={(v) => update("youtube_handle", v)}
+              />
             </div>
           </div>
 

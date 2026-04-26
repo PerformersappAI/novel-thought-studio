@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import LinkPreviewInput from "@/components/onboarding/LinkPreviewInput";
 
 const UNIONS = ["SAG-AFTRA", "Fi-Core", "Non-Union", "ACTRA", "Equity", "Other"];
 const TYPES = ["Actor", "Voice Actor", "Musician", "Dancer", "Stunt Performer", "Model", "Content Creator", "Other"];
@@ -63,6 +64,14 @@ const PerformerProfileTab = () => {
 
   const save = async () => {
     if (!user) return;
+    if (!form.legal_name?.trim()) {
+      toast({ title: "Legal name required", variant: "destructive" });
+      return;
+    }
+    if (!form.stage_name?.trim()) {
+      toast({ title: "Stage name required", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
@@ -110,7 +119,7 @@ const PerformerProfileTab = () => {
           <h2 className="font-display text-xl font-semibold">Profile Details</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Legal Name</Label><Input value={form.legal_name} onChange={(e) => update("legal_name", e.target.value)} /></div>
-            <div className="space-y-2"><Label>Stage Name</Label><Input value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} /></div>
+            <div className="space-y-2"><Label>Stage Name *</Label><Input required value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} /></div>
             <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => update("phone", e.target.value)} /></div>
             <div className="space-y-2">
               <Label>Union Status</Label>
@@ -140,15 +149,30 @@ const PerformerProfileTab = () => {
                 <SelectContent>{MARKETS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2 sm:col-span-2"><Label>Website / IMDb</Label><Input value={form.imdb_url} onChange={(e) => update("imdb_url", e.target.value)} /></div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Website / IMDb</Label>
+              <LinkPreviewInput type="imdb" value={form.imdb_url} onChange={(v) => update("imdb_url", v)} />
+            </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Bio <span className="text-xs text-muted-foreground">({(form.bio || "").length}/250)</span></Label>
               <Textarea maxLength={250} value={form.bio} onChange={(e) => update("bio", e.target.value)} rows={3} />
             </div>
-            <div className="space-y-2 sm:col-span-2"><Label>Agency / Manager</Label><Input value={form.agency_name} onChange={(e) => update("agency_name", e.target.value)} /></div>
-            <div className="space-y-2"><Label>Instagram</Label><Input value={form.instagram_handle} onChange={(e) => update("instagram_handle", e.target.value)} /></div>
-            <div className="space-y-2"><Label>TikTok</Label><Input value={form.tiktok_handle} onChange={(e) => update("tiktok_handle", e.target.value)} /></div>
-            <div className="space-y-2"><Label>YouTube</Label><Input value={form.youtube_handle} onChange={(e) => update("youtube_handle", e.target.value)} /></div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Agency / Manager Website</Label>
+              <LinkPreviewInput type="url" placeholder="agency.com" value={form.agency_name} onChange={(v) => update("agency_name", v)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Instagram</Label>
+              <LinkPreviewInput type="instagram" placeholder="@handle" value={form.instagram_handle} onChange={(v) => update("instagram_handle", v)} />
+            </div>
+            <div className="space-y-2">
+              <Label>TikTok</Label>
+              <LinkPreviewInput type="tiktok" placeholder="@handle" value={form.tiktok_handle} onChange={(v) => update("tiktok_handle", v)} />
+            </div>
+            <div className="space-y-2">
+              <Label>YouTube</Label>
+              <LinkPreviewInput type="youtube" placeholder="@handle" value={form.youtube_handle} onChange={(v) => update("youtube_handle", v)} />
+            </div>
           </div>
 
           <div className="rounded-xl border border-primary/30 bg-card/40 p-5 space-y-3">
