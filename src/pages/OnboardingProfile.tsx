@@ -106,6 +106,10 @@ const OnboardingProfile = () => {
       toast({ title: "Legal name required", variant: "destructive" });
       return;
     }
+    if (!form.stage_name.trim()) {
+      toast({ title: "Stage / Performer name required", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       let headshot_url: string | undefined;
