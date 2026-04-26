@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Camera, Check, Loader2, RotateCcw, ArrowRight, Lock } from "lucide-react";
+import { Shield, Camera, Check, Loader2, RotateCcw, ArrowRight, Lock, Upload, Video } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import * as faceapi from "@vladmandic/face-api";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
