@@ -254,10 +254,11 @@ const OnboardingProfile = () => {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Website or IMDb URL</Label>
-              <Input
+              <LinkPreviewInput
+                type="imdb"
                 placeholder="https://imdb.com/name/..."
                 value={form.imdb_url}
-                onChange={(e) => update("imdb_url", e.target.value)}
+                onChange={(v) => update("imdb_url", v)}
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
