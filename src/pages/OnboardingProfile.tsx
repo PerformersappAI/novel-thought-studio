@@ -205,12 +205,8 @@ const OnboardingProfile = () => {
               <Input value={form.legal_name} onChange={(e) => update("legal_name", e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label>Stage / Performer Name</Label>
-              <Input value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input value={form.email} disabled />
+              <Label>Stage / Performer Name *</Label>
+              <Input value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label>Phone Number</Label>
