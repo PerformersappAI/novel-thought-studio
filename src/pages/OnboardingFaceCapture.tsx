@@ -354,18 +354,32 @@ const OnboardingFaceCapture = () => {
                   </li>
                 ))}
               </ul>
-              <Button
-                onClick={startCamera}
-                disabled={modelsLoading}
-                size="lg"
-                className="w-full font-display"
-              >
-                {modelsLoading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading face engine…</>
-                ) : (
-                  <><Camera className="w-4 h-4 mr-1" /> I Understand — Open Camera →</>
-                )}
-              </Button>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <Button
+                  onClick={() => startCamera()}
+                  disabled={modelsLoading}
+                  size="lg"
+                  className="w-full font-display"
+                >
+                  {modelsLoading ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading face engine…</>
+                  ) : (
+                    <><Camera className="w-4 h-4 mr-1" /> Open Camera →</>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={modelsLoading}
+                  variant="outline"
+                  size="lg"
+                  className="w-full font-display"
+                >
+                  <Upload className="w-4 h-4 mr-1" /> Upload from Device
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center">
+                No camera? Upload 3 clear photos (front, left, right) instead.
+              </p>
             </div>
           )}
 
