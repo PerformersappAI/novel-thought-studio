@@ -16,6 +16,7 @@ const performerLinks = [
   { to: "/dashboard/certificate", icon: Award, label: "Face Certificate" },
   { to: "/dashboard/verification", icon: CheckSquare, label: "Verification" },
   { to: "/dashboard/monitor", icon: Radar, label: "Likeness Monitor" },
+  { to: "/dashboard/monitoring", icon: Eye, label: "Monitoring" },
   { to: "/dashboard/violations", icon: ScrollText, label: "Report Violation" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];

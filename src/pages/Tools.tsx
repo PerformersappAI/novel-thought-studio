@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, User, FileText, Receipt, ScanFace, Palette, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, User, FileText, Receipt, ScanFace, Palette, Shield, Wand2, ShieldAlert } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
@@ -49,6 +49,20 @@ const tools = [
     description: "Generate AI-safe digital avatars from your registered likeness assets.",
     link: "/tools/avatar",
     status: "beta" as const,
+  },
+  {
+    icon: Wand2,
+    title: "Face Claim Wizard",
+    description: "3-step guided flow to generate DMCA notices, cease & desist letters, and platform reports — pre-filled with your registered data.",
+    link: "/tools/face-claim",
+    status: "pro" as const,
+  },
+  {
+    icon: ShieldAlert,
+    title: "AI Consent Contract Checker",
+    description: "Paste any contract — our AI flags overly broad likeness rights, missing compensation, AI-training loopholes, and more.",
+    link: "/tools/contract-checker",
+    status: "pro" as const,
   },
 ];
 
