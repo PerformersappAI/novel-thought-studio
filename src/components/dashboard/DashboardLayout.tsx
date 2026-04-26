@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, Award, Eye, UserCircle } from "lucide-react";
+import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, Award, Eye, UserCircle, Home, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
