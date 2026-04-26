@@ -49,8 +49,11 @@ const Footer = () => {
                 </div>
                 <span className="font-display text-lg font-bold text-foreground">ClaimMyFace</span>
               </Link>
-              <p className="text-sm text-muted-foreground font-body leading-relaxed">
+              <p className="text-sm text-muted-foreground font-body leading-relaxed mb-3">
                 My Face. My Claim.
+              </p>
+              <p className="text-xs text-muted-foreground/80 font-body leading-relaxed">
+                Proud supporter of performer IP rights. Aligned with SAG-AFTRA AI protection principles.
               </p>
             </div>
 
