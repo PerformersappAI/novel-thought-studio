@@ -14,6 +14,7 @@ const PerformerDashboard = () => {
   const [stats, setStats] = useState({ totalAssets: 0, pending: 0, approved: 0, certificates: 0 });
   const [recentAssets, setRecentAssets] = useState<any[]>([]);
   const [verified, setVerified] = useState(false);
+  const [faceRegistered, setFaceRegistered] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -30,10 +31,12 @@ const PerformerDashboard = () => {
       const { count: approved } = await supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved");
       const { count: certs } = await supabase.from("certificates").select("*", { count: "exact", head: true }).eq("user_id", user.id);
       const { data: ver } = await supabase.from("identity_verifications").select("status").eq("user_id", user.id).maybeSingle();
+      const { data: prof } = await supabase.from("profiles").select("face_registered_at").eq("user_id", user.id).maybeSingle();
 
       setStats({ totalAssets: total ?? 0, pending: pending ?? 0, approved: approved ?? 0, certificates: certs ?? 0 });
       setRecentAssets(assets ?? []);
       setVerified(ver?.status === "approved");
+      setFaceRegistered(!!prof?.face_registered_at);
     };
     fetchData();
   }, [user]);
