@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import TrustBanner from "@/components/onboarding/TrustBanner";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
+import LinkPreviewInput from "@/components/onboarding/LinkPreviewInput";
 
 const UNIONS = ["SAG-AFTRA", "Fi-Core", "Non-Union", "ACTRA", "Equity", "Other"];
 const TYPES = ["Actor", "Voice Actor", "Musician", "Dancer", "Stunt Performer", "Model", "Content Creator", "Other"];
