@@ -5,7 +5,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, ShieldCheck, Clock, TrendingUp, AlertTriangle, Award, ArrowRight } from "lucide-react";
+import { Upload, FileText, ShieldCheck, Clock, TrendingUp, AlertTriangle, Award, ArrowRight, Eye } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
