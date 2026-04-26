@@ -37,6 +37,7 @@ const OnboardingFaceCapture = () => {
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectIntervalRef = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [modelsLoading, setModelsLoading] = useState(true);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -45,6 +46,8 @@ const OnboardingFaceCapture = () => {
   const [captures, setCaptures] = useState<Record<Pose, Capture | null>>({ front: null, left: null, right: null });
   const [descriptor, setDescriptor] = useState<number[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");
