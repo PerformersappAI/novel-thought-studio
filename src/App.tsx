@@ -61,6 +61,7 @@ const App = () => (
             <Route path="/dashboard/legal" element={<ProtectedRoute><AdminLegalLogs /></ProtectedRoute>} />
             <Route path="/dashboard/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
             <Route path="/dashboard/monitor" element={<ProtectedRoute><LikenessMonitor /></ProtectedRoute>} />
+            <Route path="/dashboard/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
             <Route path="/dashboard/violations" element={<ProtectedRoute><ReportViolation /></ProtectedRoute>} />
             <Route path="/education" element={<Education />} />
             <Route path="/education/:slug" element={<BlogPost />} />
@@ -70,6 +71,8 @@ const App = () => (
             <Route path="/tools/dmca" element={<DMCATakedown />} />
             <Route path="/tools/media-kit" element={<MediaKitBuilder />} />
             <Route path="/tools/avatar" element={<AvatarCreator />} />
+            <Route path="/tools/face-claim" element={<FaceClaimWizard />} />
+            <Route path="/tools/contract-checker" element={<ContractChecker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
