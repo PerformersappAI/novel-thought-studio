@@ -271,20 +271,40 @@ const OnboardingProfile = () => {
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label>Agency / Manager (optional)</Label>
-              <Input value={form.agency_name} onChange={(e) => update("agency_name", e.target.value)} />
+              <Label>Agency / Manager Website (optional)</Label>
+              <LinkPreviewInput
+                type="url"
+                placeholder="agency.com"
+                value={form.agency_name}
+                onChange={(v) => update("agency_name", v)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Instagram</Label>
-              <Input placeholder="@handle" value={form.instagram_handle} onChange={(e) => update("instagram_handle", e.target.value)} />
+              <LinkPreviewInput
+                type="instagram"
+                placeholder="@handle"
+                value={form.instagram_handle}
+                onChange={(v) => update("instagram_handle", v)}
+              />
             </div>
             <div className="space-y-2">
               <Label>TikTok</Label>
-              <Input placeholder="@handle" value={form.tiktok_handle} onChange={(e) => update("tiktok_handle", e.target.value)} />
+              <LinkPreviewInput
+                type="tiktok"
+                placeholder="@handle"
+                value={form.tiktok_handle}
+                onChange={(v) => update("tiktok_handle", v)}
+              />
             </div>
             <div className="space-y-2">
               <Label>YouTube</Label>
-              <Input placeholder="@handle" value={form.youtube_handle} onChange={(e) => update("youtube_handle", e.target.value)} />
+              <LinkPreviewInput
+                type="youtube"
+                placeholder="@handle"
+                value={form.youtube_handle}
+                onChange={(v) => update("youtube_handle", v)}
+              />
             </div>
           </div>
 
