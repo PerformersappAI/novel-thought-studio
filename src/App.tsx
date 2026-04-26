@@ -33,6 +33,10 @@ import FaceClaimWizard from "./pages/FaceClaimWizard";
 import ContractChecker from "./pages/ContractChecker";
 import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
+import OnboardingProfile from "./pages/OnboardingProfile";
+import OnboardingFaceCapture from "./pages/OnboardingFaceCapture";
+import OnboardingComplete from "./pages/OnboardingComplete";
+import PerformerProfileTab from "./pages/PerformerProfileTab";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +77,10 @@ const App = () => (
             <Route path="/tools/avatar" element={<AvatarCreator />} />
             <Route path="/tools/face-claim" element={<FaceClaimWizard />} />
             <Route path="/tools/contract-checker" element={<ContractChecker />} />
+            <Route path="/onboarding/profile" element={<ProtectedRoute><OnboardingProfile /></ProtectedRoute>} />
+            <Route path="/onboarding/face-capture" element={<ProtectedRoute><OnboardingFaceCapture /></ProtectedRoute>} />
+            <Route path="/onboarding/complete" element={<ProtectedRoute><OnboardingComplete /></ProtectedRoute>} />
+            <Route path="/dashboard/profile" element={<ProtectedRoute><PerformerProfileTab /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

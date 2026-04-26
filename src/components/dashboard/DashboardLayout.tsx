@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, Award, Eye } from "lucide-react";
+import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, Award, Eye, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
@@ -11,6 +11,7 @@ interface DashboardLayoutProps {
 
 const performerLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
+  { to: "/dashboard/profile", icon: UserCircle, label: "Profile" },
   { to: "/dashboard/assets", icon: Upload, label: "My Assets" },
   { to: "/dashboard/certificates", icon: FileText, label: "Certificates" },
   { to: "/dashboard/certificate", icon: Award, label: "Face Certificate" },

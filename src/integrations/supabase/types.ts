@@ -320,65 +320,113 @@ export type Database = {
         Row: {
           account_type: string | null
           admin_notes: string | null
+          agency_name: string | null
           avatar_url: string | null
           bio: string | null
           company_name: string | null
           created_at: string
           display_name: string | null
+          face_capture_front_url: string | null
+          face_capture_left_url: string | null
+          face_capture_right_url: string | null
+          face_descriptor: Json | null
+          face_registered_at: string | null
           full_name: string
+          headshot_url: string | null
           id: string
+          imdb_url: string | null
+          instagram_handle: string | null
+          is_discoverable: boolean
           legal_accepted_at: string | null
+          legal_name: string | null
+          performance_type: string | null
           phone: string | null
+          primary_market: string | null
           production_type: string | null
           slug: string | null
           stage_name: string | null
+          tiktok_handle: string | null
           union_affiliation: string | null
           union_id: string | null
           union_verified: boolean | null
           updated_at: string
           user_id: string
+          years_performing: string | null
+          youtube_handle: string | null
         }
         Insert: {
           account_type?: string | null
           admin_notes?: string | null
+          agency_name?: string | null
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          face_capture_front_url?: string | null
+          face_capture_left_url?: string | null
+          face_capture_right_url?: string | null
+          face_descriptor?: Json | null
+          face_registered_at?: string | null
           full_name?: string
+          headshot_url?: string | null
           id?: string
+          imdb_url?: string | null
+          instagram_handle?: string | null
+          is_discoverable?: boolean
           legal_accepted_at?: string | null
+          legal_name?: string | null
+          performance_type?: string | null
           phone?: string | null
+          primary_market?: string | null
           production_type?: string | null
           slug?: string | null
           stage_name?: string | null
+          tiktok_handle?: string | null
           union_affiliation?: string | null
           union_id?: string | null
           union_verified?: boolean | null
           updated_at?: string
           user_id: string
+          years_performing?: string | null
+          youtube_handle?: string | null
         }
         Update: {
           account_type?: string | null
           admin_notes?: string | null
+          agency_name?: string | null
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          face_capture_front_url?: string | null
+          face_capture_left_url?: string | null
+          face_capture_right_url?: string | null
+          face_descriptor?: Json | null
+          face_registered_at?: string | null
           full_name?: string
+          headshot_url?: string | null
           id?: string
+          imdb_url?: string | null
+          instagram_handle?: string | null
+          is_discoverable?: boolean
           legal_accepted_at?: string | null
+          legal_name?: string | null
+          performance_type?: string | null
           phone?: string | null
+          primary_market?: string | null
           production_type?: string | null
           slug?: string | null
           stage_name?: string | null
+          tiktok_handle?: string | null
           union_affiliation?: string | null
           union_id?: string | null
           union_verified?: boolean | null
           updated_at?: string
           user_id?: string
+          years_performing?: string | null
+          youtube_handle?: string | null
         }
         Relationships: []
       }
