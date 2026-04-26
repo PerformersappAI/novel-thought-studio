@@ -38,7 +38,7 @@ const SidebarCTA = () => (
         <Shield className="w-6 h-6 text-primary" />
       </div>
       <h3 className="font-display font-bold text-lg mb-2">
-        Protect Your Likeness
+        Claim Your Face
       </h3>
       <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
         Register your verified voice and image in the ClaimMyFace registry —

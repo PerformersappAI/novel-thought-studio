@@ -50,14 +50,12 @@ const Education = () => {
           <div className="text-center mb-10 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 mb-4">
               <BookOpen className="w-6 h-6 text-primary" />
-              <h1 className="font-display text-4xl md:text-5xl font-bold">
-                Education
+              <h1 className="font-display text-4xl md:text-5xl font-bold leading-tight">
+                Know Your Rights. <span className="text-primary">Protect Your Face.</span>
               </h1>
             </div>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Practical guides, legal explainers, and industry analysis for
-              performers protecting their voice, likeness, and identity in the
-              age of AI.
+              The performer's guide to AI, likeness law, and claiming what's yours.
             </p>
           </div>
 
