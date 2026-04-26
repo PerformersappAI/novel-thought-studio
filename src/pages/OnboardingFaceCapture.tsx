@@ -80,22 +80,105 @@ const OnboardingFaceCapture = () => {
 
   useEffect(() => () => stopCamera(), []);
 
-  const startCamera = async () => {
+  const enumerateCams = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const cams = all.filter((d) => d.kind === "videoinput");
+      setDevices(cams);
+      if (cams.length && !selectedDeviceId) setSelectedDeviceId(cams[0].deviceId);
+      return cams;
+    } catch {
+      return [];
+    }
+  };
+
+  const startCamera = async (deviceId?: string) => {
+    try {
+      // stop any existing stream first so we can switch devices
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+
+      const constraints: MediaStreamConstraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: { ideal: 720 }, height: { ideal: 720 } }
+          : { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
         audio: false,
-      });
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
       setCameraOpen(true);
+      // labels become available after permission is granted
+      const cams = await enumerateCams();
+      const activeId = stream.getVideoTracks()[0]?.getSettings().deviceId;
+      if (activeId) setSelectedDeviceId(activeId);
+      else if (!selectedDeviceId && cams[0]) setSelectedDeviceId(cams[0].deviceId);
       runDetectionLoop();
     } catch (e: any) {
-      toast({ title: "Camera access denied", description: e.message, variant: "destructive" });
+      const msg =
+        e?.name === "NotAllowedError"
+          ? "Permission denied. Allow camera access in your browser settings."
+          : e?.name === "NotFoundError"
+          ? "No camera found on this device."
+          : e?.name === "NotReadableError"
+          ? "Camera is in use by another app. Close it and try again."
+          : e?.message || "Could not start camera.";
+      toast({ title: "Camera error", description: msg, variant: "destructive" });
     }
+  };
+
+  const switchCamera = async (deviceId: string) => {
+    setSelectedDeviceId(deviceId);
+    await startCamera(deviceId);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting same file
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please choose an image file.", variant: "destructive" });
+      return;
+    }
+
+    const pose = POSES[currentPoseIdx].key;
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result as string);
+      fr.onerror = () => reject(fr.error);
+      fr.readAsDataURL(file);
+    });
+
+    // Draw to canvas to normalize and run detection
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise((r) => (img.onload = r));
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(img, 0, 0);
+
+    if (pose === "front") {
+      const detection = await faceapi
+        .detectSingleFace(c, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      if (!detection) {
+        toast({ title: "No face detected", description: "Please upload a clear forward-facing photo.", variant: "destructive" });
+        return;
+      }
+      setDescriptor(Array.from(detection.descriptor));
+    }
+
+    const blob: Blob | null = await new Promise((resolve) => c.toBlob(resolve, "image/jpeg", 0.9));
+    if (!blob) return;
+    const finalDataUrl = c.toDataURL("image/jpeg", 0.85);
+    setCaptures((prev) => ({ ...prev, [pose]: { dataUrl: finalDataUrl, blob, timestamp: new Date().toISOString() } }));
+    if (currentPoseIdx < POSES.length - 1) setCurrentPoseIdx((i) => i + 1);
   };
 
   const runDetectionLoop = () => {
