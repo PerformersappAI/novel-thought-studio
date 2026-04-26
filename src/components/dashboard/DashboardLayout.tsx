@@ -40,51 +40,117 @@ const adminLinks = [
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   const { role, signOut, user } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const links = role === "admin" ? adminLinks : role === "producer" ? producerLinks : performerLinks;
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <aside className="w-64 border-r border-border/30 bg-card/40 backdrop-blur-sm hidden lg:flex flex-col">
-        <div className="p-6 border-b border-border/30">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Top bar — always visible */}
+      <header className="sticky top-0 z-40 h-14 border-b border-border/30 bg-card/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            className="lg:hidden p-2 rounded-md hover:bg-secondary/50"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="ClaimMyFace" className="h-8 w-auto" />
+            <img src={logo} alt="ClaimMyFace" className="h-7 w-auto" />
           </Link>
-          {role && (
-            <span className="text-xs text-muted-foreground mt-1 block capitalize">{role} Account</span>
-          )}
         </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {links.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors",
-                location.pathname === link.to
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-              )}
-            >
-              <link.icon className="w-4 h-4" />
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-4 border-t border-border/30 space-y-1">
-          <div className="px-4 py-2 text-xs text-muted-foreground truncate">{user?.email}</div>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            <span className="hidden sm:inline">Home</span>
+          </Link>
+          <Link
+            to="/tools"
+            className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+          >
+            Tools
+          </Link>
+          <Link
+            to="/education"
+            className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+          >
+            Education
+          </Link>
           <button
             onClick={signOut}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors w-full"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            <span className="hidden sm:inline">Sign Out</span>
           </button>
         </div>
-      </aside>
+      </header>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 lg:p-8">{children}</div>
-      </main>
+      <div className="flex flex-1 min-h-0">
+        {/* Desktop sidebar */}
+        <aside className="w-64 border-r border-border/30 bg-card/40 backdrop-blur-sm hidden lg:flex flex-col">
+          <div className="p-4 border-b border-border/30">
+            {role && (
+              <span className="text-xs text-muted-foreground capitalize">{role} Account</span>
+            )}
+          </div>
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            {links.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors",
+                  location.pathname === link.to
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                )}
+              >
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="p-4 border-t border-border/30">
+            <div className="px-2 py-1 text-xs text-muted-foreground truncate">{user?.email}</div>
+          </div>
+        </aside>
+
+        {/* Mobile drawer */}
+        {mobileOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 top-14">
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+            <aside className="relative w-72 max-w-[85%] h-full bg-card border-r border-border/30 flex flex-col">
+              <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                {links.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors",
+                      location.pathname === link.to
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    )}
+                  >
+                    <link.icon className="w-4 h-4" />
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+              <div className="p-4 border-t border-border/30 text-xs text-muted-foreground truncate">{user?.email}</div>
+            </aside>
+          </div>
+        )}
+
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-6 lg:p-8">{children}</div>
+        </main>
+      </div>
     </div>
   );
 };
