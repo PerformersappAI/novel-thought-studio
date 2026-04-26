@@ -1,1 +1,7 @@
 project_id = "whvdudlxdbuznsrxzejd"
+
+[functions.face-claim-wizard]
+verify_jwt = true
+
+[functions.contract-checker]
+verify_jwt = true
