@@ -1,26 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Eye, AlertTriangle, ShieldCheck, Radar, ArrowRight, Lock, Music2,
-  Instagram, Facebook, Youtube, Twitter, Image as ImageIcon, Megaphone, Sparkles
+  Instagram, Facebook, Youtube, Twitter, Image as ImageIcon, Megaphone,
+  Linkedin, Search, Globe, Briefcase, FileText, Clapperboard, Newspaper,
+  ScanFace, Mic, Bot, MoreHorizontal, ExternalLink, Copy, Check, HelpCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  FILTER_TABS, MOCK_FINDINGS, STATUS_STYLES, type Finding, type FindingCategory,
+} from "@/components/monitoring/findings";
+import MonitoringTour, { TourStep } from "@/components/monitoring/MonitoringTour";
+import { useToast } from "@/hooks/use-toast";
 
-// Simple stand-in for Pro entitlement until billing wires it up.
-// Today: every authenticated user is treated as "free" by default.
-// Toggle this to true for any user with an active subscription once available.
 const useIsPro = () => {
   const { user } = useAuth();
   const [isPro, setIsPro] = useState(false);
   useEffect(() => {
     if (!user) return;
-    // Best-effort: check for an active subscription row.
     supabase
       .from("user_subscriptions")
       .select("status")
@@ -32,29 +44,69 @@ const useIsPro = () => {
   return isPro;
 };
 
-const PLATFORMS = [
-  { name: "TikTok", icon: Music2, status: "active" },
-  { name: "Instagram", icon: Instagram, status: "active" },
-  { name: "Facebook", icon: Facebook, status: "active" },
-  { name: "YouTube", icon: Youtube, status: "active" },
-  { name: "X / Twitter", icon: Twitter, status: "active" },
-  { name: "Stock Sites", icon: ImageIcon, status: "pending" },
-  { name: "Ad Networks", icon: Megaphone, status: "pending" },
-] as const;
+const SOCIAL_PLATFORMS = [
+  { name: "TikTok", icon: Music2 },
+  { name: "Instagram", icon: Instagram },
+  { name: "Facebook", icon: Facebook },
+  { name: "YouTube", icon: Youtube },
+  { name: "X / Twitter", icon: Twitter },
+  { name: "LinkedIn", icon: Linkedin },
+  { name: "Pinterest", icon: ImageIcon },
+];
 
-const ALERT_STATUS_STYLES: Record<string, string> = {
-  New: "bg-[#C0392B]/15 text-[#C0392B] border-[#C0392B]/40",
-  "Under Review": "bg-[#C9A84C]/15 text-[#C9A84C] border-[#C9A84C]/40",
-  "Takedown Filed": "bg-blue-500/15 text-blue-400 border-blue-500/40",
-  Resolved: "bg-emerald-500/15 text-emerald-400 border-emerald-500/40",
-};
+const WEB_PLATFORMS = [
+  { name: "Google Image Search", icon: Search },
+  { name: "Bing Image Search", icon: Search },
+  { name: "Stock Sites", icon: ImageIcon },
+  { name: "Ad Networks", icon: Megaphone },
+  { name: "Fiverr / Freelance", icon: Briefcase },
+  { name: "Content Platforms", icon: Globe },
+  { name: "News & Articles", icon: Newspaper },
+  { name: "Casting Platforms", icon: Clapperboard },
+];
+
+const AI_PLATFORMS = [
+  { name: "Reality Defender Deepfake Scan", icon: ScanFace },
+  { name: "AI Voice Clone Detection", icon: Mic },
+  { name: "AI Avatar Detection", icon: Bot },
+];
+
+const PlatformTile = ({ name, Icon, locked }: { name: string; Icon: any; locked: boolean }) => (
+  <div className="p-3 rounded-lg bg-secondary/30 border border-border/30 flex flex-col items-center text-center gap-2">
+    <Icon className="w-5 h-5 text-foreground" />
+    <div className="text-xs font-medium text-foreground leading-tight">{name}</div>
+    <div className="flex items-center gap-1.5">
+      <span
+        className={`w-2 h-2 rounded-full ${
+          locked ? "bg-muted-foreground/40" : "bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/60"
+        }`}
+      />
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+        {locked ? "Pro" : "Active"}
+      </span>
+    </div>
+  </div>
+);
 
 const Monitoring = () => {
   const { user } = useAuth();
   const isPro = useIsPro();
-  const [stats, setStats] = useState({ facesMonitored: 0, scansThisMonth: 0, alerts: 0, takedowns: 0 });
-  const [lastScan, setLastScan] = useState<string | null>(null);
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  const [stats, setStats] = useState({ facesMonitored: 0, alerts: 0, takedowns: 0, alertsThisMonth: 0 });
+  const [findings, setFindings] = useState<Finding[]>([]);
+  const [filter, setFilter] = useState<(typeof FILTER_TABS)[number]>("All");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Finding | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Tour
+  const [tourOpen, setTourOpen] = useState(false);
+  const coverageRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLTableRowElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const actionRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -63,61 +115,126 @@ const Monitoring = () => {
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
 
-      const [{ count: faces }, { data: scans }, { count: monthScans }, { count: violations }, { data: lastScanData }] = await Promise.all([
+      const [{ count: faces }, { data: scans }, { count: violations }] = await Promise.all([
         supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
-        supabase.from("likeness_scans").select("results, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
-        supabase.from("likeness_scans").select("*", { count: "exact", head: true }).eq("user_id", user.id).gte("created_at", monthStart.toISOString()),
+        supabase.from("likeness_scans").select("results, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("likeness_scans").select("created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
 
-      // Build alert list from latest scan results (best-effort shape)
-      const flat: any[] = [];
+      // Try to flatten real scan results into Finding shape; fall back to mocks for demo
+      const real: Finding[] = [];
       (scans ?? []).forEach((s: any) => {
         const arr = Array.isArray(s.results) ? s.results : [];
-        arr.slice(0, 3).forEach((r: any) => {
-          flat.push({
-            date: s.created_at,
+        arr.forEach((r: any, i: number) => {
+          real.push({
+            id: `real-${s.created_at}-${i}`,
             platform: r.source || r.platform || "Web",
-            type: r.alertType || "Unauthorized Face Detected",
-            status: r.status || "New",
-            url: r.url,
+            finding: r.title || r.snippet || "Match detected",
+            category: (r.category as FindingCategory) || "News & Articles",
+            date: s.created_at,
+            lastSeen: s.created_at,
+            status: r.status || "New Alert",
+            url: r.url || "#",
+            confidence: r.confidence ?? 90,
+            recommended: r.recommended || "Report to Platform",
           });
         });
       });
 
+      const data = real.length > 0 ? real : MOCK_FINDINGS;
+      const newAlerts = data.filter((d) => d.status === "New Alert").length;
+      const monthMs = monthStart.getTime();
+      const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
+
+      setFindings(data);
       setStats({
         facesMonitored: faces ?? 0,
-        scansThisMonth: monthScans ?? 0,
-        alerts: flat.filter((a) => a.status === "New").length,
+        alerts: newAlerts,
         takedowns: violations ?? 0,
+        alertsThisMonth: alertsMonth,
       });
-      setAlerts(flat.slice(0, 8));
-      setLastScan(lastScanData?.created_at ?? null);
     };
     load();
   }, [user]);
 
+  // Auto-launch tour first time
+  useEffect(() => {
+    if (!isPro) return;
+    const seen = localStorage.getItem("cmf_monitoring_tour_done");
+    if (!seen) {
+      const t = setTimeout(() => setTourOpen(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [isPro]);
+
+  const filtered = useMemo(() => {
+    return findings.filter((f) => {
+      const matchesCat = filter === "All" || f.category === filter;
+      const q = search.trim().toLowerCase();
+      const matchesSearch =
+        !q || f.platform.toLowerCase().includes(q) || f.finding.toLowerCase().includes(q);
+      return matchesCat && matchesSearch;
+    });
+  }, [findings, filter, search]);
+
   const statCards = [
     { label: "Faces Monitored", value: stats.facesMonitored, icon: Eye },
-    { label: "Scans This Month", value: stats.scansThisMonth, icon: Radar },
-    { label: "Active Alerts", value: stats.alerts, icon: AlertTriangle },
+    { label: "Platforms Scanned", value: 18, icon: Radar },
+    { label: "Alerts This Month", value: isPro ? stats.alertsThisMonth : 0, icon: AlertTriangle },
     { label: "Takedowns Filed", value: stats.takedowns, icon: ShieldCheck },
   ];
+
+  const tourSteps: TourStep[] = [
+    { ref: coverageRef, title: "Your Scan Coverage", body: "This is every platform we watch for you — 24/7." },
+    { ref: tableRef, title: "Your Identity Footprint", body: "Everywhere we found you online — the good, the bad, and the forgotten." },
+    { ref: rowRef as any, title: "Tap any alert to see details", body: "Red alerts need your attention. Open a row to view the finding and take action." },
+    { ref: filterRef, title: "Filter what matters", body: "Focus on deepfakes, fake profiles, ads, or anything else — your call." },
+    { ref: actionRef as any, title: "One-tap takedowns", body: "File a DMCA notice in seconds — we do the heavy lifting." },
+  ];
+
+  const closeTour = () => {
+    setTourOpen(false);
+    localStorage.setItem("cmf_monitoring_tour_done", "1");
+  };
+
+  const handleAction = (f: Finding, action: string) => {
+    toast({ title: action, description: `${action} initiated for ${f.platform}.` });
+  };
+
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
     <DashboardLayout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold">Monitoring</h1>
-            <p className="text-muted-foreground mt-1">Cross-platform face & likeness protection.</p>
+        {/* Header */}
+        <div className="mb-6 flex items-start justify-between flex-wrap gap-3">
+          <div className="max-w-3xl">
+            <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">
+              Your Identity. <span className="text-primary">Everywhere.</span>
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm md:text-base">
+              We scan the web, social media, casting platforms, ad networks, and deepfake databases for unauthorized use of your face, voice, and name.
+            </p>
           </div>
-          {isPro ? (
-            <Badge className="bg-[#C0392B]/15 text-[#C0392B] border border-[#C0392B]/40">Pro Active</Badge>
-          ) : (
-            <Badge variant="outline">Free</Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {isPro ? (
+              <Badge className="bg-primary/15 text-primary border border-primary/40">Pro Shield Active</Badge>
+            ) : (
+              <Badge variant="outline">Free</Badge>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setTourOpen(true)}
+              className="gap-1.5"
+            >
+              <HelpCircle className="w-4 h-4" /> Take the tour
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -125,7 +242,7 @@ const Monitoring = () => {
           {statCards.map((s) => (
             <Card key={s.label} className="glass-card border-border/30">
               <CardContent className="p-5">
-                <s.icon className="w-5 h-5 text-[#C0392B] mb-3" />
+                <s.icon className="w-5 h-5 text-primary mb-3" />
                 <div className="font-display text-2xl font-bold text-foreground">{s.value}</div>
                 <div className="text-sm text-muted-foreground mt-1">{s.label}</div>
               </CardContent>
@@ -133,154 +250,333 @@ const Monitoring = () => {
           ))}
         </div>
 
-        {/* Free user lock */}
-        {!isPro && (
-          <Card className="border-2 border-[#C0392B] bg-gradient-to-br from-[#C0392B]/15 via-[#C0392B]/5 to-transparent mb-6">
-            <CardContent className="p-8 text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[#C0392B] flex items-center justify-center">
-                <Lock className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="font-display text-xl font-bold text-foreground">
-                Active face monitoring requires Pro
-              </h2>
-              <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-                The only cross-platform face protection built for performers.
-              </p>
-              <p className="text-sm text-[#C9A84C] mt-3 font-medium">
-                YouTube monitors YouTube only. ClaimMyFace monitors 7 platforms.
-              </p>
-              <Link to="/#pricing">
-                <Button className="mt-6 bg-[#C0392B] hover:bg-[#C0392B]/90 text-white">
-                  Upgrade to Pro <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Platform grid */}
-        <Card className="glass-card border-border/30 mb-6">
-          <CardHeader>
-            <CardTitle className="font-display text-lg">Platform Coverage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-              {PLATFORMS.map((p) => {
-                const active = isPro && p.status === "active";
-                return (
-                  <div
-                    key={p.name}
-                    className="p-4 rounded-lg bg-secondary/30 border border-border/30 flex flex-col items-center text-center gap-2"
-                  >
-                    <p.icon className="w-6 h-6 text-foreground" />
-                    <div className="text-xs font-medium text-foreground">{p.name}</div>
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          active ? "bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/60" : "bg-muted-foreground/40"
-                        }`}
-                      />
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                        {active ? "Active" : "Pending"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Scan activity + actions */}
-        <div className="grid lg:grid-cols-3 gap-4 mb-6">
-          <Card className="glass-card border-border/30 lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="font-display text-lg">Scan Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Last scan</span>
-                <span className="text-foreground font-medium">
-                  {lastScan ? new Date(lastScan).toLocaleString() : "No scans yet"}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Scans this month</span>
-                <span className="text-foreground font-medium">{stats.scansThisMonth}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Assets being monitored</span>
-                <span className="text-foreground font-medium">{stats.facesMonitored}</span>
-              </div>
-            </CardContent>
-          </Card>
-
+        {/* Scan Coverage */}
+        <div ref={coverageRef} className="relative mb-6">
           <Card className="glass-card border-border/30">
             <CardHeader>
-              <CardTitle className="font-display text-lg">Quick Actions</CardTitle>
+              <CardTitle className="font-display text-lg">Scan Coverage</CardTitle>
+              <p className="text-sm text-muted-foreground">Exactly where we look for you, every day.</p>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Link to="/tools/dmca" className="block">
-                <Button className="w-full bg-[#C0392B] hover:bg-[#C0392B]/90 text-white">
-                  Generate DMCA Notice
-                </Button>
-              </Link>
-              <Link to="/tools/contracts" className="block">
-                <Button variant="outline" className="w-full">Send Cease & Desist</Button>
-              </Link>
-              <Link to="/dashboard/violations" className="block">
-                <Button variant="outline" className="w-full">Report to Platform</Button>
-              </Link>
+            <CardContent className="space-y-6">
+              <section>
+                <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
+                  Social & Video Platforms
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                  {SOCIAL_PLATFORMS.map((p) => (
+                    <PlatformTile key={p.name} name={p.name} Icon={p.icon} locked={!isPro} />
+                  ))}
+                </div>
+              </section>
+              <section>
+                <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
+                  Web & Commercial Use
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                  {WEB_PLATFORMS.map((p) => (
+                    <PlatformTile key={p.name} name={p.name} Icon={p.icon} locked={!isPro} />
+                  ))}
+                </div>
+              </section>
+              <section>
+                <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
+                  Deepfake & AI Detection
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {AI_PLATFORMS.map((p) => (
+                    <PlatformTile key={p.name} name={p.name} Icon={p.icon} locked={!isPro} />
+                  ))}
+                </div>
+              </section>
             </CardContent>
           </Card>
+
+          {!isPro && (
+            <div className="absolute inset-0 backdrop-blur-[3px] bg-background/60 rounded-lg flex items-center justify-center p-6">
+              <div className="text-center max-w-md">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <p className="font-display text-lg font-bold text-foreground mb-2">
+                  Pro Shield monitors 20+ platforms 24/7
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  for your face, voice, and name. Free accounts show a preview only.
+                </p>
+                <Link to="/#pricing">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                    Unlock Full Monitoring — Upgrade to Pro Shield <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Alerts table */}
-        <Card className="glass-card border-border/30">
+        {/* Identity Footprint */}
+        <Card className="glass-card border-border/30 mb-6 relative">
           <CardHeader>
             <CardTitle className="font-display text-lg flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#C0392B]" /> Recent Alerts
+              <Eye className="w-4 h-4 text-primary" /> Identity Footprint
             </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Every place your name, face, or profile appears — including the things you forgot about.
+            </p>
           </CardHeader>
           <CardContent>
-            {alerts.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">
-                <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No alerts yet. Run a scan from Likeness Monitor to populate this feed.</p>
+            {/* Filters */}
+            <div ref={filterRef} className="mb-4 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {FILTER_TABS.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setFilter(t)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      filter === t
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/40 text-muted-foreground border-border/40 hover:text-foreground hover:border-border"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <Input
+                placeholder="Search platform or finding…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
+
+            {/* Table or empty state */}
+            {findings.length === 0 ? (
+              <div className="py-12 text-center">
+                <div className="relative w-20 h-20 mx-auto mb-5">
+                  <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                  <span className="absolute inset-2 rounded-full bg-primary/30 animate-ping [animation-delay:200ms]" />
+                  <span className="absolute inset-5 rounded-full bg-primary flex items-center justify-center">
+                    <Radar className="w-6 h-6 text-primary-foreground" />
+                  </span>
+                </div>
+                <p className="font-display text-lg font-semibold text-foreground">
+                  Your first scan is running.
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  We'll notify you when we find results — usually within 24 hours.
+                </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-xs uppercase tracking-wider text-muted-foreground border-b border-border/30">
-                    <tr>
-                      <th className="text-left py-2 pr-4">Date</th>
-                      <th className="text-left py-2 pr-4">Platform</th>
-                      <th className="text-left py-2 pr-4">Alert Type</th>
-                      <th className="text-left py-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {alerts.map((a, i) => (
-                      <tr key={i} className="border-b border-border/20 last:border-0">
-                        <td className="py-3 pr-4 text-muted-foreground">
-                          {new Date(a.date).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 pr-4 text-foreground">{a.platform}</td>
-                        <td className="py-3 pr-4 text-foreground">{a.type}</td>
-                        <td className="py-3">
-                          <span className={`text-xs px-2 py-1 rounded-md border ${ALERT_STATUS_STYLES[a.status] || ALERT_STATUS_STYLES.New}`}>
-                            {a.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div ref={tableRef} className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Platform</TableHead>
+                      <TableHead>What Was Found</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((f, i) => {
+                      const s = STATUS_STYLES[f.status];
+                      return (
+                        <TableRow
+                          key={f.id}
+                          ref={i === 0 ? rowRef : undefined}
+                          className="cursor-pointer"
+                          onClick={() => setSelected(f)}
+                        >
+                          <TableCell className="font-medium text-foreground whitespace-nowrap">
+                            {f.platform}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground max-w-md">
+                            <div className="truncate">{f.finding}</div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground whitespace-nowrap">
+                            {new Date(f.date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${s.pill}`}>
+                              {s.label}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  ref={i === 0 ? actionRef : undefined}
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1"
+                                >
+                                  Action <MoreHorizontal className="w-3 h-3" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleAction(f, "Dismissed")}>
+                                  This is fine — Dismiss
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                  <Link to="/tools/dmca">File DMCA Notice</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                  <Link to="/tools/contracts">Send Cease & Desist</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction(f, "Reported to Platform")}>
+                                  Report to Platform
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction(f, "Removal Requested")}>
+                                  Request Removal
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                          No results match this filter.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
+
+          {!isPro && findings.length > 0 && (
+            <div className="absolute inset-0 top-[180px] backdrop-blur-md bg-background/70 rounded-b-lg flex items-center justify-center p-6">
+              <div className="text-center max-w-md">
+                <Lock className="w-8 h-8 text-primary mx-auto mb-3" />
+                <p className="font-display text-lg font-bold text-foreground mb-2">
+                  See every place your face appears
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Free accounts show a redacted preview. Upgrade to unlock your full identity footprint.
+                </p>
+                <Link to="/#pricing">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                    Unlock Full Monitoring <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="glass-card border-border/30">
+          <CardHeader>
+            <CardTitle className="font-display text-lg">Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="grid sm:grid-cols-3 gap-3">
+            <Link to="/tools/dmca">
+              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                Generate DMCA Notice
+              </Button>
+            </Link>
+            <Link to="/tools/contracts">
+              <Button variant="outline" className="w-full">Send Cease & Desist</Button>
+            </Link>
+            <Link to="/dashboard/violations">
+              <Button variant="outline" className="w-full">Report to Platform</Button>
+            </Link>
+          </CardContent>
         </Card>
       </motion.div>
+
+      {/* Detail modal */}
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-lg">
+          {selected && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-xl">{selected.platform}</DialogTitle>
+                <DialogDescription>{selected.finding}</DialogDescription>
+              </DialogHeader>
+
+              {/* Thumbnail placeholder */}
+              <div className="aspect-video w-full bg-secondary/40 border border-border/40 rounded-lg flex items-center justify-center">
+                <FileText className="w-10 h-10 text-muted-foreground/40" />
+              </div>
+
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">URL</span>
+                  <div className="flex items-center gap-2 max-w-[60%]">
+                    <a
+                      href={selected.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate text-foreground hover:text-primary inline-flex items-center gap-1"
+                    >
+                      {selected.url} <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
+                    <button
+                      onClick={() => copyUrl(selected.url)}
+                      className="text-muted-foreground hover:text-foreground"
+                      aria-label="Copy URL"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Date first detected</span>
+                  <span className="text-foreground">{new Date(selected.date).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Date last seen</span>
+                  <span className="text-foreground">{new Date(selected.lastSeen).toLocaleDateString()}</span>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-muted-foreground">AI confidence</span>
+                    <span className="text-foreground font-medium">
+                      {selected.confidence}% match to your registered face
+                    </span>
+                  </div>
+                  <Progress value={selected.confidence} />
+                </div>
+                <div className="rounded-lg bg-primary/10 border border-primary/30 p-3">
+                  <div className="text-xs uppercase tracking-wider text-primary font-semibold mb-1">
+                    Recommended action
+                  </div>
+                  <div className="text-sm text-foreground">{selected.recommended}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Link to="/tools/dmca">File DMCA</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/tools/contracts">Cease & Desist</Link>
+                </Button>
+                <Button variant="outline" onClick={() => handleAction(selected, "Reported to Platform")}>
+                  Report
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    handleAction(selected, "Dismissed");
+                    setSelected(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <MonitoringTour steps={tourSteps} open={tourOpen} onClose={closeTour} />
     </DashboardLayout>
   );
 };

@@ -1,38 +1,87 @@
-## Plan: Build Out the Education Section
+## Goal
+Replace the current `src/pages/Monitoring.tsx` with a full Pro Shield identity-monitoring dashboard. UI only — no backend scanning yet. Pulls existing counts from Supabase where already available; everything else uses well-structured mock data so the scanner can wire in later.
 
-### Approach
-Currently `/education` is wired to Supabase's empty `blog_posts` table, so it shows "No posts yet." Rather than seeding a DB that lacks fields for read-time, FAQs, structured sections, and related articles, I'll build a **static content registry in code**. This is faster, version-controlled, and supports the rich article template you described. The existing Supabase blog admin remains untouched (additive only).
+Additive only. Existing routes, sidebar links, free/pro detection (`useIsPro`), and stat queries are preserved.
 
-### Changes
+---
 
-**1. Create `src/data/educationArticles.ts`**
-- Typed article registry exporting all 12 articles with: `slug`, `title`, `subtitle`, `category` (Legal / Platform News / How-To / Industry), `readTime`, `author` ("ReplicaShield Legal Team"), `publishDate`, `excerpt`, `sections[]` (heading + body paragraphs), `faqs[]` (3–5 Q&A per article), `relatedSlugs[]`.
-- All 12 articles populated with substantive placeholder content (NO FAKES Act, ELVIS Act, DMCA takedown, state right-of-publicity, McConaughey trademark, SAG-AFTRA AI, deepfake advertising, personality theft, AI consent clauses, post-mortem likeness, voice cloning protection, digital replica guide).
+## File changes
 
-**2. Rewrite `src/pages/Education.tsx`** (Hub Index)
-- Hero: "Education" heading + tagline.
-- Search bar (filters by title/excerpt, client-side).
-- Filter tabs: All / Legal / Platform News / How-To / Industry.
-- Responsive article cards grid (1 / 2 / 3 cols): category badge, read time (clock icon), title, 2-sentence excerpt, "Read More →" link.
-- Glass-card styling, crimson accents on hover.
-- Source data from `educationArticles.ts` (no Supabase call).
+### 1. `src/pages/Monitoring.tsx` (rewrite)
+Keep the existing data-loading block (`useIsPro`, stats query, last scan) and rebuild the layout.
 
-**3. Rewrite `src/pages/BlogPost.tsx`** (Article Template)
-- Lookup article by slug from registry; 404-style fallback if missing.
-- Hero: category badge, title, subtitle, meta row (author, publish date, read time).
-- 2-column layout on `lg+`: main article body (left) + sticky sidebar CTA card (right).
-  - Body: dark navy bg, light prose, section headers (`h2`) in crimson `font-display`.
-  - Sidebar CTA: shield icon, "Protect Your Likeness" headline, short blurb, crimson "Register Free →" button → `/signup`. Sticky on desktop, inline on mobile.
-- FAQ accordion (Radix `Accordion`) at bottom — 3–5 Q&A from the article's `faqs[]`.
-- Related Articles section: 3 cards from `relatedSlugs[]`.
-- Back link to `/education`.
+**Header**
+- Title: "Your Identity. Everywhere." (Playfair, large)
+- Subtitle: "We scan the web, social media, casting platforms, ad networks, and deepfake databases for unauthorized use of your face, voice, and name."
+- Right side: Pro Shield Active / Free badge (existing logic)
 
-**4. No changes to:**
-- Routing (`/education` and `/education/:slug` already exist in `App.tsx`).
-- Navbar Education link (already routes to `/education`).
-- Auth, pricing, dashboard, Supabase tables, RLS, or any other functionality.
-- Existing `AdminBlog.tsx` — left as-is for future DB-backed posts.
+**Stats bar (4 cards)** — reuse existing card style
+- Faces Monitored (existing `stats.facesMonitored`)
+- Platforms Scanned (static `18`)
+- Alerts This Month (existing `stats.alerts`)
+- Takedowns Filed (existing `stats.takedowns`)
 
-### Files
-- **Create**: `src/data/educationArticles.ts`
-- **Rewrite**: `src/pages/Education.tsx`, `src/pages/BlogPost.tsx`
+**Scan Coverage Grid** — three labeled sections in one card
+- Section 1 "Social & Video Platforms": TikTok, Instagram, Facebook, YouTube, X / Twitter, LinkedIn, Pinterest
+- Section 2 "Web & Commercial Use": Google Image Search, Bing Image Search, Stock Sites, Ad Networks, Fiverr / Freelance, Content Platforms (discreet label for adult), News & Articles, Casting Platforms
+- Section 3 "Deepfake & AI Detection": Reality Defender Deepfake Scan, AI Voice Clone Detection, AI Avatar Detection
+- Each item: lucide icon + name + green pulse status dot + "Active" label
+- Layout: responsive grid (2 cols mobile → 4 cols tablet → 6 cols desktop)
+
+**Identity Footprint Panel** — new card
+- Filter bar: All | Social Media | Casting Platforms | Deepfakes | Ads & Commercial | News & Articles | Fake Profiles | Voice Clones (using shadcn `Tabs` or pill buttons)
+- Search input (filters by platform / finding text)
+- Table (using existing `@/components/ui/table`): Platform | What Was Found | Date Discovered | Status | Action
+- Status pills color-coded:
+  - 🔴 New Alert (crimson)
+  - 🟡 Under Review (gold)
+  - 🔵 Takedown Filed (blue)
+  - ✅ Resolved (emerald)
+  - ℹ️ Informational (muted)
+- Action column: dropdown (`DropdownMenu`) — "This is fine — Dismiss", "File DMCA Notice", "Send Cease & Desist", "Report to Platform", "Request Removal"
+- Row click opens Alert Detail Modal
+- Data source: tries to flatten existing `likeness_scans.results` (already done); falls back to ~8 mock findings covering all finding types listed in the spec so the UI is fully demonstrable
+
+**Alert Detail Modal** (shadcn `Dialog`)
+- Placeholder thumbnail (gray box with platform icon)
+- Full URL (truncated, copy button)
+- Platform, Date first detected, Date last seen
+- AI confidence score: "95% match to your registered face" (progress bar)
+- Recommended action callout
+- One-tap action buttons row (DMCA / C&D / Report / Dismiss) — file DMCA links to `/tools/dmca`, C&D to `/tools/contracts`
+
+**Guided Tour** — new lightweight component `src/components/monitoring/MonitoringTour.tsx`
+- No new dependency. Custom spotlight: fixed full-screen overlay with a cutout positioned via `getBoundingClientRect()` of refs passed in
+- 5 steps with the exact copy from the spec, pointing at: coverage grid, footprint table, first alert row, filter bar, action button
+- "Got It →" closes; "Skip tour" link
+- First-visit detection via `localStorage.getItem('cmf_monitoring_tour_done')`
+- Manual re-launch button in header ("Take the tour")
+
+**Free-tier lock**
+- If `!isPro`: render full layout but overlay coverage grid + footprint table with a frosted blur, lock icon, headline "Pro Shield monitors 20+ platforms 24/7 for your face, voice, and name. Free accounts show a preview only.", show 3 blurred sample finding rows, crimson CTA "Unlock Full Monitoring — Upgrade to Pro Shield →" linking to `/#pricing`
+- Stats bar and header stay visible
+
+**Empty state** (Pro user, zero findings)
+- Centered animated radar pulse (CSS `animate-ping` rings in crimson) above text
+- Copy: "Your first scan is running. We'll notify you when we find results — usually within 24 hours."
+- Below: still render the Scan Coverage Grid so they see what's being checked
+
+**Quick Actions card** — keep existing one (DMCA / C&D / Report) at the bottom
+
+### 2. `src/components/monitoring/MonitoringTour.tsx` (new)
+- Props: `steps: { ref: RefObject<HTMLElement>; title: string; body: string }[]`, `open`, `onClose`
+- Renders fixed overlay + tooltip near current step's element; advances on "Next"; final step shows "Got It →"
+
+### 3. `src/components/monitoring/findings.ts` (new)
+- Exports `FINDING_TYPES`, `STATUS_STYLES`, `MOCK_FINDINGS` (8–10 items covering every category) so the page stays clean
+
+---
+
+## Out of scope
+- Real scanning backend / new edge functions
+- DB schema changes (existing `likeness_scans.results` JSON shape is reused; mock data fills the gaps until the scanner produces richer rows)
+- Wiring "File DMCA" etc. to actually create records — buttons navigate to existing tools pages
+- Changes to sidebar, pricing page, or any other route
+
+## Design system
+- Background `#0B1526`, action `#C41230` (crimson), accent `#D4A843` (gold), Playfair headings, DM Sans body, glass cards (`glass-card border-border/30`) — matches existing Monitoring page
