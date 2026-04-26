@@ -111,7 +111,7 @@ const PerformerProfileTab = () => {
           <h2 className="font-display text-xl font-semibold">Profile Details</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Legal Name</Label><Input value={form.legal_name} onChange={(e) => update("legal_name", e.target.value)} /></div>
-            <div className="space-y-2"><Label>Stage Name</Label><Input value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} /></div>
+            <div className="space-y-2"><Label>Stage Name *</Label><Input required value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} /></div>
             <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => update("phone", e.target.value)} /></div>
             <div className="space-y-2">
               <Label>Union Status</Label>
