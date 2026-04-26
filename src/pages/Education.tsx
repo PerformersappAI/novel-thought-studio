@@ -1,39 +1,37 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { BookOpen, ArrowLeft, ArrowRight, Clock, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-
-const categories = ["All", "Privacy", "AI Protection", "Industry News", "Guides"];
+import {
+  educationArticles,
+  ARTICLE_CATEGORIES,
+  type ArticleCategory,
+} from "@/data/educationArticles";
 
 const Education = () => {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] =
+    useState<(typeof ARTICLE_CATEGORIES)[number]>("All");
+  const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      let query = supabase
-        .from("blog_posts")
-        .select("*")
-        .eq("is_published", true)
-        .order("published_at", { ascending: false });
-
-      if (activeCategory !== "All") {
-        query = query.eq("category", activeCategory.toLowerCase());
-      }
-
-      const { data } = await query;
-      setPosts(data ?? []);
-      setLoading(false);
-    };
-    fetchPosts();
-  }, [activeCategory]);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return educationArticles.filter((a) => {
+      const inCategory =
+        activeCategory === "All" || a.category === (activeCategory as ArticleCategory);
+      const inQuery =
+        !q ||
+        a.title.toLowerCase().includes(q) ||
+        a.excerpt.toLowerCase().includes(q) ||
+        a.subtitle.toLowerCase().includes(q);
+      return inCategory && inQuery;
+    });
+  }, [activeCategory, query]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,21 +40,43 @@ const Education = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-2">
             <Button asChild variant="ghost" size="sm">
-              <Link to="/"><ArrowLeft className="w-4 h-4 mr-1" /> Home</Link>
+              <Link to="/">
+                <ArrowLeft className="w-4 h-4 mr-1" /> Home
+              </Link>
             </Button>
           </div>
-          <div className="text-center mb-12">
+
+          {/* Hero */}
+          <div className="text-center mb-10 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 mb-4">
               <BookOpen className="w-6 h-6 text-primary" />
-              <h1 className="font-display text-3xl md:text-4xl font-bold">Education</h1>
+              <h1 className="font-display text-4xl md:text-5xl font-bold">
+                Education
+              </h1>
             </div>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Stay informed about AI privacy, likeness protection, and industry developments.
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Practical guides, legal explainers, and industry analysis for
+              performers protecting their voice, likeness, and identity in the
+              age of AI.
             </p>
           </div>
 
+          {/* Search */}
+          <div className="max-w-xl mx-auto mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search articles..."
+                className="pl-9 h-11 bg-card border-border/50"
+              />
+            </div>
+          </div>
+
+          {/* Category tabs */}
           <div className="flex flex-wrap justify-center gap-2 mb-10">
-            {categories.map((cat) => (
+            {ARTICLE_CATEGORIES.map((cat) => (
               <Button
                 key={cat}
                 variant={activeCategory === cat ? "default" : "outline"}
@@ -69,37 +89,36 @@ const Education = () => {
             ))}
           </div>
 
-          {loading ? (
-            <div className="text-center text-muted-foreground py-20">Loading posts...</div>
-          ) : posts.length === 0 ? (
+          {/* Grid */}
+          {filtered.length === 0 ? (
             <div className="text-center text-muted-foreground py-20">
               <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-40" />
-              <p className="text-lg">No posts yet. Check back soon!</p>
+              <p className="text-lg">No articles match your filters.</p>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((post) => (
-                <Link key={post.id} to={`/education/${post.slug}`}>
-                  <Card className="glass-card border-border/30 hover:border-primary/40 transition-all h-full group">
-                    {post.cover_image_url && (
-                      <div className="aspect-video overflow-hidden rounded-t-lg">
-                        <img
-                          src={post.cover_image_url}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
+              {filtered.map((post) => (
+                <Link key={post.slug} to={`/education/${post.slug}`} className="group">
+                  <Card className="glass-card border-border/30 hover:border-primary/50 transition-all h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge variant="secondary" className="capitalize">
+                          {post.category}
+                        </Badge>
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {post.readTime}
+                        </span>
                       </div>
-                    )}
-                    <CardContent className="p-5">
-                      <Badge variant="secondary" className="mb-2 capitalize">{post.category}</Badge>
-                      <h3 className="font-display font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                      <h3 className="font-display font-semibold text-xl mb-3 leading-snug group-hover:text-primary transition-colors">
                         {post.title}
                       </h3>
-                      {post.excerpt && (
-                        <p className="text-sm text-muted-foreground line-clamp-3">{post.excerpt}</p>
-                      )}
-                      <div className="text-xs text-muted-foreground mt-3">
-                        {post.author_name} · {post.published_at ? new Date(post.published_at).toLocaleDateString() : ""}
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 mb-4">
+                        {post.excerpt}
+                      </p>
+                      <div className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2 transition-all">
+                        Read More
+                        <ArrowRight className="w-4 h-4" />
                       </div>
                     </CardContent>
                   </Card>
