@@ -13,13 +13,11 @@ import {
 
 const anchorLinks = [
   { label: "How It Works", href: "#how-it-works" },
-  { label: "Trust", href: "#trust" },
   { label: "Pricing", href: "#pricing" },
 ];
 
 const routeLinks = [
   { label: "Education", href: "/education" },
-  { label: "Tools", href: "/tools" },
 ];
 
 const Navbar = () => {
@@ -68,7 +66,7 @@ const Navbar = () => {
         </div>
 
         {/* Right — Auth buttons (desktop) */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
               <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
@@ -76,7 +74,9 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+              <Button asChild variant="outline" size="sm" className="font-body border-white/[0.15] hover:border-white/30">
+                <Link to="/login">Sign In</Link>
+              </Button>
               <Button asChild size="sm" className="font-body glow-red">
                 <Link to="/signup">Claim My Face →</Link>
               </Button>
@@ -129,7 +129,9 @@ const Navbar = () => {
                     </>
                   ) : (
                     <>
-                      <Link to="/login" onClick={() => setOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">Login</Link>
+                      <Button asChild variant="outline" size="sm" className="font-body border-white/[0.15]">
+                        <Link to="/login" onClick={() => setOpen(false)}>Sign In</Link>
+                      </Button>
                       <Button asChild size="sm" className="font-body">
                         <Link to="/signup" onClick={() => setOpen(false)}>Claim My Face →</Link>
                       </Button>
