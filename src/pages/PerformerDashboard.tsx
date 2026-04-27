@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DashboardTrustFooter from "@/components/dashboard/DashboardTrustFooter";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
+import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
+import ProtectionJourney from "@/components/dashboard/ProtectionJourney";
 import CompletedSteps, { CompletedItem } from "@/components/dashboard/CompletedSteps";
 import NextSteps, { NextStep } from "@/components/dashboard/NextSteps";
 import AlertsSection, { AlertItem } from "@/components/dashboard/AlertsSection";
@@ -189,11 +191,27 @@ const PerformerDashboard = () => {
           <p className="text-muted-foreground mt-1">Here's your protection status.</p>
         </header>
 
+        <RiskScoreCard
+          monitoringActive={monitoringActive}
+          hasCertificate={hasCertificate}
+          faceCaptured={faceCaptured}
+          profileComplete={profileComplete}
+        />
+
+        <ProtectionJourney
+          registered={faceCaptured}
+          certified={hasCertificate}
+          monitoring={monitoringActive}
+          toolsReady={profileComplete}
+        />
+
         <ProtectionScoreCard score={score} />
 
         <CompletedSteps items={completedItems} />
 
-        <NextSteps steps={nextSteps} />
+        <div id="next-steps">
+          <NextSteps steps={nextSteps} />
+        </div>
 
         <AlertsSection alerts={alerts} />
 
@@ -205,7 +223,9 @@ const PerformerDashboard = () => {
 
         <ProfileSummary profile={profile} onToggleDiscoverable={onToggleDiscoverable} />
 
-        <TakeActionList />
+        <div id="take-action">
+          <TakeActionList />
+        </div>
 
         <DashboardTrustFooter />
       </motion.div>
