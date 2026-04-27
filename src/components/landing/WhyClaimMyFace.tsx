@@ -21,7 +21,7 @@ const pillars = [
 
 const WhyClaimMyFace = () => {
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative pt-4 pb-20 md:pb-28 overflow-hidden">
       <div className="absolute inset-0 bg-background" />
       <div className="absolute inset-0 grid-pattern opacity-20" />
 
