@@ -5,17 +5,17 @@ const pillars = [
   {
     icon: Shield,
     title: "You Are the Original",
-    body: "AI can clone your face from 3 photos. ClaimMyFace timestamps your registration and creates cryptographic proof that you came first.",
+    body: "AI can clone your face from 3 photos. ClaimMyFace timestamps your registration so you have proof you came first.",
   },
   {
     icon: Eye,
     title: "We Watch So You Don't Have To",
-    body: "Our monitoring scans TikTok, Instagram, YouTube, Facebook, and ad networks 24/7 for unauthorized use of your face and voice.",
+    body: "We monitor 7 platforms and 20+ sources 24/7 for unauthorized use of your face, voice, and name.",
   },
   {
     icon: Gavel,
-    title: "From Alert to Takedown in Minutes",
-    body: "When we find unauthorized use, we generate your DMCA notice, cease-and-desist, and platform report automatically.",
+    title: "From Alert to Action in Minutes",
+    body: "When we find unauthorized use we generate your DMCA notice, cease-and-desist, and platform report automatically.",
   },
 ];
 

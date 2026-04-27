@@ -1,9 +1,14 @@
-import { Shield, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 const Footer = () => {
+  const handleAnchor = (href: string) => {
+    const el = document.querySelector(href);
+    el?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <>
       {/* Bold CTA section */}
@@ -12,7 +17,8 @@ const Footer = () => {
         <div
           className="absolute inset-0 opacity-30"
           style={{
-            background: "radial-gradient(ellipse at center, hsl(351 83% 42% / 0.25), transparent 70%)",
+            background:
+              "radial-gradient(ellipse at center, hsl(351 83% 42% / 0.25), transparent 70%)",
           }}
         />
         <div className="container px-4 relative z-10 text-center">
@@ -29,7 +35,7 @@ const Footer = () => {
             </p>
             <Button asChild size="lg" className="font-body text-base font-semibold px-8 h-13 glow-red">
               <Link to="/signup">
-                Claim My Face
+                Claim My Face — It's Free
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
@@ -40,63 +46,74 @@ const Footer = () => {
       {/* Footer */}
       <footer className="border-t border-white/[0.08] py-12 bg-secondary/20">
         <div className="container px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 mb-8">
             {/* Brand */}
-            <div className="md:col-span-1">
+            <div className="md:max-w-xs">
               <Link to="/" className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
                   <span className="font-display text-xs font-bold text-primary-foreground">C</span>
                 </div>
                 <span className="font-display text-lg font-bold text-foreground">ClaimMyFace</span>
               </Link>
-              <p className="text-sm text-muted-foreground font-body leading-relaxed mb-3">
+              <p className="text-sm text-muted-foreground font-body leading-relaxed">
                 My Face. My Claim.
               </p>
-              <p className="text-xs text-muted-foreground/80 font-body leading-relaxed">
-                Proud supporter of performer IP rights. Aligned with SAG-AFTRA AI protection principles.
+            </div>
+
+            {/* Links row */}
+            <nav className="flex flex-wrap gap-x-6 gap-y-3 md:justify-center items-center">
+              <button
+                onClick={() => handleAnchor("#how-it-works")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => handleAnchor("#pricing")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
+              >
+                Pricing
+              </button>
+              <Link
+                to="/education"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
+              >
+                Education
+              </Link>
+              <button
+                onClick={() => handleAnchor("#trust")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
+              >
+                Trust
+              </button>
+              <span className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body cursor-default">
+                Privacy Policy
+              </span>
+              <span className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body cursor-default">
+                Terms of Service
+              </span>
+            </nav>
+
+            {/* Copyright */}
+            <div className="md:text-right md:max-w-xs">
+              <p className="text-sm text-muted-foreground font-body leading-relaxed">
+                © 2026 ClaimMyFace / Roberts Entertainment / PerformersappAI
               </p>
-            </div>
-
-            {/* Platform */}
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-3 text-sm">Platform</h4>
-              <div className="flex flex-col gap-2">
-                <Link to="/signup" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">Register</Link>
-                <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">Login</Link>
-                <Link to="/education" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">Education</Link>
-                <Link to="/tools" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">Tools</Link>
-              </div>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-3 text-sm">Resources</h4>
-              <div className="flex flex-col gap-2">
-                <Link to="/education" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">How It Works</Link>
-                <Link to="/education" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">Pricing</Link>
-                <Link to="/education" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body">FAQ</Link>
-              </div>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-3 text-sm">Legal</h4>
-              <div className="flex flex-col gap-2">
-                <span className="text-sm text-muted-foreground font-body">Terms of Service</span>
-                <span className="text-sm text-muted-foreground font-body">Privacy Policy</span>
-                <span className="text-sm text-muted-foreground font-body">Cookie Policy</span>
-              </div>
             </div>
           </div>
 
           <div className="border-t border-white/[0.08] pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground font-body">
-              © 2026 ClaimMyFace / Roberts Entertainment / PerformersappAI. All rights reserved.
+            <p className="text-xs text-muted-foreground/80 font-body leading-relaxed text-center md:text-left">
+              Proud supporter of performer IP rights. Aligned with SAG-AFTRA AI protection principles.
             </p>
             <div className="flex items-center gap-3">
-              <span className="text-[10px] text-muted-foreground/60 font-body uppercase tracking-wider">SOC 2 Compliant</span>
+              <span className="text-[10px] text-muted-foreground/60 font-body uppercase tracking-wider">
+                SOC 2 Compliant
+              </span>
               <span className="text-muted-foreground/30">·</span>
-              <span className="text-[10px] text-muted-foreground/60 font-body uppercase tracking-wider">GDPR Ready</span>
+              <span className="text-[10px] text-muted-foreground/60 font-body uppercase tracking-wider">
+                GDPR Ready
+              </span>
             </div>
           </div>
         </div>

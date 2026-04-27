@@ -3,11 +3,10 @@ import { Link } from "react-router-dom";
 import { ArrowRight, AlertTriangle, X } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
+import ThreeSteps from "@/components/landing/ThreeSteps";
 import WhyClaimMyFace from "@/components/landing/WhyClaimMyFace";
-import HowItWorks from "@/components/landing/HowItWorks";
-import TrustSection from "@/components/landing/TrustSection";
-import RegistryFeatures from "@/components/landing/RegistryFeatures";
 import PricingSection from "@/components/landing/PricingSection";
+import TrustSection from "@/components/landing/TrustSection";
 import Footer from "@/components/landing/Footer";
 
 const BANNER_KEY = "cmf-no-fakes-banner-dismissed";
@@ -52,11 +51,10 @@ const Index = () => {
         </div>
       )}
       <HeroSection />
+      <ThreeSteps />
       <WhyClaimMyFace />
-      <HowItWorks />
-      <TrustSection />
-      <RegistryFeatures />
       <PricingSection />
+      <TrustSection />
       <Footer />
     </div>
   );

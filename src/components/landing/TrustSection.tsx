@@ -1,12 +1,5 @@
 import { motion } from "framer-motion";
-import { Shield, Lock, Eye, FileCheck } from "lucide-react";
-
-const features = [
-  { icon: Shield, title: "Identity Verification", desc: "Government ID + live selfie verification ensures every performer profile is authentic." },
-  { icon: Lock, title: "Cryptographic Hashing", desc: "Every registered asset receives a unique hash and timestamp — immutable proof of ownership." },
-  { icon: Eye, title: "Audit Trail", desc: "All actions are logged immutably. Full transparency for legal compliance and dispute resolution." },
-  { icon: FileCheck, title: "Legal Framework", desc: "Version-controlled agreements, consent capture with IP logging, and digital signatures on file." },
-];
+import { Shield, Lock, ShieldCheck, Check } from "lucide-react";
 
 const TrustSection = () => {
   return (
@@ -14,35 +7,53 @@ const TrustSection = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-background" />
       <div className="container px-4 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          transition={{ duration: 0.6 }}
+          className="max-w-4xl mx-auto"
         >
-          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">Built on Trust & Security</h2>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto font-body">Enterprise-grade protection for your most valuable asset — your identity.</p>
-        </motion.div>
+          <div className="relative rounded-3xl border-2 border-primary/40 bg-card/60 backdrop-blur-xl p-8 md:p-14 text-center overflow-hidden glow-red">
+            {/* Ambient crimson glow */}
+            <div
+              className="absolute inset-0 opacity-40 pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(ellipse at top, hsl(351 83% 42% / 0.18), transparent 70%)",
+              }}
+            />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-xl p-6 text-center group hover:glow-red transition-all duration-500 relative overflow-hidden"
-            >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                <feature.icon className="w-7 h-7 text-primary" />
+            <div className="relative z-10">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-primary/15 border border-primary/30 flex items-center justify-center">
+                <Shield className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="font-display font-semibold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed font-body">{feature.desc}</p>
-              {/* Crimson bottom-border reveal on hover */}
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-            </motion.div>
-          ))}
-        </div>
+
+              <h2 className="font-display text-3xl md:text-5xl font-bold mb-5 leading-tight">
+                Your Face Data Is Yours. <span className="text-gradient-gold">Period.</span>
+              </h2>
+
+              <p className="text-muted-foreground text-base md:text-lg font-body leading-relaxed max-w-2xl mx-auto mb-8">
+                Everything you register is encrypted with AES-256, stored privately, and never sold,
+                shared, or used to train AI. Ever. You can delete your account and all data at any time.
+              </p>
+
+              <div className="flex flex-wrap justify-center gap-3">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/[0.12] text-sm font-body text-foreground">
+                  <Lock className="w-4 h-4 text-primary" />
+                  AES-256 Encrypted
+                </span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/[0.12] text-sm font-body text-foreground">
+                  <ShieldCheck className="w-4 h-4 text-primary" />
+                  SOC 2 Compliant
+                </span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/[0.12] text-sm font-body text-foreground">
+                  <Check className="w-4 h-4 text-accent" />
+                  Never Sold or Shared
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
