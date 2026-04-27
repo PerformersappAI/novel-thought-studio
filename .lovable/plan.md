@@ -1,97 +1,68 @@
-# Rebuild Onboarding — 4-Step Guided Flow
+## Rebuild `/dashboard` — Protection Status Page
 
-Convert the current 3-step onboarding (Profile → Face Capture → Complete) into a guided **4-step** flow with a new Certificate step and a new Monitoring step, plus a polished Completion screen. Existing auth, Supabase, Stripe, and routing stay intact — this is purely additive plus copy/layout updates.
+Replace the current stat-cards + recent-assets layout in `src/pages/PerformerDashboard.tsx` with a single guided, scrollable status page. Sidebar and other dashboard pages stay reachable directly via URL but are removed from the sidebar nav so the dashboard becomes one journey. All Supabase, auth, Stripe, and routing remain untouched.
 
-## New flow
+### Page structure (top → bottom)
 
-```text
-/onboarding/profile      Step 1 of 4 — Build Your Profile
-/onboarding/face-capture Step 2 of 4 — Capture Your Face
-/onboarding/certified    Step 3 of 4 — Get Your Certificate   (NEW)
-/onboarding/monitoring   Step 4 of 4 — Turn On Monitoring     (NEW)
-/onboarding/complete     Final screen — "Your Face Is Now Claimed"
-```
+**1. Greeting + Protection Score**
+- “Hey {firstName}. Your face is claimed.” / “Here’s your protection status.”
+- Full-width crimson gradient card with big % number, label, progress bar, helper text.
+- Score logic (0–100):
+  - Profile complete (legal_name + stage_name + phone + performance_type): +25
+  - Face captured (`profiles.face_registered_at` set): +25
+  - Certificate downloaded (localStorage flag `cmf_cert_downloaded` OR a row in `certificates`): +20
+  - Monitoring active (active row in `user_subscriptions` OR localStorage `cmf_monitoring_basic` flag from onboarding): +30
 
-## Global rules (apply to every step)
+**2. ✅ What You’ve Done**
+- Green check cards for completed items only; incomplete items shown muted/grayed.
+- Items: Face Registered (`CMF-…` + date), Identity Verified (from `identity_verifications.status = approved`), Certificate Issued (from `certificates`), Profile Complete.
 
-- Progress bar shows **Step X of 4**; active = crimson, completed = green check, upcoming = muted.
-- **Back button** on every step except Step 1 (uses `navigate(-1)` / explicit prev route).
-- Trust banner ("🔒 Your data is yours. Encrypted, private, never sold. Ever.") at top of every step.
-- Mobile-first single column, large tap targets, dark navy / crimson palette.
+**3. → Your Next Steps**
+- Crimson action cards for each incomplete item with title, one-sentence copy, single CTA:
+  - Download Your Certificate → `/dashboard/certificate`
+  - Activate Monitoring → `/onboarding/monitoring`
+  - Add Your Voice Sample → `/dashboard/assets` (placeholder; existing assets page accepts uploads)
+  - Share Your Verified Badge → `/dashboard/certificate` (badge lives there)
 
-## Step-by-step changes
+**4. 🔴 Alerts**
+- Pulls latest `likeness_scans` results (top 3). If none → green calm card “No alerts. We’re watching.”
+- Each alert: platform name, plain-English description, date, “See Details →” opens a modal (Dialog) with raw match info; “Dismiss” hides locally.
 
-### Step 1 — Profile (`OnboardingProfile.tsx`)
-- Update `OnboardingProgress` to support 4 steps (Profile / Face / Certificate / Monitoring).
-- Page title "Step 1 of 4 — Build Your Profile" with 2-minute subtext.
-- Reorder fields to match spec order; make **Phone required**, ensure Stage Name is required (already is). All dropdowns required.
-- Bio textarea keeps live 250 char counter.
-- Headshot label updated to "Your Professional Headshot — JPG or PNG".
-- Smart link inputs (already implemented via `LinkPreviewInput`) confirmed for IMDb / Instagram / TikTok / YouTube; add a 5th for **Personal website**.
-- Discoverability toggle wrapped in crimson-bordered card, OFF by default, with the new copy.
-- Security block above CTA. CTA: "Save & Continue to Face Capture →" — navigates to `/onboarding/face-capture`.
+**5. Your Registered Face**
+- 3 face capture thumbnails from `profiles.face_capture_{front,left,right}_url` (signed URLs, 10-min, same pattern as `PerformerProfileTab`).
+- Shows registry ID + timestamp + outline button “Update Face Registration” → `/onboarding/face-capture`.
+- If not yet registered: dashed empty state with “Start Face Registration” CTA.
 
-### Step 2 — Face Capture (`OnboardingFaceCapture.tsx`)
-- Update progress to step 2 of 4. Add **Back** button to Step 1.
-- Existing pre-camera trust card, 3-photo flow, on-device face-api descriptor, and review screen remain.
-- Final CTA after the 3 captures changes from "complete" to **"These Look Good — Continue →"** which navigates to `/onboarding/certified` (instead of `/onboarding/complete`).
-- Persist `face_registered_at` and descriptor as today.
+**6. Your Profile**
+- Summary card: stage name / legal name, union, performance type, primary market, IMDb + social links (clickable with link icon), discoverability switch (writes `profiles.is_discoverable`), “Edit Profile →” outline button → `/dashboard/profile`.
 
-### Step 3 — Certified (NEW: `OnboardingCertified.tsx`)
-- New page + route `/onboarding/certified` (Protected).
-- Generates / loads the user's Registry ID (`CMF-2026-XXXXX`) — store on profile if not already (uses existing `registry_id` column if present, otherwise generated client-side and saved).
-- Certificate preview card: shield logo, "Face Registration Certificate", performer name (stage + legal), Registry ID, registration date/time, asset count, "Identity Verified ✓", legal statement, three seal badges.
-- Two CTAs:
-  - **Download My Certificate PDF →** — reuses existing `Certificate` page PDF logic (`/dashboard/certificate`) or directly calls the existing PDF generator.
-  - **Skip for now — Continue →** (outline) — both navigate to `/onboarding/monitoring`.
-- Footnote: "You can download your certificate anytime from your dashboard."
+**7. Take Action**
+- Vertical list of 5 cards (NOT a grid):
+  1. File a DMCA Takedown → `/dashboard/action/dmca`
+  2. Check a Contract → `/tools/contract-checker`
+  3. Generate Cease & Desist → `/dashboard/action/cease-desist`
+  4. Build Your Media Kit → `/tools/media-kit`
+  5. Download My Certificate → `/dashboard/certificate`
 
-### Step 4 — Monitoring (NEW: `OnboardingMonitoring.tsx`)
-- New page + route `/onboarding/monitoring` (Protected).
-- Page title and subtext per spec.
-- Coverage grid: 3 rows (Social / Web / Industry) of platform pills with lucide icons.
-- Two large plan cards:
-  - **Basic — Free** (gray border): outline CTA "Continue with Basic →" → marks profile `subscription_tier='free'` and navigates to `/onboarding/complete`.
-  - **Pro Shield — $79/mo** (crimson border, Recommended badge): crimson CTA "Activate Pro Shield →" → calls existing Stripe checkout edge function/flow used on `/pricing` for the Pro tier; on success returns to `/onboarding/complete`. If Stripe Pro tier isn't wired yet, fall back to navigating to `/pricing?tier=pro` (no Stripe changes required).
-- Footer text: "You can upgrade to Pro Shield anytime from your dashboard."
+**Permanent Trust Footer**
+- Reuse `DashboardTrustFooter` with the expanded copy from the prompt (update the component’s text to the new wording).
 
-### Completion (`OnboardingComplete.tsx`)
-- Update progress component to reflect 4-of-4 done (all green checks).
-- Animated crimson shield + checkmark, "Your Face Is Now Claimed." / "You are protected."
-- Summary panel: Registry ID, registration date, **Protection level** (reads tier from profile: Basic or Pro Shield), 3 face capture thumbnails (already implemented).
-- Single full-width crimson CTA: **"Go to My Dashboard →"** → `/dashboard`. Keep optional secondary "Download Certificate" link below.
+### Sidebar / nav cleanup
+- In `DashboardLayout.tsx`, simplify the `performerLinks` to only: Overview, Tools, Education, Sign Out. (Profile / Assets / Certificate / Verification / Scan / Monitoring / Violations / Settings stay reachable by direct URL and via cards on the dashboard, but the side tabs are removed per “no tabs” rule.)
+- Producer/admin links unchanged.
+- Top bar remains.
 
-## Shared component updates
+### Files
 
-- **`OnboardingProgress.tsx`** — extend `step` to `1 | 2 | 3 | 4`, add Certificate + Monitoring entries, keep "Step X of 4 — Label" copy. Add a `done` mode to render all-green when shown on completion.
-- Add a small reusable **`OnboardingBackButton`** (or inline) used on Steps 2–4.
+- **Edit** `src/pages/PerformerDashboard.tsx` — full rewrite of the page body (keep the file, keep `DashboardLayout` wrapper).
+- **Edit** `src/components/dashboard/DashboardLayout.tsx` — trim `performerLinks` only.
+- **Edit** `src/components/dashboard/DashboardTrustFooter.tsx` — update copy to new Security Promise wording.
+- **Create** `src/components/dashboard/ProtectionScoreCard.tsx` — score gradient card.
+- **Create** `src/components/dashboard/CompletedSteps.tsx`, `NextSteps.tsx`, `AlertsSection.tsx`, `FacePanel.tsx`, `ProfileSummary.tsx`, `TakeActionList.tsx` — section components, kept small.
 
-## Routing (`src/App.tsx`)
+### Out of scope (not changed)
+- Routing in `App.tsx`, auth, Supabase schema, Stripe.
+- Onboarding flow, homepage, `/dashboard/profile`, `/dashboard/certificate`, `/dashboard/monitoring`, tools pages.
+- No deletion of existing pages — only the sidebar tabs to them are removed.
 
-Add two protected routes:
-
-```tsx
-<Route path="/onboarding/certified" element={<ProtectedRoute><OnboardingCertified /></ProtectedRoute>} />
-<Route path="/onboarding/monitoring" element={<ProtectedRoute><OnboardingMonitoring /></ProtectedRoute>} />
-```
-
-Existing onboarding routes stay.
-
-## Files
-
-**Create**
-- `src/pages/OnboardingCertified.tsx`
-- `src/pages/OnboardingMonitoring.tsx`
-
-**Edit**
-- `src/components/onboarding/OnboardingProgress.tsx` (4-step support)
-- `src/pages/OnboardingProfile.tsx` (reorder, required phone, website link, copy)
-- `src/pages/OnboardingFaceCapture.tsx` (back button, navigate to `/onboarding/certified`, step=2)
-- `src/pages/OnboardingComplete.tsx` (4/4 progress, protection level, single primary CTA)
-- `src/App.tsx` (two new routes)
-
-## Out of scope / preserved
-
-- No DB schema changes required (uses existing `profiles` columns: registry id if present, `face_registered_at`, `subscription_tier`).
-- No changes to face-api capture pipeline, Supabase storage buckets, RLS, auth, or any non-onboarding pages.
-- Stripe: reuses whatever Pro Shield checkout is already wired on `/pricing`. If not yet wired for Pro, the button defers to `/pricing` (no Stripe code is modified or removed).
+After implementation I’ll screenshot the dashboard top-to-bottom for review.
