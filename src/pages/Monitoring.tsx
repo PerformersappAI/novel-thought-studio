@@ -137,6 +137,11 @@ const Monitoring = () => {
             url: r.url || "#",
             confidence: r.confidence ?? 90,
             recommended: r.recommended || "Report to Platform",
+            mediaType: r.mediaType || (r.audioUrl ? "audio" : r.thumbnailUrl ? "image" : "article"),
+            thumbnailUrl: r.thumbnailUrl || r.image,
+            audioUrl: r.audioUrl,
+            excerpt: r.excerpt || r.snippet,
+            matchLabel: r.matchLabel,
           });
         });
       });
