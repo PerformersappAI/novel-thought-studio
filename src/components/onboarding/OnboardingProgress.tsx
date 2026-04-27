@@ -10,9 +10,12 @@ interface OnboardingProgressProps {
 const STEPS = [
   { n: 1, label: "Profile" },
   { n: 2, label: "Face Capture" },
-  { n: 3, label: "Certificate" },
-  { n: 4, label: "Monitoring" },
+  { n: 3, label: "Voice Print" },
+  { n: 4, label: "Certificate" },
+  { n: 5, label: "Monitoring" },
 ];
+
+const TOTAL = STEPS.length;
 
 const OnboardingProgress = ({ step, done = false }: OnboardingProgressProps) => (
   <div className="flex items-center gap-2 sm:gap-3">
@@ -38,7 +41,7 @@ const OnboardingProgress = ({ step, done = false }: OnboardingProgressProps) => 
                 isActive ? "text-foreground" : isDone ? "text-emerald-400/90" : "text-muted-foreground"
               )}
             >
-              Step {s.n} of 4 — {s.label}
+              Step {s.n} of {TOTAL} — {s.label}
             </span>
           </div>
           {i < STEPS.length - 1 && (
