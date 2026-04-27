@@ -39,7 +39,17 @@ const LikenessMonitor = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchScans(); }, [user]);
+  useEffect(() => {
+    fetchScans();
+    if (user) {
+      supabase
+        .from("profiles")
+        .select("legal_name, full_name, stage_name")
+        .eq("user_id", user.id)
+        .maybeSingle()
+        .then(({ data }) => setProfile(data as any));
+    }
+  }, [user]);
 
   const runTextScan = async () => {
     if (!query.trim() || !user) return;
