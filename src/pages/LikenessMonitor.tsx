@@ -19,6 +19,7 @@ const LikenessMonitor = () => {
   const [scanning, setScanning] = useState(false);
   const [scans, setScans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<{ legal_name: string | null; full_name: string | null; stage_name: string | null } | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [name, setName] = useState("");
