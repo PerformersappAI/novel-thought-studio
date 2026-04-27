@@ -6,6 +6,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import ThreeSteps from "@/components/landing/ThreeSteps";
 import WhyClaimMyFace from "@/components/landing/WhyClaimMyFace";
 import TrustSection from "@/components/landing/TrustSection";
+import PricingSection from "@/components/landing/PricingSection";
 import Footer from "@/components/landing/Footer";
 
 const BANNER_KEY = "cmf-no-fakes-banner-dismissed";
@@ -53,6 +54,7 @@ const Index = () => {
       <ThreeSteps />
       <WhyClaimMyFace />
       <TrustSection />
+      <PricingSection />
       <Footer />
     </div>
   );
