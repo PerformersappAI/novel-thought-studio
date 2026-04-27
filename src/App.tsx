@@ -34,6 +34,7 @@ import FaceClaimWizard from "./pages/FaceClaimWizard";
 import ContractChecker from "./pages/ContractChecker";
 import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
+import OnboardingWhy from "./pages/OnboardingWhy";
 import OnboardingProfile from "./pages/OnboardingProfile";
 import OnboardingFaceCapture from "./pages/OnboardingFaceCapture";
 import OnboardingCertified from "./pages/OnboardingCertified";
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/tools/avatar" element={<AvatarCreator />} />
             <Route path="/tools/face-claim" element={<FaceClaimWizard />} />
             <Route path="/tools/contract-checker" element={<ContractChecker />} />
+            <Route path="/onboarding/why" element={<ProtectedRoute><OnboardingWhy /></ProtectedRoute>} />
             <Route path="/onboarding/profile" element={<ProtectedRoute><OnboardingProfile /></ProtectedRoute>} />
             <Route path="/onboarding/face-capture" element={<ProtectedRoute><OnboardingFaceCapture /></ProtectedRoute>} />
             <Route path="/onboarding/certified" element={<ProtectedRoute><OnboardingCertified /></ProtectedRoute>} />
