@@ -2,47 +2,50 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OnboardingProgressProps {
-  step: 1 | 2 | 3;
+  step: 1 | 2 | 3 | 4 | 5;
+  /** When true, all steps render as complete (used on the success screen) */
+  done?: boolean;
 }
 
 const STEPS = [
   { n: 1, label: "Profile" },
   { n: 2, label: "Face Capture" },
-  { n: 3, label: "Complete" },
+  { n: 3, label: "Certificate" },
+  { n: 4, label: "Monitoring" },
 ];
 
-const OnboardingProgress = ({ step }: OnboardingProgressProps) => (
-  <div className="flex items-center gap-2 sm:gap-4">
+const OnboardingProgress = ({ step, done = false }: OnboardingProgressProps) => (
+  <div className="flex items-center gap-2 sm:gap-3">
     {STEPS.map((s, i) => {
-      const done = step > s.n;
-      const active = step === s.n;
+      const isDone = done || step > s.n;
+      const isActive = !done && step === s.n;
       return (
-        <div key={s.n} className="flex items-center gap-2 sm:gap-4 flex-1">
+        <div key={s.n} className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <div
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border transition-colors shrink-0",
-                done && "bg-primary border-primary text-primary-foreground",
-                active && "bg-primary/15 border-primary text-primary",
-                !done && !active && "bg-muted/30 border-border text-muted-foreground"
+                isDone && "bg-emerald-500/15 border-emerald-500 text-emerald-400",
+                isActive && "bg-primary/15 border-primary text-primary shadow-[0_0_12px_hsl(var(--primary)/0.4)]",
+                !isDone && !isActive && "bg-muted/30 border-border text-muted-foreground"
               )}
             >
-              {done ? <Check className="w-4 h-4" /> : s.n}
+              {isDone ? <Check className="w-4 h-4" /> : s.n}
             </div>
             <span
               className={cn(
-                "text-xs sm:text-sm font-medium truncate",
-                active ? "text-foreground" : "text-muted-foreground"
+                "text-[11px] sm:text-xs font-medium truncate",
+                isActive ? "text-foreground" : isDone ? "text-emerald-400/90" : "text-muted-foreground"
               )}
             >
-              Step {s.n} of 3 — {s.label}
+              Step {s.n} of 4 — {s.label}
             </span>
           </div>
           {i < STEPS.length - 1 && (
             <div
               className={cn(
                 "h-px flex-1 transition-colors hidden sm:block",
-                done ? "bg-primary" : "bg-border"
+                isDone ? "bg-emerald-500/60" : "bg-border"
               )}
             />
           )}
