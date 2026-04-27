@@ -9,14 +9,16 @@ interface Props {
   hasCertificate: boolean;
   faceCaptured: boolean;
   profileComplete: boolean;
+  voiceRegistered?: boolean;
 }
 
-const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profileComplete }: Props) => {
+const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profileComplete, voiceRegistered = false }: Props) => {
   let risk = 0;
-  if (!monitoringActive) risk += 40;
+  if (!monitoringActive) risk += 35;
   if (!hasCertificate) risk += 20;
   if (!faceCaptured) risk += 25;
-  if (!profileComplete) risk += 15;
+  if (!profileComplete) risk += 12;
+  if (!voiceRegistered) risk += 8;
 
   const level = risk >= 70 ? "high" : risk >= 40 ? "medium" : "low";
 
@@ -61,6 +63,7 @@ const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profile
   else if (!hasCertificate) priority = "Download your certificate — establish your legal timestamp today";
   else if (!faceCaptured) priority = "Complete face capture — your registration is incomplete";
   else if (!profileComplete) priority = "Complete your profile — required for full protection";
+  else if (!voiceRegistered) priority = "Add your voice print — protect against AI voice cloning";
 
   const radius = 46;
   const circ = 2 * Math.PI * radius;
