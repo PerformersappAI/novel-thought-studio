@@ -11,14 +11,6 @@ interface DashboardLayoutProps {
 
 const performerLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
-  { to: "/dashboard/profile", icon: UserCircle, label: "Profile" },
-  { to: "/dashboard/assets", icon: Upload, label: "My Assets" },
-  { to: "/dashboard/certificates", icon: FileText, label: "Certificates" },
-  { to: "/dashboard/certificate", icon: Award, label: "Face Certificate" },
-  { to: "/dashboard/verification", icon: CheckSquare, label: "Verification" },
-  { to: "/dashboard/monitor", icon: Radar, label: "Run a Scan" },
-  { to: "/dashboard/monitoring", icon: Eye, label: "Identity Monitoring" },
-  { to: "/dashboard/violations", icon: ScrollText, label: "Report Violation" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
