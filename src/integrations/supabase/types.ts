@@ -341,6 +341,7 @@ export type Database = {
           legal_name: string | null
           performance_type: string | null
           phone: string | null
+          preferred_language: string
           primary_market: string | null
           production_type: string | null
           slug: string | null
@@ -351,6 +352,7 @@ export type Database = {
           union_verified: boolean | null
           updated_at: string
           user_id: string
+          verified_seal_seen_at: string | null
           years_performing: string | null
           youtube_handle: string | null
         }
@@ -378,6 +380,7 @@ export type Database = {
           legal_name?: string | null
           performance_type?: string | null
           phone?: string | null
+          preferred_language?: string
           primary_market?: string | null
           production_type?: string | null
           slug?: string | null
@@ -388,6 +391,7 @@ export type Database = {
           union_verified?: boolean | null
           updated_at?: string
           user_id: string
+          verified_seal_seen_at?: string | null
           years_performing?: string | null
           youtube_handle?: string | null
         }
@@ -415,6 +419,7 @@ export type Database = {
           legal_name?: string | null
           performance_type?: string | null
           phone?: string | null
+          preferred_language?: string
           primary_market?: string | null
           production_type?: string | null
           slug?: string | null
@@ -425,6 +430,7 @@ export type Database = {
           union_verified?: boolean | null
           updated_at?: string
           user_id?: string
+          verified_seal_seen_at?: string | null
           years_performing?: string | null
           youtube_handle?: string | null
         }
