@@ -1,78 +1,71 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, FileText, ShieldAlert, Mail, IdCard, Award } from "lucide-react";
+import { ArrowRight, ShieldAlert, FileSearch, Mic, BadgeCheck, IdCard, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const ACTIONS = [
+const SITUATIONS = [
   {
     icon: ShieldAlert,
-    title: "File a DMCA Takedown",
-    description:
-      "Found unauthorized use of your face? Generate a DMCA notice in 60 seconds.",
-    cta: "Start DMCA",
-    to: "/dashboard/action/dmca",
+    label: "I found my face used without permission",
+    to: "/dashboard/take-action",
   },
   {
-    icon: FileText,
-    title: "Check a Contract",
-    description:
-      "Paste any contract and our AI flags dangerous AI clauses before you sign.",
-    cta: "Check Contract",
-    to: "/tools/contract-checker",
+    icon: FileSearch,
+    label: "I need to review a contract before signing",
+    to: "/dashboard/take-action",
   },
   {
-    icon: Mail,
-    title: "Generate Cease & Desist",
-    description:
-      "Send a formal legal warning to anyone using your face without permission.",
-    cta: "Generate Letter",
-    to: "/dashboard/action/cease-desist",
+    icon: Mic,
+    label: "Someone is using my voice without permission",
+    to: "/dashboard/take-action",
+  },
+  {
+    icon: BadgeCheck,
+    label: "I want to share my verified status",
+    to: "/dashboard/take-action",
   },
   {
     icon: IdCard,
-    title: "Build Your Media Kit",
-    description:
-      "Create a shareable verified performer profile with your registered credentials.",
-    cta: "Build Kit",
-    to: "/tools/media-kit",
+    label: "I need to build my media kit",
+    to: "/dashboard/take-action",
   },
   {
-    icon: Award,
-    title: "Download My Certificate",
-    description:
-      "Download or reshare your official Face Registration Certificate PDF.",
-    cta: "Download",
-    to: "/dashboard/certificate",
+    icon: UserX,
+    label: "I want to report a fake profile using my photos",
+    to: "/dashboard/take-action",
   },
 ];
 
 const TakeActionList = () => {
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="font-display text-xl md:text-2xl font-bold">Take Action</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Tools available when you need them.
-        </p>
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h2 className="font-display text-xl md:text-2xl font-bold">Take Action</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            What do you need to do right now?
+          </p>
+        </div>
+        <Button asChild variant="ghost" size="sm" className="shrink-0">
+          <Link to="/dashboard/take-action">
+            See all <ArrowRight className="w-3.5 h-3.5 ml-1" />
+          </Link>
+        </Button>
       </div>
-      <div className="space-y-3">
-        {ACTIONS.map((a) => (
-          <div
-            key={a.title}
-            className="rounded-xl border border-border/30 bg-card/40 hover:bg-card/60 transition-colors p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+      <div className="space-y-2">
+        {SITUATIONS.map((s) => (
+          <Link
+            key={s.label}
+            to={s.to}
+            className="rounded-xl border border-border/30 bg-card/40 hover:bg-card/60 hover:border-border transition-colors p-4 flex items-center gap-3"
           >
             <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <a.icon className="w-5 h-5" />
+              <s.icon className="w-5 h-5" />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-display font-semibold text-foreground">{a.title}</div>
-              <p className="text-sm text-muted-foreground mt-0.5">{a.description}</p>
+            <div className="flex-1 min-w-0 text-sm font-medium leading-snug">
+              {s.label}
             </div>
-            <Button asChild variant="outline" size="sm" className="shrink-0">
-              <Link to={a.to}>
-                {a.cta} <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Link>
-            </Button>
-          </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </Link>
         ))}
       </div>
     </section>

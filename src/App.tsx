@@ -22,6 +22,7 @@ import AdminBlog from "./pages/AdminBlog";
 import Education from "./pages/Education";
 import BlogPost from "./pages/BlogPost";
 import Tools from "./pages/Tools";
+import TakeAction from "./pages/TakeAction";
 import ContractGenerator from "./pages/ContractGenerator";
 import InvoiceBuilder from "./pages/InvoiceBuilder";
 import DMCATakedown from "./pages/DMCATakedown";
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/education" element={<Education />} />
             <Route path="/education/:slug" element={<BlogPost />} />
             <Route path="/tools" element={<Tools />} />
+            <Route path="/dashboard/take-action" element={<ProtectedRoute><TakeAction /></ProtectedRoute>} />
             <Route path="/tools/contracts" element={<ContractGenerator />} />
             <Route path="/tools/invoices" element={<InvoiceBuilder />} />
             <Route path="/tools/dmca" element={<DMCATakedown />} />
