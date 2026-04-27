@@ -37,6 +37,10 @@ import OnboardingProfile from "./pages/OnboardingProfile";
 import OnboardingFaceCapture from "./pages/OnboardingFaceCapture";
 import OnboardingComplete from "./pages/OnboardingComplete";
 import PerformerProfileTab from "./pages/PerformerProfileTab";
+import DmcaAction from "./pages/actions/DmcaAction";
+import CeaseDesistAction from "./pages/actions/CeaseDesistAction";
+import ReportPlatformAction from "./pages/actions/ReportPlatformAction";
+import RemovalAction from "./pages/actions/RemovalAction";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +85,10 @@ const App = () => (
             <Route path="/onboarding/face-capture" element={<ProtectedRoute><OnboardingFaceCapture /></ProtectedRoute>} />
             <Route path="/onboarding/complete" element={<ProtectedRoute><OnboardingComplete /></ProtectedRoute>} />
             <Route path="/dashboard/profile" element={<ProtectedRoute><PerformerProfileTab /></ProtectedRoute>} />
+            <Route path="/dashboard/action/dmca" element={<ProtectedRoute><DmcaAction /></ProtectedRoute>} />
+            <Route path="/dashboard/action/cease-desist" element={<ProtectedRoute><CeaseDesistAction /></ProtectedRoute>} />
+            <Route path="/dashboard/action/report" element={<ProtectedRoute><ReportPlatformAction /></ProtectedRoute>} />
+            <Route path="/dashboard/action/removal" element={<ProtectedRoute><RemovalAction /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
