@@ -28,6 +28,8 @@ import {
 } from "@/components/monitoring/findings";
 import MonitoringTour, { TourStep } from "@/components/monitoring/MonitoringTour";
 import FindingThumbnail from "@/components/monitoring/FindingThumbnail";
+import TakedownCreditsCard from "@/components/monitoring/TakedownCreditsCard";
+import ImpersonatorDetection from "@/components/monitoring/ImpersonatorDetection";
 import { useToast } from "@/hooks/use-toast";
 
 const useIsPro = () => {
@@ -104,6 +106,8 @@ const Monitoring = () => {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Finding | null>(null);
   const [copied, setCopied] = useState(false);
+  const [performerName, setPerformerName] = useState<string>("");
+  const [registryId, setRegistryId] = useState<string | null>(null);
 
   // Tour
   const [tourOpen, setTourOpen] = useState(false);
@@ -120,11 +124,15 @@ const Monitoring = () => {
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
 
-      const [{ count: faces }, { data: scans }, { count: violations }] = await Promise.all([
+      const [{ count: faces }, { data: scans }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
         supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
         supabase.from("likeness_scans").select("results, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
+        supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
       ]);
+      setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
+      setRegistryId(certs?.[0]?.registry_id ?? null);
 
       // Try to flatten real scan results into Finding shape; fall back to mocks for demo
       const real: Finding[] = [];
@@ -247,6 +255,9 @@ const Monitoring = () => {
           </div>
         </div>
 
+        {/* Takedown Credits */}
+        <TakedownCreditsCard isPro={isPro} />
+
         {/* Stats */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {statCards.map((s) => (
@@ -322,6 +333,9 @@ const Monitoring = () => {
             </div>
           )}
         </div>
+
+        {/* Impersonator Detection */}
+        <ImpersonatorDetection performerName={performerName} registryId={registryId} />
 
         {/* Identity Footprint */}
         <Card className="glass-card border-border/30 mb-6 relative">
