@@ -7,7 +7,7 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/cmf-shield-logo.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
