@@ -35,6 +35,8 @@ import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
 import OnboardingProfile from "./pages/OnboardingProfile";
 import OnboardingFaceCapture from "./pages/OnboardingFaceCapture";
+import OnboardingCertified from "./pages/OnboardingCertified";
+import OnboardingMonitoring from "./pages/OnboardingMonitoring";
 import OnboardingComplete from "./pages/OnboardingComplete";
 import PerformerProfileTab from "./pages/PerformerProfileTab";
 import DmcaAction from "./pages/actions/DmcaAction";
@@ -83,6 +85,8 @@ const App = () => (
             <Route path="/tools/contract-checker" element={<ContractChecker />} />
             <Route path="/onboarding/profile" element={<ProtectedRoute><OnboardingProfile /></ProtectedRoute>} />
             <Route path="/onboarding/face-capture" element={<ProtectedRoute><OnboardingFaceCapture /></ProtectedRoute>} />
+            <Route path="/onboarding/certified" element={<ProtectedRoute><OnboardingCertified /></ProtectedRoute>} />
+            <Route path="/onboarding/monitoring" element={<ProtectedRoute><OnboardingMonitoring /></ProtectedRoute>} />
             <Route path="/onboarding/complete" element={<ProtectedRoute><OnboardingComplete /></ProtectedRoute>} />
             <Route path="/dashboard/profile" element={<ProtectedRoute><PerformerProfileTab /></ProtectedRoute>} />
             <Route path="/dashboard/action/dmca" element={<ProtectedRoute><DmcaAction /></ProtectedRoute>} />

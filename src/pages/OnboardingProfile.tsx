@@ -44,6 +44,7 @@ const OnboardingProfile = () => {
     instagram_handle: "",
     tiktok_handle: "",
     youtube_handle: "",
+    website_url: "",
     is_discoverable: false,
   });
 
@@ -108,6 +109,10 @@ const OnboardingProfile = () => {
     }
     if (!form.stage_name.trim()) {
       toast({ title: "Stage / Performer name required", variant: "destructive" });
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast({ title: "Phone number required", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -178,15 +183,16 @@ const OnboardingProfile = () => {
           className="glass-card rounded-2xl p-6 sm:p-8 space-y-6"
         >
           <header>
-            <h1 className="font-display text-3xl font-bold">Your Performer Profile</h1>
+            <p className="text-xs uppercase tracking-wider text-primary font-semibold">Step 1 of 4 — Build Your Profile</p>
+            <h1 className="font-display text-3xl font-bold mt-1">Tell us who you are.</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              The foundation of your registered identity. All fields private unless you opt in to discoverability.
+              This takes about 2 minutes. All fields private unless you opt in to discoverability.
             </p>
           </header>
 
           {/* Headshot */}
           <div className="space-y-2">
-            <Label>Your Professional Headshot</Label>
+            <Label>Your Professional Headshot — JPG or PNG</Label>
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full bg-muted/30 border border-border overflow-hidden flex items-center justify-center">
                 {headshotPreview ? (
@@ -213,7 +219,7 @@ const OnboardingProfile = () => {
               <Input value={form.email} disabled />
             </div>
             <div className="space-y-2">
-              <Label>Phone Number</Label>
+              <Label>Phone Number *</Label>
               <Input value={form.phone} onChange={(e) => update("phone", e.target.value)} />
             </div>
             <div className="space-y-2">
@@ -306,6 +312,15 @@ const OnboardingProfile = () => {
                 onChange={(v) => update("youtube_handle", v)}
               />
             </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Personal Website (optional)</Label>
+              <LinkPreviewInput
+                type="url"
+                placeholder="yourname.com"
+                value={form.website_url}
+                onChange={(v) => update("website_url", v)}
+              />
+            </div>
           </div>
 
           {/* Discoverability opt-in */}
@@ -340,7 +355,7 @@ const OnboardingProfile = () => {
           </div>
 
           <Button onClick={submit} disabled={saving} size="lg" className="w-full font-display">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Save Profile & Continue <ArrowRight className="w-4 h-4 ml-1" /></>}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Save & Continue to Face Capture <ArrowRight className="w-4 h-4 ml-1" /></>}
           </Button>
         </motion.div>
       </div>
