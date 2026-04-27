@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Camera, Check, Loader2, RotateCcw, ArrowRight, Lock, Upload, Video } from "lucide-react";
+import OnboardingBackButton from "@/components/onboarding/OnboardingBackButton";
 import {
   Select,
   SelectContent,
@@ -300,7 +301,7 @@ const OnboardingFaceCapture = () => {
       if (error) throw error;
 
       stopCamera();
-      navigate("/onboarding/complete");
+      navigate("/onboarding/certified");
     } catch (e: any) {
       toast({ title: "Registration failed", description: e.message, variant: "destructive" });
     } finally {
@@ -316,6 +317,7 @@ const OnboardingFaceCapture = () => {
       <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-primary/10 blur-[120px]" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-10 space-y-6">
+        <OnboardingBackButton to="/onboarding/profile" label="Back to Profile" />
         <OnboardingProgress step={2} />
         <TrustBanner />
 
@@ -533,7 +535,7 @@ const OnboardingFaceCapture = () => {
                 {submitting ? (
                   <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Registering…</>
                 ) : (
-                  <>These Look Good — Register My Face <ArrowRight className="w-4 h-4 ml-1" /></>
+                  <>These Look Good — Continue <ArrowRight className="w-4 h-4 ml-1" /></>
                 )}
               </Button>
             </div>
