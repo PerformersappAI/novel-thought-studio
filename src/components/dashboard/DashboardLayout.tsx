@@ -60,10 +60,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <span className="hidden sm:inline">Home</span>
           </Link>
           <Link
-            to="/tools"
+            to="/dashboard/take-action"
             className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
           >
-            Tools
+            Take Action
           </Link>
           <Link
             to="/education"
