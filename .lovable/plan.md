@@ -1,76 +1,97 @@
-# Homepage Rebuild — claimmyface.com (root `/` only)
+# Rebuild Onboarding — 4-Step Guided Flow
 
-**Scope guarantee:** Only the homepage visual layout/content changes. Routing, auth, Supabase, Stripe, and all other pages stay untouched.
+Convert the current 3-step onboarding (Profile → Face Capture → Complete) into a guided **4-step** flow with a new Certificate step and a new Monitoring step, plus a polished Completion screen. Existing auth, Supabase, Stripe, and routing stay intact — this is purely additive plus copy/layout updates.
 
-## 1. Navigation (`src/components/landing/Navbar.tsx`)
-Simplify to 4 visible items + auth:
-- Left: existing C-shield logo + "ClaimMyFace"
-- Center: **How It Works** | **Pricing** | **Education** (drop Trust + Tools)
-- Right: **Sign In** (outline) | **Claim My Face →** (crimson filled)
-- Mobile sheet: same 3 links + Sign In + Claim My Face
+## New flow
 
-Trust moves to footer-only. Tools stays accessible only inside the dashboard sidebar (already is — no change needed there).
+```text
+/onboarding/profile      Step 1 of 4 — Build Your Profile
+/onboarding/face-capture Step 2 of 4 — Capture Your Face
+/onboarding/certified    Step 3 of 4 — Get Your Certificate   (NEW)
+/onboarding/monitoring   Step 4 of 4 — Turn On Monitoring     (NEW)
+/onboarding/complete     Final screen — "Your Face Is Now Claimed"
+```
 
-## 2. Hero (`src/components/landing/HeroSection.tsx`)
-- Pill badge unchanged: "THE PERFORMER STANDARD FOR FACE & LIKENESS PROTECTION"
-- H1: "My Face." (white) / "My Claim." (gold gradient)
-- Body: "The independent registry that proves you own your face — before someone else profits from it. Built for every performer, not just the famous ones."
-- Primary CTA copy → **"Claim My Face — It's Free →"** (crimson)
-- Secondary CTA: "See How It Works" → `#how-it-works`
-- 3 trust chips below: ✓ Identity Verified | ✓ Face Registered | ✓ Legally Protected
-- Right side: keep existing registry credential card (CMF ID, Assets Protected, Face Status: Claimed & Protected)
-- Keep existing crimson stats bar: 10K+ / 52K / 100% / 24/7
+## Global rules (apply to every step)
 
-## 3. NEW — "Three Steps. Total Protection." (`src/components/landing/ThreeSteps.tsx`)
-Replaces the current 6-step `HowItWorks` on the homepage. Lives at anchor `#how-it-works`.
-- H2: "Three Steps. Total Protection."
-- Subhead: "From zero to legally protected in under 10 minutes."
-- 3 cards (grid on desktop, stacked mobile), each with:
-  - Large crimson numeral (1 / 2 / 3)
-  - Lucide icon (UserSquare, ShieldCheck, Radar)
-  - Title + description (exact copy from prompt)
-  - Gold "→ You get:" outcome line
-- Centered below: "Ready?" + crimson **Claim My Face — It's Free →** button
+- Progress bar shows **Step X of 4**; active = crimson, completed = green check, upcoming = muted.
+- **Back button** on every step except Step 1 (uses `navigate(-1)` / explicit prev route).
+- Trust banner ("🔒 Your data is yours. Encrypted, private, never sold. Ever.") at top of every step.
+- Mobile-first single column, large tap targets, dark navy / crimson palette.
 
-Existing `HowItWorks.tsx` file stays in repo (unused on homepage) so no other page breaks.
+## Step-by-step changes
 
-## 4. "Why ClaimMyFace?" (`src/components/landing/WhyClaimMyFace.tsx`)
-Already 3 columns with Shield/Eye/Gavel. Update copy to exact prompt wording:
-- "You Are the Original" — AI can clone your face from 3 photos. ClaimMyFace timestamps your registration so you have proof you came first.
-- "We Watch So You Don't Have To" — We monitor 7 platforms and 20+ sources 24/7 for unauthorized use of your face, voice, and name.
-- "From Alert to Action in Minutes" — When we find unauthorized use we generate your DMCA notice, cease-and-desist, and platform report automatically.
+### Step 1 — Profile (`OnboardingProfile.tsx`)
+- Update `OnboardingProgress` to support 4 steps (Profile / Face / Certificate / Monitoring).
+- Page title "Step 1 of 4 — Build Your Profile" with 2-minute subtext.
+- Reorder fields to match spec order; make **Phone required**, ensure Stage Name is required (already is). All dropdowns required.
+- Bio textarea keeps live 250 char counter.
+- Headshot label updated to "Your Professional Headshot — JPG or PNG".
+- Smart link inputs (already implemented via `LinkPreviewInput`) confirmed for IMDb / Instagram / TikTok / YouTube; add a 5th for **Personal website**.
+- Discoverability toggle wrapped in crimson-bordered card, OFF by default, with the new copy.
+- Security block above CTA. CTA: "Save & Continue to Face Capture →" — navigates to `/onboarding/face-capture`.
 
-## 5. Trust Section (replace `src/components/landing/TrustSection.tsx` content)
-Single full-width dark card with crimson border:
-- Centered large shield icon
-- H2: "Your Face Data Is Yours. Period."
-- Body: "Everything you register is encrypted with AES-256, stored privately, and never sold, shared, or used to train AI. Ever. You can delete your account and all data at any time."
-- 3 inline badges: 🔒 AES-256 Encrypted | 🛡️ SOC 2 Compliant | ✓ Never Sold or Shared
+### Step 2 — Face Capture (`OnboardingFaceCapture.tsx`)
+- Update progress to step 2 of 4. Add **Back** button to Step 1.
+- Existing pre-camera trust card, 3-photo flow, on-device face-api descriptor, and review screen remain.
+- Final CTA after the 3 captures changes from "complete" to **"These Look Good — Continue →"** which navigates to `/onboarding/certified` (instead of `/onboarding/complete`).
+- Persist `face_registered_at` and descriptor as today.
 
-## 6. Footer (`src/components/landing/Footer.tsx`)
-- Left: logo + "My Face. My Claim."
-- Links row: How It Works | Pricing | Education | Trust | Privacy Policy | Terms of Service
-- Right: "© 2026 ClaimMyFace / Roberts Entertainment / PerformersappAI"
-- Bottom line: "Proud supporter of performer IP rights. Aligned with SAG-AFTRA AI protection principles."
-- Keep the bold "Ready to Claim Your Face?" CTA section above the footer columns.
+### Step 3 — Certified (NEW: `OnboardingCertified.tsx`)
+- New page + route `/onboarding/certified` (Protected).
+- Generates / loads the user's Registry ID (`CMF-2026-XXXXX`) — store on profile if not already (uses existing `registry_id` column if present, otherwise generated client-side and saved).
+- Certificate preview card: shield logo, "Face Registration Certificate", performer name (stage + legal), Registry ID, registration date/time, asset count, "Identity Verified ✓", legal statement, three seal badges.
+- Two CTAs:
+  - **Download My Certificate PDF →** — reuses existing `Certificate` page PDF logic (`/dashboard/certificate`) or directly calls the existing PDF generator.
+  - **Skip for now — Continue →** (outline) — both navigate to `/onboarding/monitoring`.
+- Footnote: "You can download your certificate anytime from your dashboard."
 
-## 7. Page composition (`src/pages/Index.tsx`)
-New order:
-1. Navbar
-2. NO FAKES announcement banner (keep existing)
-3. HeroSection (with stats bar)
-4. ThreeSteps (new) — anchor `#how-it-works`
-5. WhyClaimMyFace (updated copy)
-6. PricingSection (unchanged — anchor `#pricing`)
-7. TrustSection (rebuilt as single dark card) — anchor `#trust`
-8. Footer (rebuilt links row)
+### Step 4 — Monitoring (NEW: `OnboardingMonitoring.tsx`)
+- New page + route `/onboarding/monitoring` (Protected).
+- Page title and subtext per spec.
+- Coverage grid: 3 rows (Social / Web / Industry) of platform pills with lucide icons.
+- Two large plan cards:
+  - **Basic — Free** (gray border): outline CTA "Continue with Basic →" → marks profile `subscription_tier='free'` and navigates to `/onboarding/complete`.
+  - **Pro Shield — $79/mo** (crimson border, Recommended badge): crimson CTA "Activate Pro Shield →" → calls existing Stripe checkout edge function/flow used on `/pricing` for the Pro tier; on success returns to `/onboarding/complete`. If Stripe Pro tier isn't wired yet, fall back to navigating to `/pricing?tier=pro` (no Stripe changes required).
+- Footer text: "You can upgrade to Pro Shield anytime from your dashboard."
 
-`RegistryFeatures` is removed from the homepage composition (file kept in repo).
+### Completion (`OnboardingComplete.tsx`)
+- Update progress component to reflect 4-of-4 done (all green checks).
+- Animated crimson shield + checkmark, "Your Face Is Now Claimed." / "You are protected."
+- Summary panel: Registry ID, registration date, **Protection level** (reads tier from profile: Basic or Pro Shield), 3 face capture thumbnails (already implemented).
+- Single full-width crimson CTA: **"Go to My Dashboard →"** → `/dashboard`. Keep optional secondary "Download Certificate" link below.
 
-## Files touched
-- **Edit:** `src/pages/Index.tsx`, `src/components/landing/Navbar.tsx`, `src/components/landing/HeroSection.tsx`, `src/components/landing/WhyClaimMyFace.tsx`, `src/components/landing/TrustSection.tsx`, `src/components/landing/Footer.tsx`
-- **Create:** `src/components/landing/ThreeSteps.tsx`
-- **Untouched:** all routes, auth, Supabase, Stripe, dashboard, tools, every other page
+## Shared component updates
 
-## QA before handoff
-After build, navigate to `/` in the preview and capture full-page screenshots (top → bottom) at desktop and mobile widths, then return them here for your review before Prompt 2.
+- **`OnboardingProgress.tsx`** — extend `step` to `1 | 2 | 3 | 4`, add Certificate + Monitoring entries, keep "Step X of 4 — Label" copy. Add a `done` mode to render all-green when shown on completion.
+- Add a small reusable **`OnboardingBackButton`** (or inline) used on Steps 2–4.
+
+## Routing (`src/App.tsx`)
+
+Add two protected routes:
+
+```tsx
+<Route path="/onboarding/certified" element={<ProtectedRoute><OnboardingCertified /></ProtectedRoute>} />
+<Route path="/onboarding/monitoring" element={<ProtectedRoute><OnboardingMonitoring /></ProtectedRoute>} />
+```
+
+Existing onboarding routes stay.
+
+## Files
+
+**Create**
+- `src/pages/OnboardingCertified.tsx`
+- `src/pages/OnboardingMonitoring.tsx`
+
+**Edit**
+- `src/components/onboarding/OnboardingProgress.tsx` (4-step support)
+- `src/pages/OnboardingProfile.tsx` (reorder, required phone, website link, copy)
+- `src/pages/OnboardingFaceCapture.tsx` (back button, navigate to `/onboarding/certified`, step=2)
+- `src/pages/OnboardingComplete.tsx` (4/4 progress, protection level, single primary CTA)
+- `src/App.tsx` (two new routes)
+
+## Out of scope / preserved
+
+- No DB schema changes required (uses existing `profiles` columns: registry id if present, `face_registered_at`, `subscription_tier`).
+- No changes to face-api capture pipeline, Supabase storage buckets, RLS, auth, or any non-onboarding pages.
+- Stripe: reuses whatever Pro Shield checkout is already wired on `/pricing`. If not yet wired for Pro, the button defers to `/pricing` (no Stripe code is modified or removed).
