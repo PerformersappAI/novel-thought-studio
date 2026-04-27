@@ -52,7 +52,6 @@ const Index = () => {
       <HeroSection />
       <ThreeSteps />
       <WhyClaimMyFace />
-      <PricingSection />
       <TrustSection />
       <Footer />
     </div>
