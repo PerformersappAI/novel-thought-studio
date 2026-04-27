@@ -41,7 +41,7 @@ const Signup = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Account created!", description: "Check your email for confirmation, or sign in directly." });
-      navigate("/dashboard");
+      navigate(accountType === "performer" ? "/onboarding/why" : "/dashboard");
     }
   };
 
