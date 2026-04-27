@@ -124,11 +124,15 @@ const Monitoring = () => {
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
 
-      const [{ count: faces }, { data: scans }, { count: violations }] = await Promise.all([
+      const [{ count: faces }, { data: scans }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
         supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
         supabase.from("likeness_scans").select("results, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
+        supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
       ]);
+      setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
+      setRegistryId(certs?.[0]?.registry_id ?? null);
 
       // Try to flatten real scan results into Finding shape; fall back to mocks for demo
       const real: Finding[] = [];
