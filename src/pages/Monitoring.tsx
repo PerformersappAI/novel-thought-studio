@@ -28,6 +28,8 @@ import {
 } from "@/components/monitoring/findings";
 import MonitoringTour, { TourStep } from "@/components/monitoring/MonitoringTour";
 import FindingThumbnail from "@/components/monitoring/FindingThumbnail";
+import TakedownCreditsCard from "@/components/monitoring/TakedownCreditsCard";
+import ImpersonatorDetection from "@/components/monitoring/ImpersonatorDetection";
 import { useToast } from "@/hooks/use-toast";
 
 const useIsPro = () => {
@@ -104,6 +106,8 @@ const Monitoring = () => {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Finding | null>(null);
   const [copied, setCopied] = useState(false);
+  const [performerName, setPerformerName] = useState<string>("");
+  const [registryId, setRegistryId] = useState<string | null>(null);
 
   // Tour
   const [tourOpen, setTourOpen] = useState(false);
