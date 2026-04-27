@@ -158,6 +158,7 @@ const Certificate = () => {
       doc.text(`Issued ${new Date().toLocaleDateString()} · ClaimMyFace Digital Registry`, W / 2, H - 60, { align: "center" });
 
       doc.save(`ClaimMyFace-Certificate-${data.registryId}.pdf`);
+      try { localStorage.setItem("cmf_cert_downloaded", "1"); } catch {}
       toast.success("Certificate downloaded");
     } catch (e) {
       console.error(e);
