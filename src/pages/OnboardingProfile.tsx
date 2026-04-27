@@ -219,7 +219,7 @@ const OnboardingProfile = () => {
               <Input value={form.email} disabled />
             </div>
             <div className="space-y-2">
-              <Label>Phone Number</Label>
+              <Label>Phone Number *</Label>
               <Input value={form.phone} onChange={(e) => update("phone", e.target.value)} />
             </div>
             <div className="space-y-2">
@@ -355,7 +355,7 @@ const OnboardingProfile = () => {
           </div>
 
           <Button onClick={submit} disabled={saving} size="lg" className="w-full font-display">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Save Profile & Continue <ArrowRight className="w-4 h-4 ml-1" /></>}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Save & Continue to Face Capture <ArrowRight className="w-4 h-4 ml-1" /></>}
           </Button>
         </motion.div>
       </div>
