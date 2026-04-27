@@ -5,7 +5,6 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import ThreeSteps from "@/components/landing/ThreeSteps";
 import WhyClaimMyFace from "@/components/landing/WhyClaimMyFace";
-import PricingSection from "@/components/landing/PricingSection";
 import TrustSection from "@/components/landing/TrustSection";
 import Footer from "@/components/landing/Footer";
 
@@ -53,7 +52,6 @@ const Index = () => {
       <HeroSection />
       <ThreeSteps />
       <WhyClaimMyFace />
-      <PricingSection />
       <TrustSection />
       <Footer />
     </div>
