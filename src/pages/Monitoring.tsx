@@ -19,6 +19,7 @@ import {
   Instagram, Facebook, Youtube, Twitter, Image as ImageIcon, Megaphone,
   Linkedin, Search, Globe, Briefcase, FileText, Clapperboard, Newspaper,
   ScanFace, Mic, Bot, MoreHorizontal, ExternalLink, Copy, Check, HelpCircle,
+  RefreshCw, Trash2, Clock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ import {
   FILTER_TABS, MOCK_FINDINGS, STATUS_STYLES, type Finding, type FindingCategory,
 } from "@/components/monitoring/findings";
 import MonitoringTour, { TourStep } from "@/components/monitoring/MonitoringTour";
+import FindingThumbnail from "@/components/monitoring/FindingThumbnail";
 import { useToast } from "@/hooks/use-toast";
 
 const useIsPro = () => {
@@ -59,7 +61,10 @@ const WEB_PLATFORMS = [
   { name: "Bing Image Search", icon: Search },
   { name: "Stock Sites", icon: ImageIcon },
   { name: "Ad Networks", icon: Megaphone },
-  { name: "Fiverr / Freelance", icon: Briefcase },
+  { name: "Fiverr", icon: Briefcase },
+  { name: "Upwork", icon: Briefcase },
+  { name: "Cameo", icon: Clapperboard },
+  { name: "Reddit", icon: Globe },
   { name: "Content Platforms", icon: Globe },
   { name: "News & Articles", icon: Newspaper },
   { name: "Casting Platforms", icon: Clapperboard },
