@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu } from "lucide-react";
+import cmfShieldLogo from "@/assets/cmf-shield-logo.png";
 import {
   Sheet,
   SheetContent,
@@ -35,9 +36,11 @@ const Navbar = () => {
       <div className="container px-4 h-16 flex items-center justify-between">
         {/* Left — Logo */}
         <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-            <span className="font-display text-sm font-bold text-primary-foreground">C</span>
-          </div>
+          <img
+            src={cmfShieldLogo}
+            alt="ClaimMyFace shield logo"
+            className="w-9 h-9 object-contain"
+          />
           <span className="font-display text-xl font-bold tracking-tight text-foreground">
             ClaimMyFace
           </span>
