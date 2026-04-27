@@ -19,6 +19,7 @@ const LikenessMonitor = () => {
   const [scanning, setScanning] = useState(false);
   const [scans, setScans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<{ legal_name: string | null; full_name: string | null; stage_name: string | null } | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -38,7 +39,17 @@ const LikenessMonitor = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchScans(); }, [user]);
+  useEffect(() => {
+    fetchScans();
+    if (user) {
+      supabase
+        .from("profiles")
+        .select("legal_name, full_name, stage_name")
+        .eq("user_id", user.id)
+        .maybeSingle()
+        .then(({ data }) => setProfile(data as any));
+    }
+  }, [user]);
 
   const runTextScan = async () => {
     if (!query.trim() || !user) return;
@@ -182,7 +193,7 @@ const LikenessMonitor = () => {
           </TabsContent>
         </Tabs>
 
-        <ScanHistory scans={scans} loading={loading} onUpdate={fetchScans} />
+        <ScanHistory scans={scans} loading={loading} onUpdate={fetchScans} profile={profile} />
       </div>
     </DashboardLayout>
   );

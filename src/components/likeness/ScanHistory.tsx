@@ -5,8 +5,32 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ExternalLink, AlertTriangle, Clock, Image as ImageIcon, Type, Trash2, Shield } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Loader2,
+  ExternalLink,
+  AlertTriangle,
+  Clock,
+  Image as ImageIcon,
+  Type,
+  Trash2,
+  Shield,
+  FileDown,
+  Eraser,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { generateLikenessReport } from "@/lib/likenessReport";
 
 interface ScanResult {
   url: string;
@@ -27,10 +51,20 @@ interface Scan {
   created_at: string;
 }
 
-const ScanHistory = ({ scans, loading, onUpdate }: { scans: Scan[]; loading: boolean; onUpdate?: () => void }) => {
+interface ScanHistoryProps {
+  scans: Scan[];
+  loading: boolean;
+  onUpdate?: () => void;
+  profile?: { legal_name?: string | null; full_name?: string | null; stage_name?: string | null } | null;
+}
+
+const ScanHistory = ({ scans, loading, onUpdate, profile }: ScanHistoryProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<Record<string, Set<number>>>({});
+  const [clearing, setClearing] = useState(false);
+  const [deletingScan, setDeletingScan] = useState<string | null>(null);
 
   const toggleSelect = (scanId: string, index: number) => {
     setSelected((prev) => {
@@ -63,6 +97,49 @@ const ScanHistory = ({ scans, loading, onUpdate }: { scans: Scan[]; loading: boo
     }
   };
 
+  const deleteScan = async (scanId: string) => {
+    setDeletingScan(scanId);
+    const { error } = await supabase.from("likeness_scans").delete().eq("id", scanId);
+    setDeletingScan(null);
+    if (error) {
+      toast({ title: "Couldn't delete scan", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Scan deleted" });
+      onUpdate?.();
+    }
+  };
+
+  const clearAllHistory = async () => {
+    if (!user) return;
+    setClearing(true);
+    const { error } = await supabase.from("likeness_scans").delete().eq("user_id", user.id);
+    setClearing(false);
+    if (error) {
+      toast({ title: "Couldn't clear history", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Scan history cleared", description: "Run a new scan to see fresh results." });
+      onUpdate?.();
+    }
+  };
+
+  const downloadPdf = () => {
+    if (scans.length === 0) {
+      toast({ title: "Nothing to export", description: "Run a scan first.", variant: "destructive" });
+      return;
+    }
+    try {
+      generateLikenessReport(scans as any, {
+        legal_name: profile?.legal_name,
+        full_name: profile?.full_name,
+        stage_name: profile?.stage_name,
+        email: user?.email,
+      });
+      toast({ title: "Report downloaded", description: "Saved to your downloads folder." });
+    } catch (e: any) {
+      toast({ title: "Couldn't generate PDF", description: e.message, variant: "destructive" });
+    }
+  };
+
   const goToDMCA = (result: ScanResult) => {
     navigate("/tools/dmca", {
       state: {
@@ -76,28 +153,123 @@ const ScanHistory = ({ scans, loading, onUpdate }: { scans: Scan[]; loading: boo
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-display font-semibold text-foreground">Scan History</h2>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-lg font-display font-semibold text-foreground">Scan History</h2>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={downloadPdf}
+            disabled={loading || scans.length === 0}
+          >
+            <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            Download PDF Report
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading || scans.length === 0 || clearing}
+                className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                {clearing ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <Eraser className="w-3.5 h-3.5 mr-1.5" />
+                )}
+                Clear All History
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear all scan history?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all {scans.length} scan{scans.length === 1 ? "" : "s"} and
+                  their results from your history. You can re-run scans anytime — this just gives you a
+                  clean slate to track new findings. Consider downloading a PDF report first.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={clearAllHistory}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Yes, clear everything
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+
       {loading ? (
-        <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Loading…</div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" /> Loading…
+        </div>
       ) : scans.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No scans yet. Run your first scan above.</p>
+        <Card className="p-8 text-center text-muted-foreground text-sm">
+          History is clear. Run a scan above to see results.
+        </Card>
       ) : (
         scans.map((scan) => (
           <Card key={scan.id} className="p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-xs">
-                  {scan.scan_type === "image_search" ? <><ImageIcon className="w-3 h-3 mr-1" /> Image</> : <><Type className="w-3 h-3 mr-1" /> Text</>}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <Badge variant="outline" className="text-xs shrink-0">
+                  {scan.scan_type === "image_search" ? (
+                    <><ImageIcon className="w-3 h-3 mr-1" /> Image</>
+                  ) : (
+                    <><Type className="w-3 h-3 mr-1" /> Text</>
+                  )}
                 </Badge>
-                <span className="font-medium text-foreground">"{scan.query}"</span>
-                <Badge variant={scan.status === "completed" ? "default" : "secondary"}>
+                <span className="font-medium text-foreground truncate">"{scan.query}"</span>
+                <Badge variant={scan.status === "completed" ? "default" : "secondary"} className="shrink-0">
                   {scan.status === "completed" ? `${scan.result_count} results` : scan.status}
                 </Badge>
               </div>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {new Date(scan.created_at).toLocaleDateString()}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {new Date(scan.created_at).toLocaleDateString()}
+                </span>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      title="Delete this scan"
+                      disabled={deletingScan === scan.id}
+                    >
+                      {deletingScan === scan.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this scan?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Removes the "{scan.query}" scan and its {scan.result_count} result
+                        {scan.result_count === 1 ? "" : "s"} from your history.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteScan(scan.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete scan
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
 
             {scan.results && (scan.results as ScanResult[]).length > 0 && (
