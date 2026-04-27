@@ -334,6 +334,9 @@ const Monitoring = () => {
           )}
         </div>
 
+        {/* Impersonator Detection */}
+        <ImpersonatorDetection performerName={performerName} registryId={registryId} />
+
         {/* Identity Footprint */}
         <Card className="glass-card border-border/30 mb-6 relative">
           <CardHeader>
