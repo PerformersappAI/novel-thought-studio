@@ -37,6 +37,7 @@ import PerformerProfile from "./pages/PerformerProfile";
 import OnboardingWhy from "./pages/OnboardingWhy";
 import OnboardingProfile from "./pages/OnboardingProfile";
 import OnboardingFaceCapture from "./pages/OnboardingFaceCapture";
+import OnboardingVoice from "./pages/OnboardingVoice";
 import OnboardingCertified from "./pages/OnboardingCertified";
 import OnboardingMonitoring from "./pages/OnboardingMonitoring";
 import OnboardingComplete from "./pages/OnboardingComplete";
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/onboarding/why" element={<ProtectedRoute><OnboardingWhy /></ProtectedRoute>} />
             <Route path="/onboarding/profile" element={<ProtectedRoute><OnboardingProfile /></ProtectedRoute>} />
             <Route path="/onboarding/face-capture" element={<ProtectedRoute><OnboardingFaceCapture /></ProtectedRoute>} />
+            <Route path="/onboarding/voice" element={<ProtectedRoute><OnboardingVoice /></ProtectedRoute>} />
             <Route path="/onboarding/certified" element={<ProtectedRoute><OnboardingCertified /></ProtectedRoute>} />
             <Route path="/onboarding/monitoring" element={<ProtectedRoute><OnboardingMonitoring /></ProtectedRoute>} />
             <Route path="/onboarding/complete" element={<ProtectedRoute><OnboardingComplete /></ProtectedRoute>} />
