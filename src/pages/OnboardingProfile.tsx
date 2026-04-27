@@ -44,6 +44,7 @@ const OnboardingProfile = () => {
     instagram_handle: "",
     tiktok_handle: "",
     youtube_handle: "",
+    website_url: "",
     is_discoverable: false,
   });
 
