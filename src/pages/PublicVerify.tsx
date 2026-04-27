@@ -5,7 +5,7 @@ import { Shield, CheckCircle, ArrowRight, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/cmf-shield-logo.png";
 
 interface VerifyData {
   registryId: string;

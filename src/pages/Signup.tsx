@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import StepIndicator from "@/components/StepIndicator";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/cmf-shield-logo.png";
 
 const Signup = () => {
   const [step, setStep] = useState(0);

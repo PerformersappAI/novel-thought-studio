@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/cmf-shield-logo.png";
 
 const LegalAgreementGate = ({ children }: { children: React.ReactNode }) => {
   const { user, legalAccepted, markLegalAccepted, loading } = useAuth();

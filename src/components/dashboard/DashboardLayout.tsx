@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, Award, Eye, UserCircle, Home, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/cmf-shield-logo.png";
 
 interface DashboardLayoutProps {
   children: ReactNode;
