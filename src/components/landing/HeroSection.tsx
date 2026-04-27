@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, CheckCircle, Fingerprint } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroCreators from "@/assets/hero-creators.jpg";
+import heroIdBadge from "@/assets/hero-id-badge.png";
 
 const TrustChip = ({ children, delay }: { children: React.ReactNode; delay: number }) => (
   <motion.div
@@ -127,14 +127,15 @@ const HeroSection = () => {
           >
             {/* Card container */}
             <div className="relative w-[300px] md:w-[360px] rounded-2xl overflow-hidden glass-card group">
-              {/* Card image */}
-              <div className="relative h-[200px] md:h-[240px] overflow-hidden">
+              {/* ID badge image */}
+              <div className="relative aspect-square overflow-hidden bg-[#0B1526]">
                 <img
-                  src={heroCreators}
-                  alt="Performers protected by ClaimMyFace"
+                  src={heroIdBadge}
+                  alt="ClaimMyFace verified performer ID badge with locked face and gold padlock"
                   className="w-full h-full object-cover"
+                  width={1024}
+                  height={1024}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
                 <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-accent/90 text-accent-foreground text-[10px] font-body font-semibold uppercase tracking-wider">
                   Verified
                 </div>

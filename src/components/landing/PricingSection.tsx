@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, Shield } from "lucide-react";
+import { Check, Shield, Minus } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Accordion,
@@ -9,64 +9,88 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const plans = [
+type Plan = {
+  name: string;
+  label: string;
+  price: string;
+  period?: string;
+  subtitle: string;
+  features: string[];
+  cta: string;
+  href: string;
+  note: string;
+  variant: "default" | "outline";
+  highlight?: boolean;
+};
+
+const plans: Plan[] = [
   {
-    name: "Starter",
-    price: "Free",
-    desc: "Get started and establish your claim date.",
+    name: "Register Your Face",
+    label: "Start Here",
+    price: "$29",
+    period: "one-time",
+    subtitle: "Claim your face. One time. Yours forever.",
     features: [
-      "5 face registrations",
-      "Identity verification",
-      "Basic certificates",
-      "Community support",
+      "Complete performer profile",
+      "3-photo face capture (front, left, right)",
+      "Official Face Registration Certificate (PDF)",
+      "Unique Registry ID (CMF-2026-XXXXX)",
+      "Verified badge for your website",
+      "Legal timestamp established",
+      "Listed in ClaimMyFace registry",
+      "DMCA Takedown Assistant",
     ],
-    cta: "Claim My Face Free",
-    href: "/signup",
-    variant: "outline" as const,
-    highlight: false,
+    cta: "Register My Face — $29 →",
+    href: `/signup?plan=registration&price=${import.meta.env.VITE_REGISTRATION_PRICE_ID ?? ""}`,
+    note: "One-time fee. No subscription required to register.",
+    variant: "default",
   },
   {
-    name: "Performer",
-    price: "$29",
+    name: "Stay Protected",
+    label: "Keep Watching",
+    price: "$9.99",
     period: "/mo",
-    desc: "Full protection for working performers.",
+    subtitle: "We keep watching. You keep working.",
     features: [
-      "Unlimited registrations",
-      "Priority verification",
-      "Face Registration Certificate (PDF + QR)",
-      "DMCA Takedown Assistant",
+      "Everything in Register",
+      "24/7 monitoring across 7 platforms",
+      "Real-time face detection alerts",
+      "Voice clone detection",
+      "Monthly protection report",
+      "Face Claim Wizard (all 3 documents)",
       "AI Consent Contract Checker",
-      "Legal document library",
       "Priority support",
     ],
-    cta: "Go Performer",
-    href: "/signup?plan=performer",
-    variant: "outline" as const,
-    highlight: false,
-  },
-  {
-    name: "Pro Shield",
-    price: "$79",
-    period: "/mo",
-    desc: "Cross-platform face monitoring built for performers.",
-    features: [
-      "Everything in Performer, plus:",
-      "Cross-platform monitoring (7 platforms)",
-      "Real-time face detection alerts",
-      "Voice fingerprinting",
-      "Face Claim Wizard (all 3 documents)",
-      "Monthly monitoring report",
-      "Dedicated alert dashboard",
-    ],
-    cta: "Get Pro Shield",
-    href: `/signup?plan=pro-shield&price=${import.meta.env.VITE_PRO_SHIELD_PRICE_ID ?? ""}`,
-    variant: "default" as const,
+    cta: "Activate Monitoring — $9.99/mo →",
+    href: `/signup?plan=monthly&price=${import.meta.env.VITE_MONTHLY_PRICE_ID ?? ""}`,
+    note: "Cancel anytime. No contracts.",
+    variant: "default",
     highlight: true,
   },
   {
+    name: "Annual Shield",
+    label: "Best Value",
+    price: "$79",
+    period: "/yr",
+    subtitle: "Full protection. One annual payment. Save 34%.",
+    features: [
+      "Everything in Stay Protected",
+      "Annual monitoring report (full year summary)",
+      "Priority alert response (within 1 hour)",
+      "Face Claim Wizard always included",
+      "First access to new tools as they launch",
+      "Founding member status",
+    ],
+    cta: "Get Annual Shield — $79/yr →",
+    href: `/signup?plan=annual&price=${import.meta.env.VITE_ANNUAL_PRICE_ID ?? ""}`,
+    note: "That's just $6.58/mo. Billed annually.",
+    variant: "outline",
+  },
+  {
     name: "Enterprise",
+    label: "For Organizations",
     price: "Custom",
-    desc: "For talent agencies, studios, and casting platforms.",
+    subtitle: "For talent agencies, studios, and casting platforms.",
     features: [
       "Multi-performer management",
       "Bulk registration",
@@ -74,34 +98,45 @@ const plans = [
       "Dedicated account manager",
       "White-label badge embedding",
       "SLA guarantee",
+      "Custom integrations",
     ],
-    cta: "Contact Us",
+    cta: "Contact Us →",
     href: "mailto:enterprise@claimmyface.com",
-    variant: "outline" as const,
-    highlight: false,
+    note: "Tailored to your organization's needs.",
+    variant: "outline",
   },
+];
+
+const compareRows: Array<[string, boolean, boolean]> = [
+  ["Face Registration", true, true],
+  ["Certificate & Badge", true, true],
+  ["DMCA Tools", true, true],
+  ["24/7 Monitoring", false, true],
+  ["Real-time Alerts", false, true],
+  ["Monthly Report", false, true],
+  ["Contract Checker", false, true],
 ];
 
 const faqs = [
   {
-    q: "Do I need to be in SAG-AFTRA to use ClaimMyFace?",
-    a: "No. ClaimMyFace is built for every performer — SAG members, Fi-Core, non-union, and emerging talent. We fill the gap that union contracts and agency tools don't cover.",
+    q: "Do I need to pay monthly or can I just register once?",
+    a: "You can register once for $29 and keep your certificate and badge forever. The $9.99/mo adds active monitoring — we watch the web for you 24/7. Without monitoring you'd need to search manually.",
   },
   {
-    q: "What exactly does face registration protect me from?",
-    a: "It creates timestamped, cryptographic proof that you are the original. If someone uses your face, voice, or likeness without permission, your registration is your legal foundation for a DMCA takedown, cease-and-desist, or lawsuit.",
+    q: "Can I cancel the monthly plan anytime?",
+    a: "Yes. Cancel anytime from your dashboard. No contracts, no cancellation fees. Your registration and certificate remain active even after cancelling.",
   },
   {
-    q: "How is this different from YouTube's likeness detection tool?",
-    a: "YouTube's tool covers one platform and is only available through major talent agencies. ClaimMyFace monitors 7 platforms and is open to any performer who registers.",
+    q: "Do I need to be in SAG-AFTRA?",
+    a: "No. ClaimMyFace is built for every performer — SAG members, Fi-Core, non-union, and emerging talent.",
   },
   {
     q: "What happens when the NO FAKES Act passes?",
-    a: "Your registration date becomes your legal timestamp. Performers registered before the law passes will have the strongest standing under the new federal framework.",
+    a: "Your registration date becomes your legal timestamp. Performers who registered before the law passes will have the strongest standing under the new federal framework.",
   },
   {
-    q: "Can I cancel anytime?",
-    a: "Yes. No contracts, no cancellation fees. Cancel anytime from your dashboard.",
+    q: "Is the $29 really just one time?",
+    a: "Yes. One payment. Your face is registered and timestamped forever. The monthly plan is optional — it adds the watching and alerting layer on top.",
   },
 ];
 
@@ -113,13 +148,13 @@ const PricingSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-16 max-w-3xl mx-auto"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
-            Claim Your Face. Choose Your Protection.
+            Claim Your Face. Keep It Protected.
           </h2>
           <p className="text-muted-foreground text-lg font-body">
-            Start free. Upgrade when the stakes get real.
+            One simple registration. One small monthly fee. Total protection.
           </p>
         </motion.div>
 
@@ -131,30 +166,37 @@ const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`glass-card rounded-xl p-8 flex flex-col relative overflow-hidden ${
-                plan.highlight ? "border-primary/50 glow-red" : ""
+              className={`glass-card rounded-xl p-7 flex flex-col relative overflow-visible ${
+                plan.highlight ? "border-primary/60 glow-red" : ""
               }`}
             >
               {plan.highlight && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold font-body whitespace-nowrap">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold font-body whitespace-nowrap shadow-lg">
                   Most Popular
                 </div>
               )}
-              <div className="mb-6">
-                <h3 className="font-display text-lg font-semibold text-foreground">
+              <div className="mb-5">
+                <p className="text-[11px] font-body font-semibold uppercase tracking-wider text-accent mb-2">
+                  {plan.label}
+                </p>
+                <h3 className="font-display text-xl font-semibold text-foreground">
                   {plan.name}
                 </h3>
-                <div className="mt-2">
+                <div className="mt-3 flex items-baseline gap-1">
                   <span className="font-display text-4xl font-bold text-foreground">
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span className="text-muted-foreground font-body">{plan.period}</span>
+                    <span className="text-muted-foreground font-body text-sm">
+                      {plan.period}
+                    </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2 font-body">{plan.desc}</p>
+                <p className="text-sm text-muted-foreground mt-3 font-body italic min-h-[40px]">
+                  {plan.subtitle}
+                </p>
               </div>
-              <ul className="space-y-3 mb-8 flex-1">
+              <ul className="space-y-2.5 mb-6 flex-1">
                 {plan.features.map((f) => (
                   <li
                     key={f}
@@ -165,17 +207,22 @@ const PricingSection = () => {
                   </li>
                 ))}
               </ul>
-              <Button
-                asChild
-                variant={plan.variant}
-                className={`w-full font-body ${
-                  plan.highlight
-                    ? "glow-red"
-                    : "border-white/[0.15] hover:border-white/30"
-                }`}
-              >
-                <Link to={plan.href}>{plan.cta} →</Link>
-              </Button>
+              <div className="mt-auto">
+                <Button
+                  asChild
+                  variant={plan.variant}
+                  className={`w-full font-body ${
+                    plan.variant === "default"
+                      ? "glow-red"
+                      : "border-white/[0.15] hover:border-white/30"
+                  }`}
+                >
+                  <Link to={plan.href}>{plan.cta}</Link>
+                </Button>
+                <p className="text-[11px] text-muted-foreground/80 text-center mt-3 font-body">
+                  {plan.note}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -185,7 +232,7 @@ const PricingSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto mt-12 rounded-xl border border-primary/40 bg-card/40 backdrop-blur p-6 md:p-8 flex items-start gap-4"
+          className="max-w-4xl mx-auto mt-16 rounded-xl border border-primary/40 bg-card/40 backdrop-blur p-6 md:p-8 flex items-start gap-4"
         >
           <Shield className="w-6 h-6 text-primary shrink-0 mt-1" />
           <p className="text-foreground font-body text-base md:text-lg leading-relaxed">
@@ -193,10 +240,60 @@ const PricingSection = () => {
               YouTube's likeness tool covers 1 platform and requires a major talent agency.
             </span>{" "}
             <span className="font-semibold">
-              ClaimMyFace Pro Shield covers 7 platforms and is open to every performer — union,
-              Fi-Core, or independent.
+              ClaimMyFace monitors 7 platforms and costs less than a coffee a week —
+              open to every performer, union or not.
             </span>
           </p>
+        </motion.div>
+
+        {/* Comparison table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto mt-12 rounded-xl glass-card overflow-hidden"
+        >
+          <div className="grid grid-cols-3 bg-white/[0.04] border-b border-white/[0.08]">
+            <div className="p-4 font-display font-semibold text-sm text-foreground">
+              Feature
+            </div>
+            <div className="p-4 font-display font-semibold text-sm text-foreground text-center border-l border-white/[0.08]">
+              Register
+              <span className="block text-[11px] font-body font-normal text-muted-foreground">
+                $29
+              </span>
+            </div>
+            <div className="p-4 font-display font-semibold text-sm text-foreground text-center border-l border-white/[0.08]">
+              Stay Protected
+              <span className="block text-[11px] font-body font-normal text-muted-foreground">
+                $9.99/mo
+              </span>
+            </div>
+          </div>
+          {compareRows.map(([feature, a, b], idx) => (
+            <div
+              key={feature}
+              className={`grid grid-cols-3 ${
+                idx !== compareRows.length - 1 ? "border-b border-white/[0.06]" : ""
+              }`}
+            >
+              <div className="p-4 text-sm font-body text-foreground">{feature}</div>
+              <div className="p-4 text-center border-l border-white/[0.06] flex items-center justify-center">
+                {a ? (
+                  <Check className="w-4 h-4 text-accent" />
+                ) : (
+                  <Minus className="w-4 h-4 text-muted-foreground/50" />
+                )}
+              </div>
+              <div className="p-4 text-center border-l border-white/[0.06] flex items-center justify-center">
+                {b ? (
+                  <Check className="w-4 h-4 text-accent" />
+                ) : (
+                  <Minus className="w-4 h-4 text-muted-foreground/50" />
+                )}
+              </div>
+            </div>
+          ))}
         </motion.div>
 
         {/* FAQ */}
