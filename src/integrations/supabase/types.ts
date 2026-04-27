@@ -354,6 +354,11 @@ export type Database = {
           updated_at: string
           user_id: string
           verified_seal_seen_at: string | null
+          voice_print_demo_url: string | null
+          voice_print_duration_seconds: number | null
+          voice_print_hash: string | null
+          voice_print_url: string | null
+          voice_registered_at: string | null
           years_performing: string | null
           youtube_handle: string | null
         }
@@ -394,6 +399,11 @@ export type Database = {
           updated_at?: string
           user_id: string
           verified_seal_seen_at?: string | null
+          voice_print_demo_url?: string | null
+          voice_print_duration_seconds?: number | null
+          voice_print_hash?: string | null
+          voice_print_url?: string | null
+          voice_registered_at?: string | null
           years_performing?: string | null
           youtube_handle?: string | null
         }
@@ -434,6 +444,11 @@ export type Database = {
           updated_at?: string
           user_id?: string
           verified_seal_seen_at?: string | null
+          voice_print_demo_url?: string | null
+          voice_print_duration_seconds?: number | null
+          voice_print_hash?: string | null
+          voice_print_url?: string | null
+          voice_registered_at?: string | null
           years_performing?: string | null
           youtube_handle?: string | null
         }

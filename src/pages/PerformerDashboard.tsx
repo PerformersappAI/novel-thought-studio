@@ -83,6 +83,7 @@ const PerformerDashboard = () => {
     profile?.performance_type
   );
   const faceCaptured = !!profile?.face_registered_at;
+  const voiceRegistered = !!profile?.voice_registered_at;
 
   let score = 0;
   if (profileComplete) score += 25;
@@ -145,14 +146,16 @@ const PerformerDashboard = () => {
       to: "/onboarding/monitoring",
     });
   }
-  if (faceCaptured) {
+  if (faceCaptured && !voiceRegistered) {
     nextSteps.push({
-      title: "Add Your Voice Sample",
+      title: "Add Your Voice Print",
       description:
-        "Register your voice alongside your face for complete AI protection.",
-      cta: "Add Voice",
-      to: "/dashboard/assets",
+        "Lock in your voice fingerprint — your shield against AI voice cloning. Takes 30 seconds.",
+      cta: "Register Voice",
+      to: "/onboarding/voice",
     });
+  }
+  if (faceCaptured) {
     nextSteps.push({
       title: "Share Your Verified Badge",
       description:
@@ -196,6 +199,7 @@ const PerformerDashboard = () => {
           hasCertificate={hasCertificate}
           faceCaptured={faceCaptured}
           profileComplete={profileComplete}
+          voiceRegistered={voiceRegistered}
         />
 
         <ProtectionJourney

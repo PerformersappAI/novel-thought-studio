@@ -132,8 +132,8 @@ const OnboardingCertified = () => {
       <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-[140px]" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-10 space-y-6">
-        <OnboardingBackButton to="/onboarding/face-capture" label="Back to Face Capture" />
-        <OnboardingProgress step={3} />
+        <OnboardingBackButton to="/onboarding/voice" label="Back to Voice Print" />
+        <OnboardingProgress step={4} />
         <TrustBanner />
 
         <motion.div

@@ -69,7 +69,7 @@ const OnboardingMonitoring = () => {
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-10 space-y-6">
         <OnboardingBackButton to="/onboarding/certified" label="Back to Certificate" />
-        <OnboardingProgress step={4} />
+        <OnboardingProgress step={5} />
         <TrustBanner />
 
         <motion.div

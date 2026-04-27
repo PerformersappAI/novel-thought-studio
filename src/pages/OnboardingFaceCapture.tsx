@@ -301,7 +301,7 @@ const OnboardingFaceCapture = () => {
       if (error) throw error;
 
       stopCamera();
-      navigate("/onboarding/certified");
+      navigate("/onboarding/voice");
     } catch (e: any) {
       toast({ title: "Registration failed", description: e.message, variant: "destructive" });
     } finally {

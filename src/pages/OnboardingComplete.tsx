@@ -66,7 +66,7 @@ const OnboardingComplete = () => {
       <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-[140px]" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-10 space-y-6">
-        <OnboardingProgress step={4} done />
+        <OnboardingProgress step={5} done />
         <TrustBanner />
 
         <motion.div
