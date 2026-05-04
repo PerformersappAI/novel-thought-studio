@@ -582,6 +582,23 @@ const Register = () => {
                       </div>
                     ))}
                   </div>
+                  {devices.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Video className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <Select value={selectedDeviceId} onValueChange={switchCamera}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose camera" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {devices.map((d, i) => (
+                            <SelectItem key={d.deviceId} value={d.deviceId}>
+                              {d.label || `Camera ${i + 1}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div className="grid sm:grid-cols-2 gap-2">
                     <Button onClick={capturePhoto} disabled={!faceDetected || !!captures[currentPose.key]} size="lg" className="w-full font-display">
                       <Camera className="w-4 h-4 mr-1" /> Take {currentPose.label} Photo
