@@ -1,15 +1,52 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch } from "lucide-react";
+import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
 import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
 import FacePanel from "@/components/dashboard/FacePanel";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+/* ─── Platform icon map ─── */
+const PLATFORM_ICONS: Record<string, any> = {
+  "Web": Globe, "Instagram": Instagram, "YouTube": Youtube, "Facebook": Facebook,
+  "X / Twitter": Twitter, "Twitter": Twitter, "TikTok": Music2, "LinkedIn": Linkedin,
+  "Google": Search, "News": Newspaper, "AI": Bot, "Reddit": Globe,
+};
+function getPlatformIcon(type: string) {
+  for (const [key, Icon] of Object.entries(PLATFORM_ICONS)) {
+    if (type.toLowerCase().includes(key.toLowerCase())) return Icon;
+  }
+  return Globe;
+}
+
+/* ─── Status badge styling ─── */
+function statusBadge(status: string) {
+  switch (status) {
+    case "New Alert": return "bg-destructive/15 text-destructive border-destructive/30";
+    case "Under Review": return "bg-yellow-500/15 text-yellow-400 border-yellow-500/30";
+    case "Resolved": return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+    case "Dismissed": return "bg-muted/40 text-muted-foreground border-border/40";
+    default: return "bg-secondary/40 text-muted-foreground border-border/40";
+  }
+}
+
+interface MentionRow {
+  id: string;
+  mention_type: string;
+  title: string;
+  url: string | null;
+  found_at: string;
+  status: string;
+  thumbnail_url: string | null;
+}
 
 const PerformerDashboard = () => {
   const { user } = useAuth();
@@ -17,11 +54,11 @@ const PerformerDashboard = () => {
   const [profile, setProfile] = useState<any>(null);
   const [thumbs, setThumbs] = useState<string[]>([]);
   const [registryId, setRegistryId] = useState<string | null>(null);
-  const [verified, setVerified] = useState(false);
   const [hasCertificate, setHasCertificate] = useState(false);
   const [monitoringActive, setMonitoringActive] = useState(false);
   const [alertCount, setAlertCount] = useState(0);
   const [externalRiskScore, setExternalRiskScore] = useState<number | null>(null);
+  const [mentions, setMentions] = useState<MentionRow[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -32,61 +69,50 @@ const PerformerDashboard = () => {
         { data: certs },
         { data: sub },
         { data: assets },
-        { data: scans },
+        { data: mentionsData },
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("identity_verifications").select("status").eq("user_id", user.id).maybeSingle(),
         supabase.from("certificates").select("id, registry_id").eq("user_id", user.id).limit(1),
         supabase.from("user_subscriptions").select("status").eq("user_id", user.id).eq("status", "active").maybeSingle(),
         supabase.from("registry_assets").select("registry_id").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1),
-        supabase.from("likeness_scans").select("id, results").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("mentions").select("id, mention_type, title, url, found_at, status, thumbnail_url").eq("user_id", user.id).order("found_at", { ascending: false }),
       ]);
 
       setProfile(prof);
-      setVerified(ver?.status === "approved");
-      setHasCertificate(
-        (certs && certs.length > 0) || localStorage.getItem("cmf_cert_downloaded") === "1"
-      );
+      setHasCertificate((certs && certs.length > 0) || localStorage.getItem("cmf_cert_downloaded") === "1");
       setMonitoringActive(!!sub || localStorage.getItem("cmf_monitoring_basic") === "1");
       setRegistryId(certs?.[0]?.registry_id ?? assets?.[0]?.registry_id ?? null);
-
-      // Count total matches across scans
-      let matches = 0;
-      (scans ?? []).forEach((s: any) => {
-        const results = Array.isArray(s.results) ? s.results : [];
-        matches += results.length;
-      });
-      setAlertCount(matches);
+      const rows = (mentionsData ?? []) as MentionRow[];
+      setMentions(rows);
+      setAlertCount(rows.filter(m => m.status === "New Alert").length);
 
       const paths = [prof?.face_capture_front_url, prof?.face_capture_left_url, prof?.face_capture_right_url].filter(Boolean) as string[];
       if (paths.length) {
         const { data: signed } = await supabase.storage.from("face-captures").createSignedUrls(paths, 60 * 10);
-        setThumbs((signed ?? []).map((s) => s.signedUrl).filter(Boolean) as string[]);
+        setThumbs((signed ?? []).map(s => s.signedUrl).filter(Boolean) as string[]);
       }
 
-      // Fetch external actor risk score
       if ((prof as any)?.external_actor_id) {
         try {
           const { data: actorData } = await supabase.functions.invoke(
             "actor-registry?action=get_actor&actor_id=" + (prof as any).external_actor_id,
             { method: "GET" }
           );
-          if (actorData?.risk_score != null) {
-            setExternalRiskScore(actorData.risk_score);
-          }
-        } catch (e) {
-          console.warn("Failed to fetch external actor profile:", e);
-        }
+          if (actorData?.risk_score != null) setExternalRiskScore(actorData.risk_score);
+        } catch {}
       }
     })();
   }, [user]);
 
-  const profileComplete = !!(
-    profile?.legal_name &&
-    profile?.stage_name &&
-    profile?.phone &&
-    profile?.performance_type
-  );
+  const dismissMention = async (id: string) => {
+    const { error } = await supabase.from("mentions").update({ status: "Dismissed" } as any).eq("id", id);
+    if (error) { toast({ title: "Failed to dismiss", variant: "destructive" }); return; }
+    setMentions(prev => prev.map(m => m.id === id ? { ...m, status: "Dismissed" } : m));
+    toast({ title: "Mention dismissed" });
+  };
+
+  const profileComplete = !!(profile?.legal_name && profile?.stage_name);
   const faceCaptured = !!profile?.face_registered_at;
   const voiceRegistered = !!profile?.voice_registered_at;
 
@@ -96,66 +122,28 @@ const PerformerDashboard = () => {
   if (hasCertificate) score += 20;
   if (monitoringActive) score += 30;
 
-  const firstName =
-    (profile?.stage_name || profile?.legal_name || profile?.full_name || user?.email || "there")
-      .split(" ")[0]
-      .replace(/@.*/, "");
+  const firstName = (profile?.stage_name || profile?.legal_name || profile?.full_name || user?.email || "there").split(" ")[0].replace(/@.*/, "");
 
-  // Determine the single most important next step
   const getNextStep = () => {
-    if (!faceCaptured) {
-      return {
-        title: "Register Your Face",
-        description: "Capture 3 quick photos to create your timestamped claim of likeness. It's free and takes 2 minutes.",
-        cta: "Start Face Capture",
-        to: "/onboarding/face-capture",
-      };
-    }
-    if (!profileComplete) {
-      return {
-        title: "Complete Your Profile",
-        description: "Add your stage name, union status, and performance details so your record is industry-ready.",
-        cta: "Complete Profile",
-        to: "/onboarding/profile",
-      };
-    }
-    if (!hasCertificate) {
-      return {
-        title: "Download Your Certificate",
-        description: "Your face is registered. Download your official Face Registration Certificate to make it official.",
-        cta: "Get Certificate",
-        to: "/dashboard/certificate",
-      };
-    }
-    if (!monitoringActive) {
-      return {
-        title: "Activate Monitoring",
-        description: "Turn on 24/7 scanning so we can alert you the moment your face appears somewhere it shouldn't.",
-        cta: "Activate Monitoring",
-        to: "/onboarding/monitoring",
-      };
-    }
-    if (alertCount > 0) {
-      return {
-        title: "Review Your Matches",
-        description: `We found ${alertCount} potential match${alertCount > 1 ? "es" : ""}. Review them and decide what to do.`,
-        cta: "View Scan Results",
-        to: "/dashboard/monitoring",
-      };
-    }
-    return null; // Everything is done
+    if (!faceCaptured) return { title: "Register Your Face", description: "Capture 3 quick photos to create your timestamped claim.", cta: "Start Face Capture", to: "/register" };
+    if (!profileComplete) return { title: "Complete Your Profile", description: "Add your stage name and details.", cta: "Complete Profile", to: "/register" };
+    if (!hasCertificate) return { title: "Download Your Certificate", description: "Get your official Face Registration Certificate.", cta: "Get Certificate", to: "/dashboard/certificate" };
+    if (!monitoringActive) return { title: "Activate Monitoring", description: "Turn on 24/7 scanning.", cta: "Activate", to: "/onboarding/monitoring" };
+    if (alertCount > 0) return { title: "Review Matches", description: `${alertCount} potential match${alertCount > 1 ? "es" : ""} found.`, cta: "View Results", to: "/dashboard/monitoring" };
+    return null;
   };
 
   const nextStep = getNextStep();
 
+  /* Check if URL likely contains an image */
+  const urlHasImage = (url: string | null) => {
+    if (!url) return false;
+    return /\.(jpg|jpeg|png|gif|webp|svg)/i.test(url);
+  };
+
   return (
     <DashboardLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-3xl mx-auto space-y-8"
-      >
-        {/* Header */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto space-y-8">
         <header>
           <h1 className="font-display text-3xl md:text-4xl font-bold">
             Hey {firstName}. {faceCaptured ? "Your face is claimed." : "Let's protect your face."}
@@ -163,21 +151,12 @@ const PerformerDashboard = () => {
           <p className="text-muted-foreground mt-1">Here's your protection status at a glance.</p>
         </header>
 
-        {/* 1. Protection Score */}
         <ProtectionScoreCard score={score} />
 
-        {/* 2. Your Face */}
-        <FacePanel
-          thumbs={thumbs}
-          registryId={registryId}
-          registeredAt={profile?.face_registered_at}
-        />
+        <FacePanel thumbs={thumbs} registryId={registryId} registeredAt={profile?.face_registered_at} />
 
-        {/* 3. What We Found */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        {/* What We Found summary */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="rounded-2xl border border-border/30 bg-card/40 p-6"
         >
           <div className="flex items-center gap-2 mb-3">
@@ -185,100 +164,148 @@ const PerformerDashboard = () => {
             <h2 className="font-display text-lg font-semibold">What We Found</h2>
           </div>
           {alertCount > 0 ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-                <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {alertCount} potential match{alertCount > 1 ? "es" : ""} found
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    We detected possible unauthorized use of your likeness.
-                  </p>
-                </div>
-                <Button asChild size="sm" variant="destructive">
-                  <Link to="/dashboard/monitoring">
-                    Review <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                  </Link>
-                </Button>
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{alertCount} potential match{alertCount > 1 ? "es" : ""} found</p>
+                <p className="text-xs text-muted-foreground mt-0.5">See the table below for details.</p>
               </div>
             </div>
           ) : monitoringActive ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
               <div>
-                <p className="text-sm font-medium text-foreground">You're clean</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  No unauthorized use detected. We're watching 24/7 and will alert you if anything shows up.
-                </p>
+                <p className="text-sm font-medium">You're clean</p>
+                <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching 24/7.</p>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border/20">
               <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
               <div>
-                <p className="text-sm font-medium text-foreground">Monitoring not active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Activate monitoring to scan for unauthorized use of your face across the web.
-                </p>
+                <p className="text-sm font-medium">Monitoring not active</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Activate monitoring to scan for unauthorized use.</p>
               </div>
             </div>
           )}
         </motion.div>
 
-        {/* 4. Single Next Step */}
+        {/* ─── Identity Footprint Table (real Supabase data) ─── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="rounded-2xl border border-border/30 bg-card/40 p-6"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Globe className="w-5 h-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold">Identity Footprint</h2>
+          </div>
+
+          {mentions.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm text-muted-foreground">No mentions found yet. We'll notify you when we detect something.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Platform</TableHead>
+                    <TableHead>What Was Found</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {mentions.map(m => {
+                    const PlatformIcon = getPlatformIcon(m.mention_type);
+                    return (
+                      <HoverCard key={m.id} openDelay={300}>
+                        <HoverCardTrigger asChild>
+                          <TableRow className="group">
+                            <TableCell className="whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <PlatformIcon className="w-4 h-4 text-primary shrink-0" />
+                                <span className="font-medium text-foreground">{m.mention_type}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="max-w-md">
+                              {m.url ? (
+                                <a href={m.url} target="_blank" rel="noopener noreferrer"
+                                  className="truncate block text-primary hover:underline inline-flex items-center gap-1"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  {m.title} <ExternalLink className="w-3 h-3 shrink-0" />
+                                </a>
+                              ) : (
+                                <span className="truncate block">{m.title}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground whitespace-nowrap">
+                              {new Date(m.found_at).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={`text-xs ${statusBadge(m.status)}`}>
+                                {m.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {m.status !== "Dismissed" && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); dismissMention(m.id); }}
+                                  className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+                                  aria-label="Dismiss mention"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        </HoverCardTrigger>
+                        {(m.thumbnail_url || urlHasImage(m.url)) && (
+                          <HoverCardContent side="top" className="w-72 p-2">
+                            <img
+                              src={m.thumbnail_url || m.url!}
+                              alt={m.title}
+                              className="w-full rounded-md object-cover max-h-48"
+                              onError={(e) => (e.currentTarget.style.display = "none")}
+                            />
+                            <p className="text-xs text-muted-foreground mt-2 truncate">{m.title}</p>
+                          </HoverCardContent>
+                        )}
+                      </HoverCard>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Next Step */}
         {nextStep && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="rounded-2xl border border-primary/30 bg-primary/5 p-6"
           >
-            <div className="text-xs uppercase tracking-widest text-primary font-semibold mb-2">
-              Your Next Step
-            </div>
-            <h3 className="font-display text-xl font-bold text-foreground mb-2">
-              {nextStep.title}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-              {nextStep.description}
-            </p>
+            <div className="text-xs uppercase tracking-widest text-primary font-semibold mb-2">Your Next Step</div>
+            <h3 className="font-display text-xl font-bold mb-2">{nextStep.title}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{nextStep.description}</p>
             <Button asChild size="lg" className="glow-red">
-              <Link to={nextStep.to}>
-                {nextStep.cta}
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
+              <Link to={nextStep.to}>{nextStep.cta} <ArrowRight className="w-4 h-4 ml-1" /></Link>
             </Button>
           </motion.div>
         )}
 
-        {/* All done state */}
         {!nextStep && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center"
           >
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
-            <h3 className="font-display text-xl font-bold text-foreground mb-1">
-              You're fully protected
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Your face is registered, certified, and monitored 24/7. We'll notify you if anything comes up.
-            </p>
+            <h3 className="font-display text-xl font-bold mb-1">You're fully protected</h3>
+            <p className="text-sm text-muted-foreground">Your face is registered, certified, and monitored 24/7.</p>
           </motion.div>
         )}
 
-        {/* Risk Score (secondary) */}
-        <RiskScoreCard
-          monitoringActive={monitoringActive}
-          hasCertificate={hasCertificate}
-          faceCaptured={faceCaptured}
-          profileComplete={profileComplete}
-          voiceRegistered={voiceRegistered}
-          externalRiskScore={externalRiskScore}
-        />
+        <RiskScoreCard monitoringActive={monitoringActive} hasCertificate={hasCertificate} faceCaptured={faceCaptured} profileComplete={profileComplete} voiceRegistered={voiceRegistered} externalRiskScore={externalRiskScore} />
       </motion.div>
     </DashboardLayout>
   );
