@@ -85,6 +85,8 @@ const Register = () => {
   const [poseIdx, setPoseIdx] = useState(0);
   const [captures, setCaptures] = useState<Record<Pose, Capture | null>>({ front: null, left: null, right: null });
   const [descriptor, setDescriptor] = useState<number[] | null>(null);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
 
   /* ─── Voice ─── */
   const [recording, setRecording] = useState(false);
