@@ -25,6 +25,7 @@ const PerformerDashboard = () => {
   const [hasCertificate, setHasCertificate] = useState(false);
   const [monitoringActive, setMonitoringActive] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [externalRiskScore, setExternalRiskScore] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
