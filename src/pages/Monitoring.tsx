@@ -429,8 +429,19 @@ const Monitoring = () => {
                           <TableCell className="font-medium text-foreground whitespace-nowrap">
                             {f.platform}
                           </TableCell>
-                          <TableCell className="text-muted-foreground max-w-md">
-                            <div className="truncate">{f.finding}</div>
+                          <TableCell className="text-muted-foreground max-w-md" onClick={(e) => e.stopPropagation()}>
+                            {f.url && f.url !== "#" ? (
+                              <a
+                                href={f.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="truncate block text-primary hover:underline"
+                              >
+                                {f.finding}
+                              </a>
+                            ) : (
+                              <div className="truncate">{f.finding}</div>
+                            )}
                           </TableCell>
                           <TableCell className="text-muted-foreground whitespace-nowrap">
                             {new Date(f.date).toLocaleDateString()}
