@@ -216,6 +216,7 @@ const PerformerDashboard = () => {
           faceCaptured={faceCaptured}
           profileComplete={profileComplete}
           voiceRegistered={voiceRegistered}
+          externalRiskScore={externalRiskScore}
         />
 
         <ProtectionJourney
