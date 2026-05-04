@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Shield, Camera, Check, Loader2, ArrowRight, Upload, Mic, MicOff, Play, Pause,
+  Shield, Camera, Check, Loader2, ArrowRight, Upload, Mic, MicOff, Play, Pause, Video,
   RotateCcw, Lock, Eye, EyeOff, ArrowLeft, FileAudio, AudioWaveform,
 } from "lucide-react";
 import * as faceapi from "@vladmandic/face-api";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logo from "@/assets/cmf-shield-logo.png";
 
 /* ─── constants ─── */
@@ -84,6 +85,8 @@ const Register = () => {
   const [poseIdx, setPoseIdx] = useState(0);
   const [captures, setCaptures] = useState<Record<Pose, Capture | null>>({ front: null, left: null, right: null });
   const [descriptor, setDescriptor] = useState<number[] | null>(null);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
 
   /* ─── Voice ─── */
   const [recording, setRecording] = useState(false);
@@ -135,19 +138,44 @@ const Register = () => {
     streamRef.current = null;
   };
 
-  const startCamera = async () => {
+  const enumerateCams = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const cams = all.filter(d => d.kind === "videoinput");
+      setDevices(cams);
+      if (cams.length && !selectedDeviceId) setSelectedDeviceId(cams[0].deviceId);
+      return cams;
+    } catch { return []; }
+  };
+
+  const startCamera = async (deviceId?: string) => {
+    try {
+      // Stop existing stream before switching
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      const constraints: MediaStreamConstraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: { ideal: 720 }, height: { ideal: 720 } }
+          : { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
         audio: false,
-      });
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
       if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
       setCameraOpen(true);
+      // Enumerate after permission granted (labels become available)
+      const cams = await enumerateCams();
+      const activeId = stream.getVideoTracks()[0]?.getSettings().deviceId;
+      if (activeId) setSelectedDeviceId(activeId);
+      else if (!selectedDeviceId && cams[0]) setSelectedDeviceId(cams[0].deviceId);
       runDetection();
     } catch (e: any) {
       toast({ title: "Camera error", description: e.message, variant: "destructive" });
     }
+  };
+
+  const switchCamera = async (deviceId: string) => {
+    setSelectedDeviceId(deviceId);
+    await startCamera(deviceId);
   };
 
   const runDetection = () => {
@@ -554,6 +582,23 @@ const Register = () => {
                       </div>
                     ))}
                   </div>
+                  {devices.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Video className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <Select value={selectedDeviceId} onValueChange={switchCamera}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose camera" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {devices.map((d, i) => (
+                            <SelectItem key={d.deviceId} value={d.deviceId}>
+                              {d.label || `Camera ${i + 1}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div className="grid sm:grid-cols-2 gap-2">
                     <Button onClick={capturePhoto} disabled={!faceDetected || !!captures[currentPose.key]} size="lg" className="w-full font-display">
                       <Camera className="w-4 h-4 mr-1" /> Take {currentPose.label} Photo
