@@ -34,6 +34,7 @@ import FaceClaimWizard from "./pages/FaceClaimWizard";
 import ContractChecker from "./pages/ContractChecker";
 import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
+import Register from "./pages/Register";
 import OnboardingWhy from "./pages/OnboardingWhy";
 import OnboardingProfile from "./pages/OnboardingProfile";
 import OnboardingFaceCapture from "./pages/OnboardingFaceCapture";
