@@ -42,6 +42,24 @@ const OnboardingComplete = () => {
       const year = new Date().getFullYear();
       const suffix = String(Math.floor(Math.random() * 100000)).padStart(5, "0");
       setRegistryId(`CMF-${year}-${suffix}`);
+
+      // Register with external actor registry API
+      if (!(data as any)?.external_actor_id) {
+        try {
+          await supabase.functions.invoke("actor-registry?action=register", {
+            method: "POST",
+            body: {
+              legal_name: data?.legal_name || data?.full_name || "",
+              stage_name: data?.stage_name || "",
+              aka_names: [],
+              email: user.email || "",
+            },
+          });
+        } catch (e) {
+          console.warn("External actor registration failed:", e);
+        }
+      }
+
       setLoading(false);
     })();
   }, [user]);

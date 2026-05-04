@@ -10,15 +10,22 @@ interface Props {
   faceCaptured: boolean;
   profileComplete: boolean;
   voiceRegistered?: boolean;
+  externalRiskScore?: number | null;
 }
 
-const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profileComplete, voiceRegistered = false }: Props) => {
-  let risk = 0;
-  if (!monitoringActive) risk += 35;
-  if (!hasCertificate) risk += 20;
-  if (!faceCaptured) risk += 25;
-  if (!profileComplete) risk += 12;
-  if (!voiceRegistered) risk += 8;
+const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profileComplete, voiceRegistered = false, externalRiskScore }: Props) => {
+  // Use external risk score if available, otherwise compute locally
+  let risk: number;
+  if (externalRiskScore != null) {
+    risk = Math.max(0, Math.min(100, externalRiskScore));
+  } else {
+    risk = 0;
+    if (!monitoringActive) risk += 35;
+    if (!hasCertificate) risk += 20;
+    if (!faceCaptured) risk += 25;
+    if (!profileComplete) risk += 12;
+    if (!voiceRegistered) risk += 8;
+  }
 
   const level = risk >= 70 ? "high" : risk >= 40 ? "medium" : "low";
 
@@ -113,6 +120,9 @@ const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profile
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className={cn("font-display text-3xl font-extrabold leading-none", config.textColor)}>{risk}</span>
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Risk Score</span>
+              {externalRiskScore != null && (
+                <span className="text-[8px] uppercase tracking-wider text-muted-foreground/60 mt-0.5">Live API</span>
+              )}
             </div>
           </div>
         </div>
