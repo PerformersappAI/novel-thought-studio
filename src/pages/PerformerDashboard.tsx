@@ -74,6 +74,21 @@ const PerformerDashboard = () => {
         }
       });
       setAlerts(list);
+
+      // Fetch external actor risk score
+      if ((prof as any)?.external_actor_id) {
+        try {
+          const { data: actorData } = await supabase.functions.invoke(
+            "actor-registry?action=get_actor&actor_id=" + (prof as any).external_actor_id,
+            { method: "GET" }
+          );
+          if (actorData?.risk_score != null) {
+            setExternalRiskScore(actorData.risk_score);
+          }
+        } catch (e) {
+          console.warn("Failed to fetch external actor profile:", e);
+        }
+      }
     })();
   }, [user]);
 
