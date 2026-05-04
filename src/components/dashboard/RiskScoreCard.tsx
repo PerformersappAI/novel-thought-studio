@@ -14,12 +14,18 @@ interface Props {
 }
 
 const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profileComplete, voiceRegistered = false, externalRiskScore }: Props) => {
-  let risk = 0;
-  if (!monitoringActive) risk += 35;
-  if (!hasCertificate) risk += 20;
-  if (!faceCaptured) risk += 25;
-  if (!profileComplete) risk += 12;
-  if (!voiceRegistered) risk += 8;
+  // Use external risk score if available, otherwise compute locally
+  let risk: number;
+  if (externalRiskScore != null) {
+    risk = Math.max(0, Math.min(100, externalRiskScore));
+  } else {
+    risk = 0;
+    if (!monitoringActive) risk += 35;
+    if (!hasCertificate) risk += 20;
+    if (!faceCaptured) risk += 25;
+    if (!profileComplete) risk += 12;
+    if (!voiceRegistered) risk += 8;
+  }
 
   const level = risk >= 70 ? "high" : risk >= 40 ? "medium" : "low";
 
