@@ -326,6 +326,8 @@ export type Database = {
           company_name: string | null
           created_at: string
           display_name: string | null
+          external_actor_id: string | null
+          external_risk_score: number | null
           face_capture_front_url: string | null
           face_capture_left_url: string | null
           face_capture_right_url: string | null
@@ -371,6 +373,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          external_actor_id?: string | null
+          external_risk_score?: number | null
           face_capture_front_url?: string | null
           face_capture_left_url?: string | null
           face_capture_right_url?: string | null
@@ -416,6 +420,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          external_actor_id?: string | null
+          external_risk_score?: number | null
           face_capture_front_url?: string | null
           face_capture_left_url?: string | null
           face_capture_right_url?: string | null
