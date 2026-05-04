@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, Award, Eye, UserCircle, Home, Menu, X } from "lucide-react";
+import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/cmf-shield-logo.png";
