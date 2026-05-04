@@ -10,9 +10,10 @@ interface Props {
   faceCaptured: boolean;
   profileComplete: boolean;
   voiceRegistered?: boolean;
+  externalRiskScore?: number | null;
 }
 
-const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profileComplete, voiceRegistered = false }: Props) => {
+const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profileComplete, voiceRegistered = false, externalRiskScore }: Props) => {
   let risk = 0;
   if (!monitoringActive) risk += 35;
   if (!hasCertificate) risk += 20;
