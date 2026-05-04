@@ -254,6 +254,55 @@ const TakeAction = () => {
             })}
           </AnimatePresence>
         </section>
+
+        {/* SAG-AFTRA / Guild Resources */}
+        <section className="rounded-2xl border border-accent/30 bg-accent/5 p-6 space-y-4">
+          <div>
+            <h2 className="font-display text-xl font-bold text-foreground">Need Guild Support?</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              If you're a SAG-AFTRA member, your union has resources to help you fight unauthorized use of your likeness.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <a
+              href="https://www.sagaftra.org/contracts-industry-resources/contract-resources/ai-resources"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl border border-border/30 bg-card/40 p-4 hover:bg-card/60 transition-colors block"
+            >
+              <div className="font-semibold text-sm text-foreground mb-1">SAG-AFTRA AI Resources</div>
+              <p className="text-xs text-muted-foreground">Official guidance on AI & digital likeness protections for performers.</p>
+            </a>
+            <a
+              href="https://www.sagaftra.org/membership-benefits/member-services"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl border border-border/30 bg-card/40 p-4 hover:bg-card/60 transition-colors block"
+            >
+              <div className="font-semibold text-sm text-foreground mb-1">Contact Member Services</div>
+              <p className="text-xs text-muted-foreground">Reach SAG-AFTRA directly for help with violations or contract disputes.</p>
+            </a>
+          </div>
+
+          <div className="rounded-xl bg-card/30 border border-border/20 p-4">
+            <div className="text-xs uppercase tracking-wide text-accent font-semibold mb-2">When to contact the guild vs. handle it yourself</div>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li className="flex gap-2">
+                <span className="text-primary font-bold shrink-0">→</span>
+                <span><strong className="text-foreground">Handle yourself:</strong> Single social media post, fan account, or small website using your photo. Use our DMCA or takedown tools above.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-accent font-bold shrink-0">→</span>
+                <span><strong className="text-foreground">Contact the guild:</strong> A production company, AI platform, or commercial entity is using your likeness for profit without consent. This is where union support makes a difference.</span>
+              </li>
+            </ul>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Not a guild member? You can still use all ClaimMyFace tools above. Your face registration certificate provides legal proof of ownership regardless of union status.
+          </p>
+        </section>
       </motion.div>
     </DashboardLayout>
   );

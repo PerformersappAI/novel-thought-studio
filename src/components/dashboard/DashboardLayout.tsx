@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Upload, FileText, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, Award, Eye, UserCircle, Home, Menu, X } from "lucide-react";
+import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/cmf-shield-logo.png";
@@ -10,7 +10,10 @@ interface DashboardLayoutProps {
 }
 
 const performerLinks = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "My Protection" },
+  { to: "/dashboard/monitoring", icon: ScanSearch, label: "Scan Results" },
+  { to: "/dashboard/take-action", icon: ShieldAlert, label: "Take Action" },
+  { to: "/dashboard/profile", icon: UserCircle, label: "My Profile" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
