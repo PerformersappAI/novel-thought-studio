@@ -120,6 +120,9 @@ const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profile
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className={cn("font-display text-3xl font-extrabold leading-none", config.textColor)}>{risk}</span>
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Risk Score</span>
+              {externalRiskScore != null && (
+                <span className="text-[8px] uppercase tracking-wider text-muted-foreground/60 mt-0.5">Live API</span>
+              )}
             </div>
           </div>
         </div>
