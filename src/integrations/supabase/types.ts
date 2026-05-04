@@ -283,6 +283,63 @@ export type Database = {
         }
         Relationships: []
       }
+      mentions: {
+        Row: {
+          audio_url: string | null
+          category: string | null
+          confidence: number | null
+          created_at: string
+          excerpt: string | null
+          found_at: string
+          id: string
+          match_label: string | null
+          media_type: string | null
+          mention_type: string
+          status: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          audio_url?: string | null
+          category?: string | null
+          confidence?: number | null
+          created_at?: string
+          excerpt?: string | null
+          found_at?: string
+          id?: string
+          match_label?: string | null
+          media_type?: string | null
+          mention_type?: string
+          status?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          audio_url?: string | null
+          category?: string | null
+          confidence?: number | null
+          created_at?: string
+          excerpt?: string | null
+          found_at?: string
+          id?: string
+          match_label?: string | null
+          media_type?: string | null
+          mention_type?: string
+          status?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

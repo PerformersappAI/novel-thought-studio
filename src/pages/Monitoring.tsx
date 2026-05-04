@@ -95,6 +95,22 @@ const PlatformTile = ({ name, Icon, locked }: { name: string; Icon: any; locked:
   </div>
 );
 
+interface MentionRow {
+  id: string;
+  mention_type: string;
+  title: string;
+  url: string | null;
+  found_at: string;
+  status: string;
+  confidence: number | null;
+  category: string | null;
+  media_type: string | null;
+  thumbnail_url: string | null;
+  audio_url: string | null;
+  excerpt: string | null;
+  match_label: string | null;
+}
+
 const Monitoring = () => {
   const { user } = useAuth();
   const isPro = useIsPro();
@@ -102,6 +118,7 @@ const Monitoring = () => {
 
   const [stats, setStats] = useState({ facesMonitored: 0, alerts: 0, takedowns: 0, alertsThisMonth: 0 });
   const [findings, setFindings] = useState<Finding[]>([]);
+  const [mentions, setMentions] = useState<MentionRow[]>([]);
   const [filter, setFilter] = useState<(typeof FILTER_TABS)[number]>("All");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Finding | null>(null);
@@ -124,9 +141,9 @@ const Monitoring = () => {
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
 
-      const [{ count: faces }, { data: scans }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
+      const [{ count: faces }, { data: mentionsData }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
         supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
-        supabase.from("likeness_scans").select("results, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
         supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
         supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
@@ -134,32 +151,29 @@ const Monitoring = () => {
       setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
       setRegistryId(certs?.[0]?.registry_id ?? null);
 
-      // Try to flatten real scan results into Finding shape; fall back to mocks for demo
-      const real: Finding[] = [];
-      (scans ?? []).forEach((s: any) => {
-        const arr = Array.isArray(s.results) ? s.results : [];
-        arr.forEach((r: any, i: number) => {
-          real.push({
-            id: `real-${s.created_at}-${i}`,
-            platform: r.source || r.platform || "Web",
-            finding: r.title || r.snippet || "Match detected",
-            category: (r.category as FindingCategory) || "News & Articles",
-            date: s.created_at,
-            lastSeen: s.created_at,
-            status: r.status || "New Alert",
-            url: r.url || "#",
-            confidence: r.confidence ?? 90,
-            recommended: r.recommended || "Report to Platform",
-            mediaType: r.mediaType || (r.audioUrl ? "audio" : r.thumbnailUrl ? "image" : "article"),
-            thumbnailUrl: r.thumbnailUrl || r.image,
-            audioUrl: r.audioUrl,
-            excerpt: r.excerpt || r.snippet,
-            matchLabel: r.matchLabel,
-          });
-        });
-      });
+      const rows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
+      setMentions(rows);
 
-      const data = real.length > 0 ? real : MOCK_FINDINGS;
+      // Also build Finding[] for the detail modal & legacy filter support
+      const findingsFromMentions: Finding[] = rows.map((m) => ({
+        id: m.id,
+        platform: m.mention_type,
+        finding: m.title,
+        category: (m.category as FindingCategory) || "News & Articles",
+        date: m.found_at,
+        lastSeen: m.found_at,
+        status: (m.status as Finding["status"]) || "New Alert",
+        url: m.url || "#",
+        confidence: m.confidence ?? 90,
+        recommended: "Report to Platform" as const,
+        mediaType: (m.media_type as Finding["mediaType"]) || "article",
+        thumbnailUrl: m.thumbnail_url ?? undefined,
+        audioUrl: m.audio_url ?? undefined,
+        excerpt: m.excerpt ?? undefined,
+        matchLabel: m.match_label ?? undefined,
+      }));
+
+      const data = findingsFromMentions.length > 0 ? findingsFromMentions : MOCK_FINDINGS;
       const newAlerts = data.filter((d) => d.status === "New Alert").length;
       const monthMs = monthStart.getTime();
       const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
@@ -415,8 +429,19 @@ const Monitoring = () => {
                           <TableCell className="font-medium text-foreground whitespace-nowrap">
                             {f.platform}
                           </TableCell>
-                          <TableCell className="text-muted-foreground max-w-md">
-                            <div className="truncate">{f.finding}</div>
+                          <TableCell className="text-muted-foreground max-w-md" onClick={(e) => e.stopPropagation()}>
+                            {f.url && f.url !== "#" ? (
+                              <a
+                                href={f.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="truncate block text-primary hover:underline"
+                              >
+                                {f.finding}
+                              </a>
+                            ) : (
+                              <div className="truncate">{f.finding}</div>
+                            )}
                           </TableCell>
                           <TableCell className="text-muted-foreground whitespace-nowrap">
                             {new Date(f.date).toLocaleDateString()}
