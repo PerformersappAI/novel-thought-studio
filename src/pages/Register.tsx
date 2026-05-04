@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Shield, Camera, Check, Loader2, ArrowRight, Upload, Mic, MicOff, Play, Pause,
+  Shield, Camera, Check, Loader2, ArrowRight, Upload, Mic, MicOff, Play, Pause, Video,
   RotateCcw, Lock, Eye, EyeOff, ArrowLeft, FileAudio, AudioWaveform,
 } from "lucide-react";
 import * as faceapi from "@vladmandic/face-api";
