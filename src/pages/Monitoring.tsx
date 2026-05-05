@@ -118,6 +118,47 @@ interface MentionFolder {
 
 const FOLDER_COLORS = ["#C41230", "#D4A843", "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899"];
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const normalizeStatus = (status?: string | null): Finding["status"] => {
+  const value = (status || "").toLowerCase();
+  if (value.includes("resolved") || value.includes("dismiss")) return "Resolved";
+  if (value.includes("review") || value.includes("pending")) return "Under Review";
+  if (value.includes("takedown") || value.includes("filed")) return "Takedown Filed";
+  if (value.includes("info") || value.includes("legitimate")) return "Informational";
+  return "New Alert";
+};
+
+const normalizeCategory = (category?: string | null): FindingCategory => {
+  const valid = FILTER_TABS.filter((tab) => tab !== "All") as FindingCategory[];
+  return valid.includes(category as FindingCategory) ? (category as FindingCategory) : "News & Articles";
+};
+
+const normalizeMediaType = (mediaType?: string | null): Finding["mediaType"] => {
+  return mediaType === "image" || mediaType === "video" || mediaType === "audio" || mediaType === "article" ? mediaType : "article";
+};
+
+const createScanLine = (id: string, platform: string, finding: string): Finding => ({
+  id,
+  platform,
+  finding,
+  category: "News & Articles",
+  date: new Date().toISOString(),
+  lastSeen: new Date().toISOString(),
+  status: "Under Review",
+  url: "#",
+  confidence: 100,
+  recommended: "Report to Platform",
+  mediaType: "article",
+});
+
+const SCAN_LINES: Finding[] = [
+  createScanLine("scan-web", "Web", "Booting identity radar and checking public web indexes…"),
+  createScanLine("scan-social", "Social", "Scanning social platforms for image, name, and profile matches…"),
+  createScanLine("scan-ai", "AI", "Checking AI databases, synthetic media signals, and clone markers…"),
+  createScanLine("scan-news", "News", "Cross-referencing articles, casting listings, and commercial usage…"),
+];
+
 const Monitoring = () => {
   const { user } = useAuth();
   const { toast } = useToast();
