@@ -557,22 +557,23 @@ const Monitoring = () => {
                         >
                           <TableCell className="font-medium text-foreground whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <FindingThumbnail finding={f} size="sm" />
                               {f.platform}
                             </div>
                           </TableCell>
-                          <TableCell className="text-muted-foreground max-w-md" onClick={(e) => e.stopPropagation()}>
-                            {f.url && f.url !== "#" ? (
+                          <TableCell className="text-muted-foreground max-w-xs md:max-w-md">
+                            <div className="whitespace-normal break-words text-sm leading-snug">
+                              {f.finding}
+                            </div>
+                            {f.url && f.url !== "#" && (
                               <a
                                 href={f.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="truncate block text-primary hover:underline"
+                                className="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                {f.finding}
+                                Source <ExternalLink className="w-3 h-3" />
                               </a>
-                            ) : (
-                              <div className="truncate">{f.finding}</div>
                             )}
                           </TableCell>
                           <TableCell className="text-muted-foreground whitespace-nowrap">
