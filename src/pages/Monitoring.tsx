@@ -436,7 +436,10 @@ const Monitoring = () => {
                           onClick={() => setSelected(f)}
                         >
                           <TableCell className="font-medium text-foreground whitespace-nowrap">
-                            {f.platform}
+                            <div className="flex items-center gap-2">
+                              <FindingThumbnail finding={f} size="sm" />
+                              {f.platform}
+                            </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground max-w-md" onClick={(e) => e.stopPropagation()}>
                             {f.url && f.url !== "#" ? (
@@ -461,35 +464,48 @@ const Monitoring = () => {
                             </span>
                           </TableCell>
                           <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  ref={i === 0 ? actionRef : undefined}
-                                  size="sm"
-                                  variant="outline"
-                                  className="gap-1"
-                                >
-                                  Action <MoreHorizontal className="w-3 h-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleAction(f, "Dismissed")}>
-                                  This is fine — Dismiss
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                  <Link to="/tools/dmca">File DMCA Notice</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                  <Link to="/tools/contracts">Send Cease & Desist</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleAction(f, "Reported to Platform")}>
-                                  Report to Platform
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleAction(f, "Removal Requested")}>
-                                  Request Removal
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center gap-1 justify-end">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                                onClick={() => deleteFinding(f)}
+                              >
+                                <Trash2 className="w-4 h-4" /> Delete
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    ref={i === 0 ? actionRef : undefined}
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-1"
+                                  >
+                                    Action <MoreHorizontal className="w-3 h-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleAction(f, "Dismissed")}>
+                                    This is fine — Dismiss
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link to="/tools/dmca">File DMCA Notice</Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link to="/tools/contracts">Send Cease & Desist</Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleAction(f, "Reported to Platform")}>
+                                    Report to Platform
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => deleteFinding(f)}
+                                  >
+                                    Delete permanently
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
