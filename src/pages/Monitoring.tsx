@@ -301,7 +301,7 @@ const Monitoring = () => {
 
     try {
       const scanPromise = supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
-      await Promise.all([scanPromise, wait(3200)]);
+      await Promise.allSettled([scanPromise, wait(3200)]);
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
       await loadMentions();
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
@@ -678,7 +678,7 @@ const Monitoring = () => {
 
                 {filtered.map((f) => {
                   const PIcon = getPlatformIcon(f.platform);
-                  const s = STATUS_STYLES[f.status];
+                  const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
                   const isChecked = selectedIds.has(f.id);
                   const mention = mentions.find(m => m.id === f.id);
                   const folder = mention?.folder_id ? folders.find(fo => fo.id === mention.folder_id) : null;
