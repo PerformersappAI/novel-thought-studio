@@ -711,10 +711,6 @@ const Register = () => {
                   <Label>Stage Name</Label>
                   <Input value={stageName} onChange={e => setStageName(e.target.value)} placeholder="Professional / stage name" />
                 </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Also Known As (AKAs)</Label>
-                  <Input value={akas} onChange={e => setAkas(e.target.value)} placeholder="Comma-separated aliases" />
-                </div>
                 {!accountCreated && (
                   <>
                     <div className="space-y-2">
