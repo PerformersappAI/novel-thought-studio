@@ -273,16 +273,17 @@ const PerformerDashboard = () => {
                                 <span className="font-medium text-foreground">{m.mention_type}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="max-w-md">
-                              {m.url ? (
+                            <TableCell className="max-w-xs md:max-w-md">
+                              <div className="whitespace-normal break-words text-sm leading-snug">
+                                {m.title}
+                              </div>
+                              {m.url && (
                                 <a href={m.url} target="_blank" rel="noopener noreferrer"
-                                  className="truncate block text-primary hover:underline inline-flex items-center gap-1"
+                                  className="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-1"
                                   onClick={e => e.stopPropagation()}
                                 >
-                                  {m.title} <ExternalLink className="w-3 h-3 shrink-0" />
+                                  Source <ExternalLink className="w-3 h-3 shrink-0" />
                                 </a>
-                              ) : (
-                                <span className="truncate block">{m.title}</span>
                               )}
                             </TableCell>
                             <TableCell className="text-muted-foreground whitespace-nowrap">
