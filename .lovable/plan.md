@@ -1,75 +1,45 @@
 
-# Simplify ClaimMyFace: Clear 3-Phase User Journey
+# Fix 6 Registration Bugs
 
-## The Problem
-The app has too many pages, cards, and options. Even you can't figure out what to do. The dashboard dumps everything at once — scores, certificates, monitoring, badges, alerts, next steps — and the sidebar is bare. There's no clear "what do I do next?" flow.
+## 1. Redirect to dashboard after email confirmation
 
-## The New Mental Model
+**Problem:** `emailRedirectTo` in `useAuth.tsx` points to `window.location.origin` (root `/`), so confirmed users land on the homepage instead of the dashboard.
 
-Three clear phases a user moves through:
+**Fix:** Change `emailRedirectTo` to `window.location.origin + '/dashboard'`. Also add logic in `ProtectedRoute` or `App.tsx` to handle the auth callback token exchange on `/dashboard` (Supabase handles this automatically when the redirect URL matches a route).
 
-```text
-Phase 1: CLAIM YOUR FACE (Free)
-  Sign up → Profile → Face Capture → Voice Print → Done. You're claimed.
+## 2. Auto-save profile fields on change
 
-Phase 2: SEE YOUR STATUS  
-  Dashboard shows: your face, your protection score, and any matches we found.
-  Simple cards: "We scanned X platforms. Here's what we found."
+**Problem:** If the user leaves mid-registration, form data is lost.
 
-Phase 3: TAKE ACTION
-  If matches found → "Here's what you can do" (DMCA, Cease & Desist, Report, Contact SAG-AFTRA)
-  If no matches → "You're clean. We'll keep watching."
-```
+**Fix:** In `Register.tsx`, add a debounced auto-save function that writes `legal_name`, `stage_name`, and AKAs to the `profiles` table whenever a field changes (only when `user` is logged in). On mount, prefill fields from the existing profile. Use a ~1s debounce to avoid excessive writes.
 
-## What Changes
+## 3. Camera error fallback to upload
 
-### 1. Simplify the Dashboard Sidebar
-Currently performers see only "Overview" and "Settings". Replace with a clear navigation:
-- **My Protection** (the main dashboard — score, face, status)
-- **Scan Results** (what monitoring found — consolidates alerts/monitoring pages)
-- **Take Action** (DMCA, cease & desist, report, SAG-AFTRA contact info)
-- **My Profile** (edit profile, assets, certificates — all in one place)
-- **Settings**
+**Problem:** `startCamera()` catches the error and shows a toast, but doesn't offer an alternative.
 
-### 2. Redesign the Main Dashboard (My Protection)
-Strip it down to 3-4 clear sections instead of 8+:
-- **Your Face** — photo thumbnails, registry ID, date claimed. Done.
-- **Protection Score** — the big percentage circle. Keep it.
-- **What We Found** — simple list: "0 matches" or cards showing matches. Link to full scan results.
-- **What To Do Next** — ONE clear next step (not a list of 6). If they haven't done face capture, that's it. If they have, it's "Download Certificate" or "Review Matches."
+**Fix:** Add a `cameraError` state. When `startCamera()` fails, set `cameraError = true` and show the "Upload Photos" button prominently instead. The upload button already exists but is hidden when camera isn't open.
 
-Remove from the main dashboard: ProtectionJourney (redundant with score), CompletedSteps (clutter), the long NextSteps list (replace with single CTA), TakeActionList (move to its own tab), DashboardTrustFooter (unnecessary).
+## 4. Loading screen with logo and progress message
 
-### 3. Add SAG-AFTRA / Guild Contact Info
-Add a card or section in the "Take Action" area with:
-- SAG-AFTRA AI & Digital Likeness contact info
-- Link to file a complaint
-- Brief guidance on when to contact the guild vs. handle it yourself
+**Problem:** The `handleFinish` function shows `submitting=true` with just a spinner text "Saving..." on the button, and a black/empty screen during the upload process.
 
-### 4. Simplify the Landing Page Flow
-The landing page is actually decent. Main change:
-- Make "Claim My Face — It's Free" even more prominent
-- Ensure the signup → onboarding flow is seamless (it already is, mostly)
+**Fix:** When `submitting` is true during `handleFinish`, render a full-screen overlay with the ClaimMyFace logo, a progress bar, and rotating messages like "Setting up your protection...", "Encrypting your biometrics...", "Finalizing your profile...".
 
-### 5. Clean Up Onboarding
-The 5-step onboarding (Profile → Face → Voice → Certificate → Monitoring) is mostly fine, but:
-- Make Voice Print truly optional with a clear "Skip for now" that doesn't feel like you're missing something critical
-- After face capture + profile, immediately show "You're claimed!" — certificate and monitoring are bonuses, not gates
+## 5. Animated side photo guide overlay
 
-## Technical Changes
+**Problem:** Users don't know which way to turn for left/right photos.
 
-### Files to modify:
-- `src/components/dashboard/DashboardLayout.tsx` — expand performer sidebar links
-- `src/pages/PerformerDashboard.tsx` — simplify to 3-4 sections
-- `src/pages/TakeAction.tsx` — add SAG-AFTRA contact info and guild resources
-- `src/components/dashboard/NextSteps.tsx` — show single priority CTA instead of list
+**Fix:** Add an animated arrow/head-turn indicator on the camera overlay for left and right poses. Show an animated SVG arrow pointing left or right with a pulsing "Turn your head this way" label overlaid on the camera view.
 
-### Files to potentially remove or consolidate:
-- `src/components/dashboard/ProtectionJourney.tsx` — redundant, remove from dashboard
-- `src/components/dashboard/CompletedSteps.tsx` — redundant with score, remove from dashboard
-- `src/components/dashboard/DashboardTrustFooter.tsx` — remove (clutter)
+## 6. Prevent camera restart after capture complete
 
-### No database changes needed.
+**Problem:** After all 3 photos are captured, the user can still open the camera again.
 
-## Result
-A user signs up, claims their face in 5 minutes, lands on a clean dashboard that says "Your face is claimed. Here's your score. Here's what we found. Here's what to do." Simple.
+**Fix:** When `allCaptured` is true, don't show "Open Camera" or "Upload Photos" buttons. Show "Photos already captured" with review thumbnails and a "Retake All" button. The current code partially does this but `cameraOpen` state can still be toggled.
+
+---
+
+## Files to modify
+
+- `src/hooks/useAuth.tsx` — change `emailRedirectTo` to `/dashboard`
+- `src/pages/Register.tsx` — all other 5 fixes (auto-save, camera fallback, loading overlay, side guides, capture state management)
