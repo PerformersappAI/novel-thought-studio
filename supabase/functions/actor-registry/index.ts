@@ -132,8 +132,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    // GET /mentions/{actor_id}
+    if (action === "get_mentions" && req.method === "GET") {
+      let actorId = url.searchParams.get("actor_id");
+      if (!actorId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("external_actor_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        actorId = (profile as any)?.external_actor_id ?? null;
+      }
+      if (!actorId) {
+        return new Response(JSON.stringify({ mentions: [] }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const extRes = await fetch(`${EXTERNAL_API}/mentions/${actorId}`);
+      const extData = await extRes.json().catch(() => ({ mentions: [] }));
+      return new Response(JSON.stringify(extData), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(
-      JSON.stringify({ error: "Invalid action. Use ?action=register, ?action=get_actor, or ?action=scan" }),
+      JSON.stringify({ error: "Invalid action. Use ?action=register, ?action=get_actor, ?action=scan, or ?action=get_mentions" }),
       {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
