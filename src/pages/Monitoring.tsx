@@ -849,11 +849,18 @@ const Monitoring = () => {
                 <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
                   <img src={selected.url} alt={selected.finding} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
                 </div>
-              ) : (
-                <div className="aspect-video w-full bg-secondary/30 border border-border/40 rounded-lg flex items-center justify-center">
-                  <FileText className="w-10 h-10 text-muted-foreground/30" />
-                </div>
-              )}
+              ) : selected.url && selected.url !== "#" ? (
+                <a href={selected.url} target="_blank" rel="noopener noreferrer" className="block w-full rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:bg-secondary/30 transition-colors p-4">
+                  <div className="flex items-center gap-3">
+                    {(() => { const PIcon = getPlatformIcon(selected.platform); return <PIcon className="w-8 h-8 text-primary shrink-0" />; })()}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{selected.finding || selected.platform}</p>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">{selected.url}</p>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </div>
+                </a>
+              ) : null}
 
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
