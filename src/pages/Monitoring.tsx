@@ -259,7 +259,7 @@ const Monitoring = () => {
       id: m.id,
       platform: m.mention_type,
       finding: m.title,
-      category: normalizeCategory(m.category),
+      category: normalizeCategory(m.mention_type, m.category),
       date: m.found_at,
       lastSeen: m.found_at,
       status: normalizeStatus(m.status),
