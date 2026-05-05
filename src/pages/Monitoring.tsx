@@ -125,6 +125,9 @@ const Monitoring = () => {
   const [copied, setCopied] = useState(false);
   const [performerName, setPerformerName] = useState<string>("");
   const [registryId, setRegistryId] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanDone, setScanDone] = useState(false);
+  const scanAbortRef = useRef<AbortController | null>(null);
 
   // Tour
   const [tourOpen, setTourOpen] = useState(false);
@@ -134,60 +137,89 @@ const Monitoring = () => {
   const filterRef = useRef<HTMLDivElement>(null);
   const actionRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
+  const loadMentions = async () => {
     if (!user) return;
-    const load = async () => {
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
 
-      const [{ count: faces }, { data: mentionsData }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
-        supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
-        supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
-        supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
-        supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
-      ]);
-      setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
-      setRegistryId(certs?.[0]?.registry_id ?? null);
+    const [{ count: faces }, { data: mentionsData }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
+      supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
+      supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
+      supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
+      supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
+    ]);
+    setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
+    setRegistryId(certs?.[0]?.registry_id ?? null);
 
-      const rows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
-      setMentions(rows);
+    const rows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
+    setMentions(rows);
 
-      // Also build Finding[] for the detail modal & legacy filter support
-      const findingsFromMentions: Finding[] = rows.map((m) => ({
-        id: m.id,
-        platform: m.mention_type,
-        finding: m.title,
-        category: (m.category as FindingCategory) || "News & Articles",
-        date: m.found_at,
-        lastSeen: m.found_at,
-        status: (m.status as Finding["status"]) || "New Alert",
-        url: m.url || "#",
-        confidence: m.confidence ?? 90,
-        recommended: "Report to Platform" as const,
-        mediaType: (m.media_type as Finding["mediaType"]) || "article",
-        thumbnailUrl: m.thumbnail_url ?? undefined,
-        audioUrl: m.audio_url ?? undefined,
-        excerpt: m.excerpt ?? undefined,
-        matchLabel: m.match_label ?? undefined,
-      }));
+    const findingsFromMentions: Finding[] = rows.map((m) => ({
+      id: m.id,
+      platform: m.mention_type,
+      finding: m.title,
+      category: (m.category as FindingCategory) || "News & Articles",
+      date: m.found_at,
+      lastSeen: m.found_at,
+      status: (m.status as Finding["status"]) || "New Alert",
+      url: m.url || "#",
+      confidence: m.confidence ?? 90,
+      recommended: "Report to Platform" as const,
+      mediaType: (m.media_type as Finding["mediaType"]) || "article",
+      thumbnailUrl: m.thumbnail_url ?? undefined,
+      audioUrl: m.audio_url ?? undefined,
+      excerpt: m.excerpt ?? undefined,
+      matchLabel: m.match_label ?? undefined,
+    }));
 
-      const data = findingsFromMentions;
-      const newAlerts = data.filter((d) => d.status === "New Alert").length;
-      const monthMs = monthStart.getTime();
-      const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
+    const data = findingsFromMentions;
+    const newAlerts = data.filter((d) => d.status === "New Alert").length;
+    const monthMs = monthStart.getTime();
+    const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
 
-      setFindings(data);
-      setStats({
-        facesMonitored: faces ?? 0,
-        alerts: newAlerts,
-        takedowns: violations ?? 0,
-        alertsThisMonth: alertsMonth,
-      });
-    };
-    load();
+    setFindings(data);
+    setStats({
+      facesMonitored: faces ?? 0,
+      alerts: newAlerts,
+      takedowns: violations ?? 0,
+      alertsThisMonth: alertsMonth,
+    });
+  };
+
+  useEffect(() => {
+    loadMentions();
   }, [user]);
+
+  const runScan = async () => {
+    if (scanning) {
+      scanAbortRef.current?.abort();
+      scanAbortRef.current = null;
+      setScanning(false);
+      toast({ title: "Scan stopped" });
+      return;
+    }
+    setScanning(true);
+    setScanDone(false);
+    const controller = new AbortController();
+    scanAbortRef.current = controller;
+    try {
+      await fetch("http://187.77.199.100:8001/scan", {
+        method: "POST",
+        signal: controller.signal,
+      });
+      setScanDone(true);
+      toast({ title: "Scan complete", description: "Check your results below." });
+      await loadMentions();
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      toast({ title: "Scan failed", description: String(err), variant: "destructive" });
+    } finally {
+      setScanning(false);
+      scanAbortRef.current = null;
+    }
+  };
 
   // Auto-launch tour first time
   useEffect(() => {
@@ -360,6 +392,39 @@ const Monitoring = () => {
         {/* Impersonator Detection */}
         <ImpersonatorDetection performerName={performerName} registryId={registryId} />
 
+        {/* Run My Scan */}
+        <div className="mb-6">
+          <Button
+            onClick={runScan}
+            className={`w-full md:w-auto text-base font-semibold gap-2 ${
+              scanning
+                ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                : "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            }`}
+            size="lg"
+          >
+            {scanning ? (
+              <>
+                <RefreshCw className="w-5 h-5 animate-spin" /> Stop Scan
+              </>
+            ) : (
+              <>
+                <Radar className="w-5 h-5" /> Run My Scan
+              </>
+            )}
+          </Button>
+          {scanning && (
+            <p className="text-sm text-muted-foreground mt-2 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin" /> Scanning the web for you…
+            </p>
+          )}
+          {scanDone && !scanning && (
+            <p className="text-sm text-emerald-400 mt-2 flex items-center gap-2">
+              <Check className="w-4 h-4" /> Scan complete — check your results below
+            </p>
+          )}
+        </div>
+
         {/* Identity Footprint */}
         <Card className="glass-card border-border/30 mb-6 relative">
           <CardHeader>
@@ -400,17 +465,15 @@ const Monitoring = () => {
             {findings.length === 0 ? (
               <div className="py-12 text-center">
                 <div className="relative w-20 h-20 mx-auto mb-5">
-                  <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                  <span className="absolute inset-2 rounded-full bg-primary/30 animate-ping [animation-delay:200ms]" />
                   <span className="absolute inset-5 rounded-full bg-primary flex items-center justify-center">
                     <Radar className="w-6 h-6 text-primary-foreground" />
                   </span>
                 </div>
                 <p className="font-display text-lg font-semibold text-foreground">
-                  Your first scan is running.
+                  No results yet.
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  We'll notify you when we find results — usually within 24 hours.
+                  Hit "Run My Scan" above to scan the web for your likeness.
                 </p>
               </div>
             ) : (
