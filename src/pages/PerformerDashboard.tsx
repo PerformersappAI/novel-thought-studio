@@ -259,7 +259,7 @@ const PerformerDashboard = () => {
                     <TableHead>What Was Found</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-10"></TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
