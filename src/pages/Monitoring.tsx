@@ -137,60 +137,89 @@ const Monitoring = () => {
   const filterRef = useRef<HTMLDivElement>(null);
   const actionRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
+  const loadMentions = async () => {
     if (!user) return;
-    const load = async () => {
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
 
-      const [{ count: faces }, { data: mentionsData }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
-        supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
-        supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
-        supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
-        supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
-      ]);
-      setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
-      setRegistryId(certs?.[0]?.registry_id ?? null);
+    const [{ count: faces }, { data: mentionsData }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
+      supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
+      supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
+      supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
+      supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
+    ]);
+    setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
+    setRegistryId(certs?.[0]?.registry_id ?? null);
 
-      const rows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
-      setMentions(rows);
+    const rows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
+    setMentions(rows);
 
-      // Also build Finding[] for the detail modal & legacy filter support
-      const findingsFromMentions: Finding[] = rows.map((m) => ({
-        id: m.id,
-        platform: m.mention_type,
-        finding: m.title,
-        category: (m.category as FindingCategory) || "News & Articles",
-        date: m.found_at,
-        lastSeen: m.found_at,
-        status: (m.status as Finding["status"]) || "New Alert",
-        url: m.url || "#",
-        confidence: m.confidence ?? 90,
-        recommended: "Report to Platform" as const,
-        mediaType: (m.media_type as Finding["mediaType"]) || "article",
-        thumbnailUrl: m.thumbnail_url ?? undefined,
-        audioUrl: m.audio_url ?? undefined,
-        excerpt: m.excerpt ?? undefined,
-        matchLabel: m.match_label ?? undefined,
-      }));
+    const findingsFromMentions: Finding[] = rows.map((m) => ({
+      id: m.id,
+      platform: m.mention_type,
+      finding: m.title,
+      category: (m.category as FindingCategory) || "News & Articles",
+      date: m.found_at,
+      lastSeen: m.found_at,
+      status: (m.status as Finding["status"]) || "New Alert",
+      url: m.url || "#",
+      confidence: m.confidence ?? 90,
+      recommended: "Report to Platform" as const,
+      mediaType: (m.media_type as Finding["mediaType"]) || "article",
+      thumbnailUrl: m.thumbnail_url ?? undefined,
+      audioUrl: m.audio_url ?? undefined,
+      excerpt: m.excerpt ?? undefined,
+      matchLabel: m.match_label ?? undefined,
+    }));
 
-      const data = findingsFromMentions;
-      const newAlerts = data.filter((d) => d.status === "New Alert").length;
-      const monthMs = monthStart.getTime();
-      const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
+    const data = findingsFromMentions;
+    const newAlerts = data.filter((d) => d.status === "New Alert").length;
+    const monthMs = monthStart.getTime();
+    const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
 
-      setFindings(data);
-      setStats({
-        facesMonitored: faces ?? 0,
-        alerts: newAlerts,
-        takedowns: violations ?? 0,
-        alertsThisMonth: alertsMonth,
-      });
-    };
-    load();
+    setFindings(data);
+    setStats({
+      facesMonitored: faces ?? 0,
+      alerts: newAlerts,
+      takedowns: violations ?? 0,
+      alertsThisMonth: alertsMonth,
+    });
+  };
+
+  useEffect(() => {
+    loadMentions();
   }, [user]);
+
+  const runScan = async () => {
+    if (scanning) {
+      scanAbortRef.current?.abort();
+      scanAbortRef.current = null;
+      setScanning(false);
+      toast({ title: "Scan stopped" });
+      return;
+    }
+    setScanning(true);
+    setScanDone(false);
+    const controller = new AbortController();
+    scanAbortRef.current = controller;
+    try {
+      await fetch("http://187.77.199.100:8001/scan", {
+        method: "POST",
+        signal: controller.signal,
+      });
+      setScanDone(true);
+      toast({ title: "Scan complete", description: "Check your results below." });
+      await loadMentions();
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      toast({ title: "Scan failed", description: String(err), variant: "destructive" });
+    } finally {
+      setScanning(false);
+      scanAbortRef.current = null;
+    }
+  };
 
   // Auto-launch tour first time
   useEffect(() => {
