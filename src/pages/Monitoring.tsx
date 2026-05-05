@@ -147,16 +147,55 @@ const Monitoring = () => {
       supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
       supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
       supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("profiles").select("stage_name, legal_name, full_name").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("stage_name, legal_name, full_name, external_actor_id").eq("user_id", user.id).maybeSingle(),
       supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
     ]);
     setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
     setRegistryId(certs?.[0]?.registry_id ?? null);
 
-    const rows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
-    setMentions(rows);
+    const dbRows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
 
-    const findingsFromMentions: Finding[] = rows.map((m) => ({
+    // Fetch external mentions if external_actor_id exists
+    let externalRows: MentionRow[] = [];
+    const externalActorId = (prof as any)?.external_actor_id;
+    if (externalActorId) {
+      try {
+        const { data: extData } = await supabase.functions.invoke(
+          "actor-registry?action=get_mentions&actor_id=" + externalActorId,
+          { method: "GET" }
+        );
+        const extMentions = extData?.mentions || extData || [];
+        if (Array.isArray(extMentions)) {
+          externalRows = extMentions.map((m: any, i: number) => ({
+            id: m.id || `ext-${i}`,
+            mention_type: m.mention_type || m.platform || "Web",
+            title: m.title || m.finding || "",
+            url: m.url || null,
+            found_at: m.found_at || m.date || new Date().toISOString(),
+            status: m.status || "New Alert",
+            confidence: m.confidence ?? 90,
+            category: m.category || null,
+            media_type: m.media_type || null,
+            thumbnail_url: m.thumbnail_url || null,
+            audio_url: m.audio_url || null,
+            excerpt: m.excerpt || null,
+            match_label: m.match_label || null,
+          }));
+        }
+      } catch (err) {
+        console.warn("Failed to fetch external mentions:", err);
+      }
+    }
+
+    // Merge: DB rows first, then external rows not already in DB (by url or title)
+    const dbUrls = new Set(dbRows.map(r => r.url).filter(Boolean));
+    const merged = [
+      ...dbRows,
+      ...externalRows.filter(r => !r.url || !dbUrls.has(r.url)),
+    ];
+    setMentions(merged);
+
+    const findingsFromMentions: Finding[] = merged.map((m) => ({
       id: m.id,
       platform: m.mention_type,
       finding: m.title,
