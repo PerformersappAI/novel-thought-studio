@@ -213,7 +213,7 @@ const Monitoring = () => {
           "actor-registry?action=get_mentions&actor_id=" + externalActorId,
           { method: "GET" }
         );
-        const extMentions = extData?.mentions || extData || [];
+        const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || extData || [];
         if (Array.isArray(extMentions)) {
           externalRows = extMentions.map((m: any, i: number) => ({
             id: m.id || `ext-${i}`,
@@ -248,11 +248,11 @@ const Monitoring = () => {
       category: (m.category as FindingCategory) || "News & Articles",
       date: m.found_at,
       lastSeen: m.found_at,
-      status: (m.status as Finding["status"]) || "New Alert",
+      status: normalizeStatus(m.status),
       url: m.url || "#",
       confidence: m.confidence ?? 90,
       recommended: "Report to Platform" as const,
-      mediaType: (m.media_type as Finding["mediaType"]) || "article",
+      mediaType: normalizeMediaType(m.media_type),
       thumbnailUrl: m.thumbnail_url ?? undefined,
       audioUrl: m.audio_url ?? undefined,
       excerpt: m.excerpt ?? undefined,
