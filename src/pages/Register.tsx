@@ -258,6 +258,8 @@ const Register = () => {
     if (user && profileLoaded) autoSaveProfile();
   }, [legalName, stageName, akas, user, profileLoaded, autoSaveProfile]);
 
+  const allCaptured = captures.front && captures.left && captures.right;
+
   /* ─── Camera helpers ─── */
   const stopCamera = () => {
     if (detectRef.current) { clearInterval(detectRef.current); detectRef.current = null; }
@@ -267,6 +269,7 @@ const Register = () => {
 
   const enumerateCams = async () => {
     try {
+      if (!navigator.mediaDevices?.enumerateDevices) return [];
       const all = await navigator.mediaDevices.enumerateDevices();
       const cams = all.filter(d => d.kind === "videoinput");
       setDevices(cams);
@@ -302,7 +305,41 @@ const Register = () => {
 
   const switchCamera = async (deviceId: string) => {
     setSelectedDeviceId(deviceId);
-    await startCamera(deviceId);
+    if (cameraOpen) await startCamera(deviceId);
+  };
+
+  useEffect(() => {
+    if (section !== "photos" || photosCompleted || allCaptured) return;
+    enumerateCams();
+  }, [section, photosCompleted, allCaptured]);
+
+  const CameraPicker = () => {
+    if (devices.length < 1) return null;
+    const cameraOptions = devices.map((d, i) => ({ device: d, value: d.deviceId || `camera-${i}` }));
+    const pickerValue = selectedDeviceId || cameraOptions[0]?.value;
+    const handleCameraPick = (value: string) => {
+      const option = cameraOptions.find(o => o.value === value);
+      switchCamera(option?.device.deviceId || "");
+    };
+    return (
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Video className="w-4 h-4" /> Camera
+        </Label>
+        <Select value={pickerValue} onValueChange={handleCameraPick}>
+          <SelectTrigger className="w-full bg-background/70">
+            <SelectValue placeholder="Choose camera" />
+          </SelectTrigger>
+          <SelectContent>
+            {cameraOptions.map(({ device: d, value }, i) => (
+              <SelectItem key={value} value={value}>
+                {d.label || `Camera ${i + 1}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
   };
 
   const runDetection = () => {
@@ -395,8 +432,6 @@ const Register = () => {
     setPhotosCompleted(false);
     setCameraError(false);
   };
-
-  const allCaptured = captures.front && captures.left && captures.right;
 
   /* ─── Voice helpers ─── */
   const stopVoiceStream = () => {
@@ -714,8 +749,9 @@ const Register = () => {
                       </div>
                     </div>
                   )}
+                  <CameraPicker />
                   <div className="grid sm:grid-cols-2 gap-2">
-                    <Button onClick={() => startCamera()} disabled={!modelsLoaded} size="lg" className="w-full font-display">
+                    <Button onClick={() => startCamera(selectedDeviceId || undefined)} disabled={!modelsLoaded} size="lg" className="w-full font-display">
                       {!modelsLoaded ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading…</> : <><Camera className="w-4 h-4 mr-1" /> {cameraError ? "Try Camera Again" : "Open Camera"}</>}
                     </Button>
                     <Button onClick={() => fileInputRef.current?.click()} disabled={!modelsLoaded} variant={cameraError ? "default" : "outline"} size="lg" className="w-full font-display">
@@ -751,23 +787,7 @@ const Register = () => {
                       </div>
                     ))}
                   </div>
-                  {devices.length > 1 && (
-                    <div className="flex items-center gap-2">
-                      <Video className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <Select value={selectedDeviceId} onValueChange={switchCamera}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Choose camera" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {devices.map((d, i) => (
-                            <SelectItem key={d.deviceId} value={d.deviceId}>
-                              {d.label || `Camera ${i + 1}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  <CameraPicker />
                   <div className="grid sm:grid-cols-2 gap-2">
                     <Button onClick={capturePhoto} disabled={!faceDetected || !!captures[currentPose.key]} size="lg" className="w-full font-display">
                       <Camera className="w-4 h-4 mr-1" /> Take {currentPose.label} Photo
