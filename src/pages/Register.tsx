@@ -267,6 +267,7 @@ const Register = () => {
 
   const enumerateCams = async () => {
     try {
+      if (!navigator.mediaDevices?.enumerateDevices) return [];
       const all = await navigator.mediaDevices.enumerateDevices();
       const cams = all.filter(d => d.kind === "videoinput");
       setDevices(cams);
@@ -302,7 +303,35 @@ const Register = () => {
 
   const switchCamera = async (deviceId: string) => {
     setSelectedDeviceId(deviceId);
-    await startCamera(deviceId);
+    if (cameraOpen) await startCamera(deviceId);
+  };
+
+  useEffect(() => {
+    if (section !== "photos" || photosCompleted || allCaptured) return;
+    enumerateCams();
+  }, [section, photosCompleted, allCaptured]);
+
+  const CameraPicker = () => {
+    if (devices.length < 1) return null;
+    return (
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Video className="w-4 h-4" /> Camera
+        </Label>
+        <Select value={selectedDeviceId || devices[0]?.deviceId} onValueChange={switchCamera}>
+          <SelectTrigger className="w-full bg-background/70">
+            <SelectValue placeholder="Choose camera" />
+          </SelectTrigger>
+          <SelectContent>
+            {devices.map((d, i) => (
+              <SelectItem key={d.deviceId || `camera-${i}`} value={d.deviceId}>
+                {d.label || `Camera ${i + 1}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
   };
 
   const runDetection = () => {
