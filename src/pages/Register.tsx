@@ -635,7 +635,7 @@ const Register = () => {
               action: "register",
               legal_name: prof.legal_name || prof.full_name,
               stage_name: prof.stage_name,
-              aka_names: akas.trim() || null,
+              aka_names: null,
               email: user.email,
               reference_photo_url: prof.headshot_url,
             },
