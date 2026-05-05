@@ -138,6 +138,8 @@ const MENTION_TYPE_TO_CATEGORY: Record<string, FindingCategory> = {
   ads_commercial: "Ads & Commercial",
   news: "News & Articles",
   voice_clone: "Voice Clones",
+  image: "Deepfakes",
+  web: "News & Articles",
 };
 
 const normalizeCategory = (mentionType?: string | null, category?: string | null): FindingCategory => {
@@ -148,8 +150,23 @@ const normalizeCategory = (mentionType?: string | null, category?: string | null
   return valid.includes(category as FindingCategory) ? (category as FindingCategory) : "News & Articles";
 };
 
-const normalizeMediaType = (mediaType?: string | null): Finding["mediaType"] => {
-  return mediaType === "image" || mediaType === "video" || mediaType === "audio" || mediaType === "article" ? mediaType : "article";
+const MENTION_TYPE_TO_MEDIA: Record<string, Finding["mediaType"]> = {
+  youtube: "video",
+  tiktok: "video",
+  deepfake: "video",
+  image: "image",
+  fake_profile: "image",
+  casting_platform: "image",
+  ads_commercial: "image",
+  voice_clone: "audio",
+  news: "article",
+  web: "article",
+};
+
+const normalizeMediaType = (mediaType?: string | null, mentionType?: string | null): Finding["mediaType"] => {
+  if (mediaType === "image" || mediaType === "video" || mediaType === "audio" || mediaType === "article") return mediaType;
+  if (mentionType && MENTION_TYPE_TO_MEDIA[mentionType]) return MENTION_TYPE_TO_MEDIA[mentionType];
+  return "article";
 };
 
 const createScanLine = (id: string, platform: string, finding: string): Finding => ({
@@ -266,7 +283,7 @@ const Monitoring = () => {
       url: m.url || "#",
       confidence: m.confidence ?? 90,
       recommended: "Report to Platform" as const,
-      mediaType: normalizeMediaType(m.media_type),
+      mediaType: normalizeMediaType(m.media_type, m.mention_type),
       thumbnailUrl: m.thumbnail_url ?? undefined,
       audioUrl: m.audio_url ?? undefined,
       excerpt: m.excerpt ?? undefined,
