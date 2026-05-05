@@ -315,18 +315,24 @@ const Register = () => {
 
   const CameraPicker = () => {
     if (devices.length < 1) return null;
+    const cameraOptions = devices.map((d, i) => ({ device: d, value: d.deviceId || `camera-${i}` }));
+    const pickerValue = selectedDeviceId || cameraOptions[0]?.value;
+    const handleCameraPick = (value: string) => {
+      const option = cameraOptions.find(o => o.value === value);
+      switchCamera(option?.device.deviceId || "");
+    };
     return (
       <div className="space-y-2">
         <Label className="flex items-center gap-2 text-sm text-muted-foreground">
           <Video className="w-4 h-4" /> Camera
         </Label>
-        <Select value={selectedDeviceId || devices[0]?.deviceId} onValueChange={switchCamera}>
+        <Select value={pickerValue} onValueChange={handleCameraPick}>
           <SelectTrigger className="w-full bg-background/70">
             <SelectValue placeholder="Choose camera" />
           </SelectTrigger>
           <SelectContent>
-            {devices.map((d, i) => (
-              <SelectItem key={d.deviceId || `camera-${i}`} value={d.deviceId}>
+            {cameraOptions.map(({ device: d, value }, i) => (
+              <SelectItem key={value} value={value}>
                 {d.label || `Camera ${i + 1}`}
               </SelectItem>
             ))}
