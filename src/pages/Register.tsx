@@ -155,7 +155,7 @@ const Register = () => {
   /* ─── Info fields ─── */
   const [legalName, setLegalName] = useState("");
   const [stageName, setStageName] = useState("");
-  const [akas, setAkas] = useState("");
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -222,17 +222,21 @@ const Register = () => {
     };
   }, []);
 
-  /* ─── Prefill from existing profile when user is logged in ─── */
+  /* ─── Prefill from existing profile OR redirect to dashboard ─── */
   useEffect(() => {
     if (user && !profileLoaded) {
       setAccountCreated(true);
       setEmail(user.email ?? "");
       (async () => {
-        const { data } = await supabase.from("profiles").select("legal_name, stage_name, bio, headshot_url, face_registered_at").eq("user_id", user.id).maybeSingle();
+        const { data } = await supabase.from("profiles").select("legal_name, stage_name, headshot_url, face_registered_at, voice_registered_at").eq("user_id", user.id).maybeSingle();
         if (data) {
+          // If profile is already complete (has name + face), redirect to dashboard
+          if (data.legal_name && data.face_registered_at) {
+            navigate("/dashboard");
+            return;
+          }
           if (data.legal_name) setLegalName(data.legal_name);
           if (data.stage_name) setStageName(data.stage_name);
-          if (data.bio?.startsWith("AKAs: ")) setAkas(data.bio.replace("AKAs: ", ""));
           if (data.headshot_url) setHeadshotPreview(data.headshot_url);
           if (data.face_registered_at) setPhotosCompleted(true);
         }
@@ -249,16 +253,15 @@ const Register = () => {
       const payload: any = {};
       if (legalName.trim()) { payload.legal_name = legalName.trim(); payload.full_name = legalName.trim(); }
       if (stageName.trim()) payload.stage_name = stageName.trim();
-      if (akas.trim()) payload.bio = `AKAs: ${akas.trim()}`;
       if (Object.keys(payload).length > 0) {
         await supabase.from("profiles").update(payload).eq("user_id", user.id);
       }
     }, 1000);
-  }, [user, legalName, stageName, akas]);
+  }, [user, legalName, stageName]);
 
   useEffect(() => {
     if (user && profileLoaded) autoSaveProfile();
-  }, [legalName, stageName, akas, user, profileLoaded, autoSaveProfile]);
+  }, [legalName, stageName, user, profileLoaded, autoSaveProfile]);
 
   const allCaptured = captures.front && captures.left && captures.right;
 
@@ -580,7 +583,7 @@ const Register = () => {
         full_name: legalName.trim(),
         stage_name: stageName.trim() || null,
       };
-      if (akas.trim()) payload.bio = `AKAs: ${akas.trim()}`;
+      
       if (headshot_url) payload.headshot_url = headshot_url;
       await supabase.from("profiles").update(payload).eq("user_id", user.id);
     } catch {}
@@ -632,7 +635,7 @@ const Register = () => {
               action: "register",
               legal_name: prof.legal_name || prof.full_name,
               stage_name: prof.stage_name,
-              aka_names: akas.trim() || null,
+              aka_names: null,
               email: user.email,
               reference_photo_url: prof.headshot_url,
             },
@@ -707,10 +710,6 @@ const Register = () => {
                 <div className="space-y-2">
                   <Label>Stage Name</Label>
                   <Input value={stageName} onChange={e => setStageName(e.target.value)} placeholder="Professional / stage name" />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Also Known As (AKAs)</Label>
-                  <Input value={akas} onChange={e => setAkas(e.target.value)} placeholder="Comma-separated aliases" />
                 </div>
                 {!accountCreated && (
                   <>

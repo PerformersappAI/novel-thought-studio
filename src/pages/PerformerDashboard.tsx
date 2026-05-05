@@ -159,9 +159,14 @@ const PerformerDashboard = () => {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="rounded-2xl border border-border/30 bg-card/40 p-6"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <ScanSearch className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold">What We Found</h2>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ScanSearch className="w-5 h-5 text-primary" />
+              <h2 className="font-display text-lg font-semibold">What We Found</h2>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
+            </Button>
           </div>
           {alertCount > 0 ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
