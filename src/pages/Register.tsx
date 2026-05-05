@@ -258,6 +258,8 @@ const Register = () => {
     if (user && profileLoaded) autoSaveProfile();
   }, [legalName, stageName, akas, user, profileLoaded, autoSaveProfile]);
 
+  const allCaptured = captures.front && captures.left && captures.right;
+
   /* ─── Camera helpers ─── */
   const stopCamera = () => {
     if (detectRef.current) { clearInterval(detectRef.current); detectRef.current = null; }
@@ -424,8 +426,6 @@ const Register = () => {
     setPhotosCompleted(false);
     setCameraError(false);
   };
-
-  const allCaptured = captures.front && captures.left && captures.right;
 
   /* ─── Voice helpers ─── */
   const stopVoiceStream = () => {
