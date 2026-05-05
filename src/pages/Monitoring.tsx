@@ -150,8 +150,23 @@ const normalizeCategory = (mentionType?: string | null, category?: string | null
   return valid.includes(category as FindingCategory) ? (category as FindingCategory) : "News & Articles";
 };
 
-const normalizeMediaType = (mediaType?: string | null): Finding["mediaType"] => {
-  return mediaType === "image" || mediaType === "video" || mediaType === "audio" || mediaType === "article" ? mediaType : "article";
+const MENTION_TYPE_TO_MEDIA: Record<string, Finding["mediaType"]> = {
+  youtube: "video",
+  tiktok: "video",
+  deepfake: "video",
+  image: "image",
+  fake_profile: "image",
+  casting_platform: "image",
+  ads_commercial: "image",
+  voice_clone: "audio",
+  news: "article",
+  web: "article",
+};
+
+const normalizeMediaType = (mediaType?: string | null, mentionType?: string | null): Finding["mediaType"] => {
+  if (mediaType === "image" || mediaType === "video" || mediaType === "audio" || mediaType === "article") return mediaType;
+  if (mentionType && MENTION_TYPE_TO_MEDIA[mentionType]) return MENTION_TYPE_TO_MEDIA[mentionType];
+  return "article";
 };
 
 const createScanLine = (id: string, platform: string, finding: string): Finding => ({
