@@ -1,45 +1,35 @@
 
-# Fix 6 Registration Bugs
+# Face Capture Page Fixes
 
-## 1. Redirect to dashboard after email confirmation
+## Problems Identified
 
-**Problem:** `emailRedirectTo` in `useAuth.tsx` points to `window.location.origin` (root `/`), so confirmed users land on the homepage instead of the dashboard.
+1. **Camera not detecting face on initial load**: When the camera first opens with the default device, `getUserMedia` sometimes returns a stream that isn't fully "active" yet. The face detection loop starts immediately but the video may not be ready, causing no face to be detected. Switching cameras forces a fresh `getUserMedia` call which works. The root cause is that `enumerateDevices()` before permission grant returns devices without labels/IDs, and the initial stream may bind to an unexpected device.
 
-**Fix:** Change `emailRedirectTo` to `window.location.origin + '/dashboard'`. Also add logic in `ProtectedRoute` or `App.tsx` to handle the auth callback token exchange on `/dashboard` (Supabase handles this automatically when the redirect URL matches a route).
+2. **Capture button requires multiple presses**: The `captureCurrent` function is disabled when `!faceDetected`. The face detection loop runs every 180ms and `faceDetected` flickers between true/false rapidly. When you press the button at the wrong moment (face not detected that frame), the click is ignored. The button also runs an async face descriptor computation for the front pose which takes time, during which there's no visual feedback that the capture succeeded.
 
-## 2. Auto-save profile fields on change
+3. **No shutter sound**: There's no audio feedback when a photo is captured.
 
-**Problem:** If the user leaves mid-registration, form data is lost.
+4. **Missing bold privacy disclaimer**: The existing privacy note is small and subtle. User wants a prominent, unmissable statement.
 
-**Fix:** In `Register.tsx`, add a debounced auto-save function that writes `legal_name`, `stage_name`, and AKAs to the `profiles` table whenever a field changes (only when `user` is logged in). On mount, prefill fields from the existing profile. Use a ~1s debounce to avoid excessive writes.
+## Plan
 
-## 3. Camera error fallback to upload
+### Fix 1: Stabilize camera initialization
+- Add a short delay after `video.play()` before starting the detection loop (wait for `loadeddata` event on the video element instead of immediately calling `runDetectionLoop`).
+- This ensures the video stream is actually producing frames before face detection begins.
 
-**Problem:** `startCamera()` catches the error and shows a toast, but doesn't offer an alternative.
+### Fix 2: Stabilize face detection state and add capture feedback
+- Add a "sticky" face detection state: once a face is detected, keep `faceDetected = true` for at least 500ms even if a single frame misses (debounce the false state). This prevents the capture button from flickering disabled/enabled.
+- Show a brief white flash overlay on the camera view when a photo is captured, giving immediate visual confirmation.
+- Disable further clicks during the async capture process (add a `capturing` state).
 
-**Fix:** Add a `cameraError` state. When `startCamera()` fails, set `cameraError = true` and show the "Upload Photos" button prominently instead. The upload button already exists but is hidden when camera isn't open.
+### Fix 3: Add camera shutter sound
+- Create an `Audio` object with a shutter click sound (use a small base64-encoded WAV or a public domain click sound URL).
+- Play the sound synchronously inside `captureCurrent` right when the frame is grabbed, before the async face descriptor work begins.
 
-## 4. Loading screen with logo and progress message
-
-**Problem:** The `handleFinish` function shows `submitting=true` with just a spinner text "Saving..." on the button, and a black/empty screen during the upload process.
-
-**Fix:** When `submitting` is true during `handleFinish`, render a full-screen overlay with the ClaimMyFace logo, a progress bar, and rotating messages like "Setting up your protection...", "Encrypting your biometrics...", "Finalizing your profile...".
-
-## 5. Animated side photo guide overlay
-
-**Problem:** Users don't know which way to turn for left/right photos.
-
-**Fix:** Add an animated arrow/head-turn indicator on the camera overlay for left and right poses. Show an animated SVG arrow pointing left or right with a pulsing "Turn your head this way" label overlaid on the camera view.
-
-## 6. Prevent camera restart after capture complete
-
-**Problem:** After all 3 photos are captured, the user can still open the camera again.
-
-**Fix:** When `allCaptured` is true, don't show "Open Camera" or "Upload Photos" buttons. Show "Photos already captured" with review thumbnails and a "Retake All" button. The current code partially does this but `cameraOpen` state can still be toggled.
-
----
+### Fix 4: Add bold privacy disclaimer
+- Add a prominent, visually distinct banner near the camera area (visible both when camera is open and in the review section) with bold text:
+  > **"We are NOT using these photos for anything other than making sure that your face is your claim. This will not be used in any way, shape, or form on any other platform or LLM."**
+- Style it with a border, icon, and bold/uppercase treatment so it's impossible to miss.
 
 ## Files to modify
-
-- `src/hooks/useAuth.tsx` — change `emailRedirectTo` to `/dashboard`
-- `src/pages/Register.tsx` — all other 5 fixes (auto-save, camera fallback, loading overlay, side guides, capture state management)
+- `src/pages/OnboardingFaceCapture.tsx` — all four fixes in this single file
