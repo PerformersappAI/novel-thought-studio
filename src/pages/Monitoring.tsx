@@ -233,6 +233,15 @@ const Monitoring = () => {
     toast({ title: action, description: `${action} initiated for ${f.platform}.` });
   };
 
+  const deleteFinding = async (f: Finding) => {
+    const { error } = await supabase.from("mentions").delete().eq("id", f.id);
+    if (error) { toast({ title: "Failed to delete", variant: "destructive" }); return; }
+    setFindings(prev => prev.filter(x => x.id !== f.id));
+    setMentions(prev => prev.filter(x => x.id !== f.id));
+    if (selected?.id === f.id) setSelected(null);
+    toast({ title: "Deleted", description: "Finding removed permanently." });
+  };
+
   const copyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
     setCopied(true);
