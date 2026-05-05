@@ -162,7 +162,16 @@ Deno.serve(async (req) => {
         });
       }
       const extRes = await fetch(`${EXTERNAL_API}/mentions/${actorId}`);
-      const extData = await extRes.json().catch(() => ({ mentions: [] }));
+      const rawText = await extRes.text();
+      console.log("External API raw response (first 2000 chars):", rawText.substring(0, 2000));
+      let extData;
+      try { extData = JSON.parse(rawText); } catch { extData = { mentions: [] }; }
+      const mentionsList = extData?.mentions || extData?.results || extData?.data || [];
+      if (Array.isArray(mentionsList) && mentionsList.length > 0) {
+        console.log("First mention keys:", JSON.stringify(Object.keys(mentionsList[0])));
+        console.log("First 3 mention_types:", JSON.stringify(mentionsList.slice(0, 3).map((m: any) => m.mention_type)));
+        console.log("All unique mention_types:", JSON.stringify([...new Set(mentionsList.map((m: any) => m.mention_type))]));
+      }
       return new Response(JSON.stringify(extData), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
