@@ -129,7 +129,21 @@ const normalizeStatus = (status?: string | null): Finding["status"] => {
   return "New Alert";
 };
 
-const normalizeCategory = (category?: string | null): FindingCategory => {
+const MENTION_TYPE_TO_CATEGORY: Record<string, FindingCategory> = {
+  youtube: "Social Media",
+  tiktok: "Social Media",
+  fake_profile: "Fake Profiles",
+  casting_platform: "Casting Platforms",
+  deepfake: "Deepfakes",
+  ads_commercial: "Ads & Commercial",
+  news: "News & Articles",
+  voice_clone: "Voice Clones",
+};
+
+const normalizeCategory = (mentionType?: string | null, category?: string | null): FindingCategory => {
+  if (mentionType && MENTION_TYPE_TO_CATEGORY[mentionType]) {
+    return MENTION_TYPE_TO_CATEGORY[mentionType];
+  }
   const valid = FILTER_TABS.filter((tab) => tab !== "All") as FindingCategory[];
   return valid.includes(category as FindingCategory) ? (category as FindingCategory) : "News & Articles";
 };
