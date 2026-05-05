@@ -180,6 +180,8 @@ const Register = () => {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [photosCompleted, setPhotosCompleted] = useState(false);
+  const [flashActive, setFlashActive] = useState(false);
+  const [buttonPulse, setButtonPulse] = useState(false);
 
   /* ─── Voice ─── */
   const [recording, setRecording] = useState(false);
