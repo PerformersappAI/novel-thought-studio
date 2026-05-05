@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Camera, Check, Loader2, RotateCcw, ArrowRight, Lock, Upload, Video } from "lucide-react";
+import { Shield, Camera, Check, Loader2, RotateCcw, ArrowRight, Lock, Upload, Video, AlertTriangle } from "lucide-react";
 import OnboardingBackButton from "@/components/onboarding/OnboardingBackButton";
 import {
   Select,
@@ -29,6 +29,10 @@ const POSES: { key: Pose; label: string; instruction: string; cta: string }[] = 
   { key: "right", label: "Right Profile", instruction: "Turn your head to the RIGHT. Hold still.", cta: "Take Right Profile" },
 ];
 
+/* ── tiny shutter-click sound (base64 WAV, ~0.15s click) ── */
+const SHUTTER_SOUND_URL =
+  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
 const OnboardingFaceCapture = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -39,6 +43,8 @@ const OnboardingFaceCapture = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const detectIntervalRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const faceLastSeenRef = useRef<number>(0);
+  const shutterAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const [modelsLoading, setModelsLoading] = useState(true);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -47,8 +53,16 @@ const OnboardingFaceCapture = () => {
   const [captures, setCaptures] = useState<Record<Pose, Capture | null>>({ front: null, left: null, right: null });
   const [descriptor, setDescriptor] = useState<number[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+  const [showFlash, setShowFlash] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
+
+  // Pre-create the shutter audio object
+  useEffect(() => {
+    shutterAudioRef.current = new Audio(SHUTTER_SOUND_URL);
+    shutterAudioRef.current.volume = 0.7;
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");
@@ -70,16 +84,16 @@ const OnboardingFaceCapture = () => {
     })();
   }, [toast]);
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     if (detectIntervalRef.current) {
       window.clearInterval(detectIntervalRef.current);
       detectIntervalRef.current = null;
     }
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
-  };
+  }, []);
 
-  useEffect(() => () => stopCamera(), []);
+  useEffect(() => () => stopCamera(), [stopCamera]);
 
   const enumerateCams = async () => {
     try {
@@ -93,9 +107,54 @@ const OnboardingFaceCapture = () => {
     }
   };
 
+  const runDetectionLoop = useCallback(() => {
+    if (detectIntervalRef.current) window.clearInterval(detectIntervalRef.current);
+    detectIntervalRef.current = window.setInterval(async () => {
+      const video = videoRef.current;
+      const canvas = overlayRef.current;
+      if (!video || !canvas || video.readyState < 2) return;
+
+      const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+      const result = await faceapi.detectSingleFace(video, opts).withFaceLandmarks();
+
+      const dispW = video.clientWidth;
+      const dispH = video.clientHeight;
+      if (canvas.width !== dispW || canvas.height !== dispH) {
+        canvas.width = dispW;
+        canvas.height = dispH;
+      }
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Oval guide
+      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.28, canvas.height * 0.38, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      if (result) {
+        faceLastSeenRef.current = Date.now();
+        setFaceDetected(true);
+        const resized = faceapi.resizeResults(result, { width: dispW, height: dispH });
+        ctx.fillStyle = "hsl(351, 85%, 55%)";
+        resized.landmarks.positions.forEach((pt) => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      } else {
+        // Debounce: only set faceDetected false if no face for 600ms
+        if (Date.now() - faceLastSeenRef.current > 600) {
+          setFaceDetected(false);
+        }
+      }
+    }, 180);
+  }, []);
+
   const startCamera = async (deviceId?: string) => {
     try {
-      // stop any existing stream first so we can switch devices
       streamRef.current?.getTracks().forEach((t) => t.stop());
 
       const constraints: MediaStreamConstraints = {
@@ -108,14 +167,28 @@ const OnboardingFaceCapture = () => {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        // Wait for video to be actually producing frames before starting detection
+        await new Promise<void>((resolve) => {
+          const vid = videoRef.current!;
+          const onReady = () => {
+            vid.removeEventListener("loadeddata", onReady);
+            resolve();
+          };
+          if (vid.readyState >= 2) {
+            resolve();
+          } else {
+            vid.addEventListener("loadeddata", onReady);
+          }
+          vid.play().catch(() => {});
+        });
       }
       setCameraOpen(true);
-      // labels become available after permission is granted
       const cams = await enumerateCams();
       const activeId = stream.getVideoTracks()[0]?.getSettings().deviceId;
       if (activeId) setSelectedDeviceId(activeId);
       else if (!selectedDeviceId && cams[0]) setSelectedDeviceId(cams[0].deviceId);
+      // Small additional delay for stable first frames
+      await new Promise((r) => setTimeout(r, 300));
       runDetectionLoop();
     } catch (e: any) {
       const msg =
@@ -137,7 +210,7 @@ const OnboardingFaceCapture = () => {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting same file
+    e.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       toast({ title: "Invalid file", description: "Please choose an image file.", variant: "destructive" });
@@ -152,7 +225,6 @@ const OnboardingFaceCapture = () => {
       fr.readAsDataURL(file);
     });
 
-    // Draw to canvas to normalize and run detection
     const img = new Image();
     img.src = dataUrl;
     await new Promise((r) => (img.onload = r));
@@ -175,6 +247,9 @@ const OnboardingFaceCapture = () => {
       setDescriptor(Array.from(detection.descriptor));
     }
 
+    // Play shutter sound
+    try { shutterAudioRef.current?.play(); } catch {}
+
     const blob: Blob | null = await new Promise((resolve) => c.toBlob(resolve, "image/jpeg", 0.9));
     if (!blob) return;
     const finalDataUrl = c.toDataURL("image/jpeg", 0.85);
@@ -182,69 +257,38 @@ const OnboardingFaceCapture = () => {
     if (currentPoseIdx < POSES.length - 1) setCurrentPoseIdx((i) => i + 1);
   };
 
-  const runDetectionLoop = () => {
-    if (detectIntervalRef.current) window.clearInterval(detectIntervalRef.current);
-    detectIntervalRef.current = window.setInterval(async () => {
-      const video = videoRef.current;
-      const canvas = overlayRef.current;
-      if (!video || !canvas || video.readyState < 2) return;
-
-      const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
-      const result = await faceapi
-        .detectSingleFace(video, opts)
-        .withFaceLandmarks();
-
-      const dispW = video.clientWidth;
-      const dispH = video.clientHeight;
-      if (canvas.width !== dispW || canvas.height !== dispH) {
-        canvas.width = dispW;
-        canvas.height = dispH;
-      }
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Oval guide
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.28, canvas.height * 0.38, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      if (result) {
-        setFaceDetected(true);
-        const resized = faceapi.resizeResults(result, { width: dispW, height: dispH });
-        // Draw 68 landmarks
-        ctx.fillStyle = "hsl(351, 85%, 55%)";
-        resized.landmarks.positions.forEach((pt) => {
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 1.6, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      } else {
-        setFaceDetected(false);
-      }
-    }, 180);
-  };
-
   const captureCurrent = async () => {
+    if (capturing) return;
     const video = videoRef.current;
     if (!video) return;
     const pose = POSES[currentPoseIdx].key;
+
+    setCapturing(true);
+
+    // Play shutter sound immediately (within user gesture)
+    try {
+      if (shutterAudioRef.current) {
+        shutterAudioRef.current.currentTime = 0;
+        shutterAudioRef.current.play();
+      }
+    } catch {}
+
+    // Flash effect
+    setShowFlash(true);
+    setTimeout(() => setShowFlash(false), 200);
 
     // Draw video frame to off-screen canvas
     const c = document.createElement("canvas");
     c.width = video.videoWidth;
     c.height = video.videoHeight;
     const ctx = c.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) { setCapturing(false); return; }
     ctx.drawImage(video, 0, 0, c.width, c.height);
 
     const blob: Blob | null = await new Promise((resolve) => c.toBlob(resolve, "image/jpeg", 0.9));
-    if (!blob) return;
+    if (!blob) { setCapturing(false); return; }
     const dataUrl = c.toDataURL("image/jpeg", 0.85);
 
-    // For front pose, also compute the face descriptor
     if (pose === "front") {
       const detection = await faceapi
         .detectSingleFace(c, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
@@ -252,6 +296,7 @@ const OnboardingFaceCapture = () => {
         .withFaceDescriptor();
       if (!detection) {
         toast({ title: "No face detected", description: "Please center your face and try again.", variant: "destructive" });
+        setCapturing(false);
         return;
       }
       setDescriptor(Array.from(detection.descriptor));
@@ -262,6 +307,7 @@ const OnboardingFaceCapture = () => {
     if (currentPoseIdx < POSES.length - 1) {
       setCurrentPoseIdx((i) => i + 1);
     }
+    setCapturing(false);
   };
 
   const retake = (pose: Pose) => {
@@ -311,6 +357,17 @@ const OnboardingFaceCapture = () => {
 
   const currentPose = POSES[currentPoseIdx];
 
+  /* ── Bold privacy disclaimer component ── */
+  const PrivacyDisclaimer = () => (
+    <div className="rounded-xl border-2 border-accent/60 bg-accent/10 p-4 flex gap-3 items-start">
+      <AlertTriangle className="w-6 h-6 text-accent shrink-0 mt-0.5" />
+      <p className="text-sm font-bold text-foreground leading-relaxed">
+        We are <span className="uppercase underline">NOT</span> using these photos for anything other than making sure that your face is your claim.
+        This will not be used in any way, shape, or form on any other platform or LLM.
+      </p>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 grid-pattern opacity-20" />
@@ -336,6 +393,9 @@ const OnboardingFaceCapture = () => {
               registered by you.
             </p>
           </header>
+
+          {/* Bold privacy disclaimer — always visible */}
+          <PrivacyDisclaimer />
 
           <input
             ref={fileInputRef}
@@ -415,6 +475,10 @@ const OnboardingFaceCapture = () => {
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   style={{ transform: "scaleX(-1)" }}
                 />
+                {/* Flash overlay */}
+                {showFlash && (
+                  <div className="absolute inset-0 bg-white/80 z-20 pointer-events-none animate-pulse" />
+                )}
                 <div className="absolute top-3 left-3">
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full backdrop-blur-md ${
@@ -472,11 +536,11 @@ const OnboardingFaceCapture = () => {
               <div className="grid sm:grid-cols-2 gap-2">
                 <Button
                   onClick={captureCurrent}
-                  disabled={!faceDetected || !!captures[currentPose.key]}
+                  disabled={!faceDetected || !!captures[currentPose.key] || capturing}
                   size="lg"
                   className="w-full font-display"
                 >
-                  <Camera className="w-4 h-4 mr-1" /> {currentPose.cta}
+                  <Camera className="w-4 h-4 mr-1" /> {capturing ? "Capturing…" : currentPose.cta}
                 </Button>
                 <Button
                   onClick={() => fileInputRef.current?.click()}
