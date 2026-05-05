@@ -138,6 +138,8 @@ const MENTION_TYPE_TO_CATEGORY: Record<string, FindingCategory> = {
   ads_commercial: "Ads & Commercial",
   news: "News & Articles",
   voice_clone: "Voice Clones",
+  image: "Deepfakes",
+  web: "News & Articles",
 };
 
 const normalizeCategory = (mentionType?: string | null, category?: string | null): FindingCategory => {
