@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ error: "Invalid action. Use ?action=register, ?action=get_actor, or ?action=scan" }),
+      JSON.stringify({ error: "Invalid action. Use ?action=register, ?action=get_actor, ?action=scan, or ?action=get_mentions" }),
       {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
