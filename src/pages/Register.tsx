@@ -397,6 +397,13 @@ const Register = () => {
     }, 120);
   };
 
+  const triggerFlash = () => {
+    setFlashActive(true);
+    setButtonPulse(true);
+    setTimeout(() => setFlashActive(false), 200);
+    setTimeout(() => setButtonPulse(false), 400);
+  };
+
   const capturePhoto = async () => {
     const video = videoRef.current;
     if (!video) return;
@@ -408,11 +415,12 @@ const Register = () => {
     ctx.drawImage(video, 0, 0, c.width, c.height);
 
     playShutter();
+    triggerFlash();
 
     if (pose === "front") {
       const det = await faceapi.detectSingleFace(c, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
         .withFaceLandmarks().withFaceDescriptor();
-      if (!det) { toast({ title: "No face detected", variant: "destructive" }); return; }
+      if (!det) { toast({ title: "No face detected", description: "Center your face and try again.", variant: "destructive" }); return; }
       setDescriptor(Array.from(det.descriptor));
     }
     const blob: Blob | null = await new Promise(r => c.toBlob(r, "image/jpeg", 0.9));
@@ -420,6 +428,16 @@ const Register = () => {
     const dataUrl = c.toDataURL("image/jpeg", 0.85);
     setCaptures(prev => ({ ...prev, [pose]: { dataUrl, blob, timestamp: new Date().toISOString() } }));
     if (poseIdx < POSES.length - 1) setPoseIdx(i => i + 1);
+  };
+
+  const handlePoseClick = (pose: Pose) => {
+    const idx = POSES.findIndex(p => p.key === pose);
+    if (captures[pose]) {
+      // Retake this pose
+      setCaptures(prev => ({ ...prev, [pose]: null }));
+      if (pose === "front") setDescriptor(null);
+    }
+    setPoseIdx(idx);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
