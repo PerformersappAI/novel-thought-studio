@@ -453,17 +453,34 @@ const Monitoring = () => {
               </>
             )}
           </Button>
-          {scanning && (
-            <p className="text-sm text-muted-foreground mt-2 flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin" /> Scanning the web for you…
-            </p>
-          )}
           {scanDone && !scanning && (
             <p className="text-sm text-emerald-400 mt-2 flex items-center gap-2">
               <Check className="w-4 h-4" /> Scan complete — check your results below
             </p>
           )}
         </div>
+
+        {/* Scan overlay */}
+        {scanning && (
+          <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center gap-6">
+            <div className="relative">
+              <Clock className="w-16 h-16 text-primary animate-pulse" />
+              <Radar className="w-8 h-8 text-destructive absolute -bottom-1 -right-1 animate-spin" />
+            </div>
+            <div className="text-center space-y-2 max-w-sm px-4">
+              <h2 className="font-display text-2xl font-bold text-foreground">Scanning the web for you…</h2>
+              <p className="text-muted-foreground text-sm">This can take a minute. We're checking social media, search engines, and AI databases for unauthorized use of your likeness.</p>
+            </div>
+            <Button
+              onClick={runScan}
+              variant="outline"
+              size="lg"
+              className="gap-2"
+            >
+              <RefreshCw className="w-4 h-4" /> Stop Scan
+            </Button>
+          </div>
+        )}
 
         {/* Identity Footprint */}
         <Card className="glass-card border-border/30 mb-6 relative">
@@ -540,22 +557,23 @@ const Monitoring = () => {
                         >
                           <TableCell className="font-medium text-foreground whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <FindingThumbnail finding={f} size="sm" />
                               {f.platform}
                             </div>
                           </TableCell>
-                          <TableCell className="text-muted-foreground max-w-md" onClick={(e) => e.stopPropagation()}>
-                            {f.url && f.url !== "#" ? (
+                          <TableCell className="text-muted-foreground max-w-xs md:max-w-md">
+                            <div className="whitespace-normal break-words text-sm leading-snug">
+                              {f.finding}
+                            </div>
+                            {f.url && f.url !== "#" && (
                               <a
                                 href={f.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="truncate block text-primary hover:underline"
+                                className="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                {f.finding}
+                                Source <ExternalLink className="w-3 h-3" />
                               </a>
-                            ) : (
-                              <div className="truncate">{f.finding}</div>
                             )}
                           </TableCell>
                           <TableCell className="text-muted-foreground whitespace-nowrap">
@@ -567,24 +585,31 @@ const Monitoring = () => {
                             </span>
                           </TableCell>
                           <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-1 justify-end">
+                            <div className="flex items-center gap-1 justify-end flex-wrap">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1 text-primary border-primary/40 hover:bg-primary/10"
+                                onClick={() => setSelected(f)}
+                              >
+                                <Eye className="w-4 h-4" /> View
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
                                 onClick={() => deleteFinding(f)}
                               >
-                                <Trash2 className="w-4 h-4" /> Delete
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     ref={i === 0 ? actionRef : undefined}
                                     size="sm"
-                                    variant="outline"
-                                    className="gap-1"
+                                    variant="ghost"
                                   >
-                                    Action <MoreHorizontal className="w-3 h-3" />
+                                    <MoreHorizontal className="w-4 h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -674,13 +699,23 @@ const Monitoring = () => {
             <>
               <DialogHeader>
                 <DialogTitle className="font-display text-xl">{selected.platform}</DialogTitle>
-                <DialogDescription>{selected.finding}</DialogDescription>
+                <DialogDescription className="whitespace-normal break-words">{selected.finding}</DialogDescription>
               </DialogHeader>
 
-              {/* Thumbnail placeholder */}
-              <div className="aspect-video w-full bg-secondary/40 border border-border/40 rounded-lg flex items-center justify-center">
-                <FileText className="w-10 h-10 text-muted-foreground/40" />
-              </div>
+              {/* Preview image */}
+              {selected.thumbnailUrl ? (
+                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
+                  <img src={selected.thumbnailUrl} alt={selected.finding} className="w-full h-full object-cover" />
+                </div>
+              ) : selected.url && selected.url !== "#" && /\.(jpg|jpeg|png|gif|webp|svg)/i.test(selected.url) ? (
+                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
+                  <img src={selected.url} alt={selected.finding} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                </div>
+              ) : (
+                <div className="aspect-video w-full bg-secondary/40 border border-border/40 rounded-lg flex items-center justify-center">
+                  <FileText className="w-10 h-10 text-muted-foreground/40" />
+                </div>
+              )}
 
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
