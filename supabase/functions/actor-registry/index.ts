@@ -123,8 +123,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // POST /scan
+    if (action === "scan" && req.method === "POST") {
+      const extRes = await fetch(`${EXTERNAL_API}/scan`, { method: "POST" });
+      const extData = await extRes.json().catch(() => ({ ok: true }));
+      return new Response(JSON.stringify(extData), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(
-      JSON.stringify({ error: "Invalid action. Use ?action=register or ?action=get_actor" }),
+      JSON.stringify({ error: "Invalid action. Use ?action=register, ?action=get_actor, or ?action=scan" }),
       {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
