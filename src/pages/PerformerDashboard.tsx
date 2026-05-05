@@ -261,15 +261,14 @@ const PerformerDashboard = () => {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {m.status !== "Dismissed" && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); dismissMention(m.id); }}
-                                  className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
-                                  aria-label="Dismiss mention"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                                onClick={(e) => { e.stopPropagation(); deleteMention(m.id); }}
+                              >
+                                <Trash2 className="w-4 h-4" /> Delete
+                              </Button>
                             </TableCell>
                           </TableRow>
                         </HoverCardTrigger>
