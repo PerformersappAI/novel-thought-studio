@@ -280,22 +280,34 @@ const Monitoring = () => {
     const controller = new AbortController();
     scanAbortRef.current = controller;
 
-    const existingFindings = [...findings];
+    let rotatingIndex = 0;
     let feedIndex = 0;
     const feedInterval = setInterval(() => {
-      if (feedIndex < existingFindings.length && !controller.signal.aborted) {
-        setLiveFeed(prev => [...prev, existingFindings[feedIndex]]);
+      if (controller.signal.aborted) return;
+      setLiveFeed(prev => {
+        const visibleLines = [...SCAN_LINES, ...findings];
+        if (feedIndex < visibleLines.length) {
+          return [...prev, { ...visibleLines[feedIndex], id: `${visibleLines[feedIndex].id}-${feedIndex}` }];
+        }
+        const line = SCAN_LINES[rotatingIndex % SCAN_LINES.length];
+        rotatingIndex++;
+        return [...prev.slice(-10), { ...line, id: `${line.id}-${Date.now()}` }];
+      });
+      if (feedIndex < SCAN_LINES.length + findings.length) {
         feedIndex++;
-        if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
       }
+      if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
     }, 400);
 
     try {
-      await supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+      const scanPromise = supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+      await Promise.all([scanPromise, wait(3200)]);
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
+      await loadMentions();
+      if (controller.signal.aborted) { clearInterval(feedInterval); return; }
+      await wait(500);
       setScanDone(true);
       toast({ title: "Scan complete", description: "All results loaded." });
-      await loadMentions();
     } catch (err: any) {
       if (err.name === "AbortError") { clearInterval(feedInterval); return; }
       setScanDone(true);
