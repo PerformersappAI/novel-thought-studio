@@ -869,7 +869,7 @@ const Register = () => {
                   <div className="grid sm:grid-cols-2 gap-2">
                     <Button
                       onClick={capturePhoto}
-                      disabled={!faceDetected && currentPose.key === "front" ? !faceDetected : false}
+                      disabled={currentPose.key === "front" && !faceDetected}
                       size="lg"
                       className={`w-full font-display transition-transform ${buttonPulse ? "scale-95" : "scale-100"} ${captures[currentPose.key] ? "opacity-50" : ""}`}
                     >
