@@ -585,24 +585,31 @@ const Monitoring = () => {
                             </span>
                           </TableCell>
                           <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-1 justify-end">
+                            <div className="flex items-center gap-1 justify-end flex-wrap">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1 text-primary border-primary/40 hover:bg-primary/10"
+                                onClick={() => setSelected(f)}
+                              >
+                                <Eye className="w-4 h-4" /> View
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
                                 onClick={() => deleteFinding(f)}
                               >
-                                <Trash2 className="w-4 h-4" /> Delete
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     ref={i === 0 ? actionRef : undefined}
                                     size="sm"
-                                    variant="outline"
-                                    className="gap-1"
+                                    variant="ghost"
                                   >
-                                    Action <MoreHorizontal className="w-3 h-3" />
+                                    <MoreHorizontal className="w-4 h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
