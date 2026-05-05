@@ -283,6 +283,33 @@ export type Database = {
         }
         Relationships: []
       }
+      mention_folders: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mentions: {
         Row: {
           audio_url: string | null
@@ -290,6 +317,7 @@ export type Database = {
           confidence: number | null
           created_at: string
           excerpt: string | null
+          folder_id: string | null
           found_at: string
           id: string
           match_label: string | null
@@ -308,6 +336,7 @@ export type Database = {
           confidence?: number | null
           created_at?: string
           excerpt?: string | null
+          folder_id?: string | null
           found_at?: string
           id?: string
           match_label?: string | null
@@ -326,6 +355,7 @@ export type Database = {
           confidence?: number | null
           created_at?: string
           excerpt?: string | null
+          folder_id?: string | null
           found_at?: string
           id?: string
           match_label?: string | null
@@ -338,7 +368,15 @@ export type Database = {
           url?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mentions_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "mention_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
