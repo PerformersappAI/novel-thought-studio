@@ -205,10 +205,11 @@ const Monitoring = () => {
     const controller = new AbortController();
     scanAbortRef.current = controller;
     try {
-      await fetch("http://187.77.199.100:8001/scan", {
+      await supabase.functions.invoke("actor-registry?action=scan", {
         method: "POST",
-        signal: controller.signal,
       });
+      // If aborted after invoke started, the abort handler already ran
+      if (controller.signal.aborted) return;
       setScanDone(true);
       toast({ title: "Scan complete", description: "Check your results below." });
       await loadMentions();
