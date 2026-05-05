@@ -311,7 +311,25 @@ const Register = () => {
 
   const switchCamera = async (deviceId: string) => {
     setSelectedDeviceId(deviceId);
-    if (cameraOpen) await startCamera(deviceId);
+    if (cameraOpen) {
+      // Stop detection and get new stream
+      if (detectRef.current) { clearInterval(detectRef.current); detectRef.current = null; }
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: deviceId }, width: { ideal: 720 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+          runDetection();
+        }
+      } catch (e: any) {
+        toast({ title: "Camera error", description: e?.message || "Could not switch camera.", variant: "destructive" });
+      }
+    }
   };
 
   useEffect(() => {
