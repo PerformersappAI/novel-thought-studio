@@ -296,15 +296,61 @@ const PerformerDashboard = () => {
                                 {m.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                                onClick={(e) => { e.stopPropagation(); deleteMention(m.id); }}
-                              >
-                                <Trash2 className="w-4 h-4" /> Delete
-                              </Button>
+                            <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+                              <div className="flex items-center gap-1 justify-end flex-wrap">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1 text-emerald-500 border-emerald-500/40 hover:bg-emerald-500/10 text-xs"
+                                  onClick={() => dismissMention(m.id)}
+                                  title="That's me — dismiss"
+                                >
+                                  <ThumbsUp className="w-3.5 h-3.5" /> That's Me
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="gap-1 text-destructive border-destructive/40 hover:bg-destructive/10 text-xs"
+                                    >
+                                      <ThumbsDown className="w-3.5 h-3.5" /> Not Me
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                      <Link to="/tools/dmca" className="flex items-center gap-2">
+                                        <Gavel className="w-4 h-4" /> File DMCA Notice
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link to="/tools/contracts" className="flex items-center gap-2">
+                                        <FileWarning className="w-4 h-4" /> Send Cease & Desist
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link to="/dashboard/violations" className="flex items-center gap-2">
+                                        <Flag className="w-4 h-4" /> Report to Platform
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive flex items-center gap-2"
+                                      onClick={() => deleteMention(m.id)}
+                                    >
+                                      <Trash2 className="w-4 h-4" /> Delete permanently
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="gap-1 text-primary"
+                                  onClick={() => setViewMention(m)}
+                                  title="View details"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         </HoverCardTrigger>
