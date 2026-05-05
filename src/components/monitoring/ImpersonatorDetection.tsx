@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/table";
 import {
   Instagram, Music2, Facebook, Twitter, Youtube, Linkedin,
-  MessageCircle, Lock as LockIcon, Info, UserX, ArrowRight,
+  MessageCircle, Lock as LockIcon, Info, UserX, ArrowRight, Trash2,
 } from "lucide-react";
 import ImpersonatorReportModal from "./ImpersonatorReportModal";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const PLATFORMS = [
   { name: "Instagram", Icon: Instagram },
@@ -38,15 +40,6 @@ interface Row {
   status: Status;
 }
 
-const SAMPLE_ROWS: Row[] = [
-  { id: "1", platform: "Instagram", account: "@willrobert5", followers: "12.4K", finding: "Account using your stage name with slight variation (@willrobert5 vs @willroberts)", date: "2026-04-22", status: "Confirmed Fake" },
-  { id: "2", platform: "TikTok", account: "@therealroberts_official", followers: "3.1K", finding: "Fake account using your headshot as profile photo", date: "2026-04-19", status: "Confirmed Fake" },
-  { id: "3", platform: "X / Twitter", account: "@willrobertsfan", followers: "842", finding: "Fan account using your likeness without disclosure", date: "2026-04-15", status: "Fan Account" },
-  { id: "4", platform: "Facebook", account: "Will Roberts (Actor)", followers: "5.7K", finding: "Account claiming to be you with your bio copied", date: "2026-04-10", status: "Suspected Fake" },
-  { id: "5", platform: "Instagram", account: "@willroberts.dm", followers: "1.2K", finding: "Account soliciting money using your photos", date: "2026-04-08", status: "Confirmed Fake" },
-  { id: "6", platform: "Threads", account: "@w_roberts_actor", followers: "440", finding: "Account claiming to be you with your bio copied", date: "2026-03-29", status: "Resolved" },
-];
-
 const STATUS_STYLES: Record<Status, string> = {
   "Confirmed Fake": "bg-[hsl(var(--crimson))]/15 text-[hsl(var(--crimson-bright))] border-[hsl(var(--crimson))]/40",
   "Suspected Fake": "bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))] border-[hsl(var(--gold))]/40",
@@ -60,13 +53,47 @@ interface Props {
 }
 
 const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [rows, setRows] = useState<Row[]>(SAMPLE_ROWS);
+  const [rows, setRows] = useState<Row[]>([]);
   const [modalRow, setModalRow] = useState<Row | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const dismiss = (id: string) => {
-    setRows((r) => r.map((x) => (x.id === id ? { ...x, status: "Resolved" } : x)));
-    toast({ title: "Marked as resolved" });
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("mentions")
+        .select("id, mention_type, title, url, found_at, status")
+        .eq("user_id", user.id)
+        .in("status", ["New Alert", "Under Review"])
+        .order("found_at", { ascending: false });
+      
+      const mapped: Row[] = (data ?? []).map((m: any) => ({
+        id: m.id,
+        platform: m.mention_type || "Web",
+        account: m.url ? new URL(m.url).pathname.split("/").pop() || "" : "",
+        followers: "",
+        finding: m.title,
+        date: m.found_at,
+        status: "Suspected Fake" as Status,
+      }));
+      setRows(mapped);
+      setLoading(false);
+    })();
+  }, [user]);
+
+  const deleteRow = async (id: string) => {
+    const { error } = await supabase.from("mentions").delete().eq("id", id);
+    if (error) { toast({ title: "Failed to delete", variant: "destructive" }); return; }
+    setRows((r) => r.filter((x) => x.id !== id));
+    toast({ title: "Deleted" });
+  };
+
+  const dismiss = async (id: string) => {
+    await supabase.from("mentions").update({ status: "Dismissed" } as any).eq("id", id);
+    setRows((r) => r.filter((x) => x.id !== id));
+    toast({ title: "Dismissed" });
   };
 
   return (
@@ -84,8 +111,7 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
                       <button aria-label="More info"><Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" /></button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      This is different from deepfakes. Impersonators create real accounts pretending
-                      to be you — using your photos to scam fans, solicit money, or damage your reputation.
+                      Impersonators create real accounts pretending to be you — using your photos to scam fans, solicit money, or damage your reputation.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -115,58 +141,67 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
           </div>
 
           {/* Results table */}
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Platform</TableHead>
-                  <TableHead>Account</TableHead>
-                  <TableHead>Followers</TableHead>
-                  <TableHead>What Was Found</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-medium text-foreground whitespace-nowrap">{r.platform}</TableCell>
-                    <TableCell className="text-foreground whitespace-nowrap">{r.account}</TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">{r.followers}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-md">
-                      <div className="truncate">{r.finding}</div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {new Date(r.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${STATUS_STYLES[r.status]}`}>
-                        {r.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-wrap gap-2 justify-end">
-                        <Button
-                          size="sm"
-                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                          onClick={() => setModalRow(r)}
-                        >
-                          Report as Fake <ArrowRight className="w-3 h-3 ml-1" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => dismiss(r.id)}>
-                          This is Fine
-                        </Button>
-                        <Button asChild size="sm" variant="outline">
-                          <Link to="/tools/contracts">Cease & Desist</Link>
-                        </Button>
-                      </div>
-                    </TableCell>
+          {rows.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                {loading ? "Loading…" : "No impersonator accounts detected. We're watching 24/7."}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Platform</TableHead>
+                    <TableHead>What Was Found</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium text-foreground whitespace-nowrap">{r.platform}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-md">
+                        <div className="truncate">{r.finding}</div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
+                        {new Date(r.date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${STATUS_STYLES[r.status] || ""}`}>
+                          {r.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex flex-wrap gap-2 justify-end">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                            onClick={() => deleteRow(r.id)}
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            onClick={() => setModalRow(r)}
+                          >
+                            Report as Fake <ArrowRight className="w-3 h-3 ml-1" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => dismiss(r.id)}>
+                            This is Fine
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -176,7 +211,7 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
         performerName={performerName}
         registryId={registryId}
         defaultPlatform={modalRow?.platform || ""}
-        defaultUrl={modalRow ? `https://${modalRow.platform.toLowerCase().replace(/[^a-z]/g, "")}.com/${modalRow.account.replace("@", "")}` : ""}
+        defaultUrl={""}
       />
     </>
   );
