@@ -815,6 +815,18 @@ const Register = () => {
                   <div className="relative rounded-2xl overflow-hidden border border-border bg-black aspect-square mx-auto max-w-md">
                     <video ref={videoRef} className="w-full h-full object-cover" playsInline muted style={{ transform: "scaleX(-1)" }} />
                     <canvas ref={overlayRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ transform: "scaleX(-1)" }} />
+                    {/* Flash effect */}
+                    <AnimatePresence>
+                      {flashActive && (
+                        <motion.div
+                          className="absolute inset-0 bg-white z-30 pointer-events-none"
+                          initial={{ opacity: 0.9 }}
+                          animate={{ opacity: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        />
+                      )}
+                    </AnimatePresence>
                     <div className="absolute top-3 left-3">
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full backdrop-blur-md ${faceDetected ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-primary/20 text-primary-foreground border border-primary/40"}`}>
                         {faceDetected ? "Face Detected ✓" : "No Face Detected"}
@@ -823,17 +835,44 @@ const Register = () => {
                     {/* Bug #5: Animated pose guide overlay */}
                     <PoseGuideOverlay pose={currentPose.key} />
                   </div>
+                  {/* Clickable pose indicators - click to switch/retake */}
                   <div className="grid grid-cols-3 gap-2">
                     {POSES.map((p, i) => (
-                      <div key={p.key} className={`rounded-lg border p-2 text-center text-xs ${captures[p.key] ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300" : i === poseIdx ? "border-primary/60 bg-primary/10 text-primary" : "border-border/40 text-muted-foreground"}`}>
-                        {captures[p.key] ? <Check className="w-4 h-4 mx-auto mb-1" /> : <span className="block mb-1">{i + 1}</span>}
-                        {p.label}
-                      </div>
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => handlePoseClick(p.key)}
+                        className={`rounded-lg border p-2 text-center text-xs transition-all cursor-pointer hover:opacity-80 ${
+                          captures[p.key]
+                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                            : i === poseIdx
+                            ? "border-primary/60 bg-primary/10 text-primary"
+                            : "border-border/40 text-muted-foreground"
+                        }`}
+                      >
+                        {captures[p.key] ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="w-4 h-4 mx-auto" />
+                            <span>{p.label}</span>
+                            <span className="text-[10px] opacity-60">tap to retake</span>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="block mb-1">{i + 1}</span>
+                            {p.label}
+                          </>
+                        )}
+                      </button>
                     ))}
                   </div>
                   <CameraPicker />
                   <div className="grid sm:grid-cols-2 gap-2">
-                    <Button onClick={capturePhoto} disabled={!faceDetected || !!captures[currentPose.key]} size="lg" className="w-full font-display">
+                    <Button
+                      onClick={capturePhoto}
+                      disabled={!faceDetected && currentPose.key === "front" ? !faceDetected : false}
+                      size="lg"
+                      className={`w-full font-display transition-transform ${buttonPulse ? "scale-95" : "scale-100"} ${captures[currentPose.key] ? "opacity-50" : ""}`}
+                    >
                       <Camera className="w-4 h-4 mr-1" /> Take {currentPose.label} Photo
                     </Button>
                     <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="lg" className="w-full font-display" disabled={!!captures[currentPose.key]}>
