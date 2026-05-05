@@ -245,7 +245,7 @@ const Monitoring = () => {
       id: m.id,
       platform: m.mention_type,
       finding: m.title,
-      category: (m.category as FindingCategory) || "News & Articles",
+      category: normalizeCategory(m.category),
       date: m.found_at,
       lastSeen: m.found_at,
       status: normalizeStatus(m.status),
