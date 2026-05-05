@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot } from "lucide-react";
+import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
 import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -59,6 +61,7 @@ const PerformerDashboard = () => {
   const [alertCount, setAlertCount] = useState(0);
   const [externalRiskScore, setExternalRiskScore] = useState<number | null>(null);
   const [mentions, setMentions] = useState<MentionRow[]>([]);
+  const [viewMention, setViewMention] = useState<MentionRow | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -257,7 +260,7 @@ const PerformerDashboard = () => {
                     <TableHead>What Was Found</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-10"></TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -294,15 +297,61 @@ const PerformerDashboard = () => {
                                 {m.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                                onClick={(e) => { e.stopPropagation(); deleteMention(m.id); }}
-                              >
-                                <Trash2 className="w-4 h-4" /> Delete
-                              </Button>
+                            <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+                              <div className="flex items-center gap-1 justify-end flex-wrap">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1 text-emerald-500 border-emerald-500/40 hover:bg-emerald-500/10 text-xs"
+                                  onClick={() => dismissMention(m.id)}
+                                  title="That's me — dismiss"
+                                >
+                                  <ThumbsUp className="w-3.5 h-3.5" /> That's Me
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="gap-1 text-destructive border-destructive/40 hover:bg-destructive/10 text-xs"
+                                    >
+                                      <ThumbsDown className="w-3.5 h-3.5" /> Not Me
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                      <Link to="/tools/dmca" className="flex items-center gap-2">
+                                        <Gavel className="w-4 h-4" /> File DMCA Notice
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link to="/tools/contracts" className="flex items-center gap-2">
+                                        <FileWarning className="w-4 h-4" /> Send Cease & Desist
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link to="/dashboard/violations" className="flex items-center gap-2">
+                                        <Flag className="w-4 h-4" /> Report to Platform
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive flex items-center gap-2"
+                                      onClick={() => deleteMention(m.id)}
+                                    >
+                                      <Trash2 className="w-4 h-4" /> Delete permanently
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="gap-1 text-primary"
+                                  onClick={() => setViewMention(m)}
+                                  title="View details"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         </HoverCardTrigger>
@@ -352,6 +401,61 @@ const PerformerDashboard = () => {
 
         <RiskScoreCard monitoringActive={monitoringActive} hasCertificate={hasCertificate} faceCaptured={faceCaptured} profileComplete={profileComplete} voiceRegistered={voiceRegistered} externalRiskScore={externalRiskScore} />
       </motion.div>
+
+      {/* Detail modal */}
+      <Dialog open={!!viewMention} onOpenChange={(o) => !o && setViewMention(null)}>
+        <DialogContent className="max-w-lg">
+          {viewMention && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-xl">{viewMention.mention_type}</DialogTitle>
+                <DialogDescription className="whitespace-normal break-words">{viewMention.title}</DialogDescription>
+              </DialogHeader>
+              {(viewMention.thumbnail_url || urlHasImage(viewMention.url)) ? (
+                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
+                  <img src={viewMention.thumbnail_url || viewMention.url!} alt={viewMention.title} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                </div>
+              ) : (
+                <div className="aspect-video w-full bg-secondary/40 border border-border/40 rounded-lg flex items-center justify-center">
+                  <Globe className="w-10 h-10 text-muted-foreground/40" />
+                </div>
+              )}
+              <div className="space-y-3 text-sm">
+                {viewMention.url && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground">Source</span>
+                    <a href={viewMention.url} target="_blank" rel="noreferrer" className="truncate text-primary hover:underline inline-flex items-center gap-1 max-w-[60%]">
+                      {viewMention.url} <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Date detected</span>
+                  <span className="text-foreground">{new Date(viewMention.found_at).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge variant="outline" className={`text-xs ${statusBadge(viewMention.status)}`}>{viewMention.status}</Badge>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1" onClick={() => { dismissMention(viewMention.id); setViewMention(null); }}>
+                  <ThumbsUp className="w-4 h-4" /> That's Me
+                </Button>
+                <Button asChild className="bg-destructive hover:bg-destructive/90 text-destructive-foreground gap-1">
+                  <Link to="/tools/dmca"><Gavel className="w-4 h-4" /> File DMCA</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/tools/contracts"><FileWarning className="w-4 h-4 mr-1" /> Cease & Desist</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/dashboard/violations"><Flag className="w-4 h-4 mr-1" /> Report</Link>
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
