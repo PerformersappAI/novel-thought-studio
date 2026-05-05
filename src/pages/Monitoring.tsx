@@ -173,7 +173,7 @@ const Monitoring = () => {
         matchLabel: m.match_label ?? undefined,
       }));
 
-      const data = findingsFromMentions.length > 0 ? findingsFromMentions : MOCK_FINDINGS;
+      const data = findingsFromMentions;
       const newAlerts = data.filter((d) => d.status === "New Alert").length;
       const monthMs = monthStart.getTime();
       const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
