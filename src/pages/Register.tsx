@@ -155,7 +155,7 @@ const Register = () => {
   /* ─── Info fields ─── */
   const [legalName, setLegalName] = useState("");
   const [stageName, setStageName] = useState("");
-  const [akas] = useState(""); // kept for backward compat but hidden from UI
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
