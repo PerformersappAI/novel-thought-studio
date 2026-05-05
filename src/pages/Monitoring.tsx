@@ -217,7 +217,7 @@ const Monitoring = () => {
     setFindings(data);
   }, [user]);
 
-  useEffect(() => { loadMentions(); }, [loadMentions]);
+  // Don't auto-load mentions on mount — only load after user clicks scan
 
   /* ─── Run scan ─── */
   const runScan = async () => {
