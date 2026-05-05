@@ -83,7 +83,40 @@ const PerformerDashboard = () => {
       setHasCertificate((certs && certs.length > 0) || localStorage.getItem("cmf_cert_downloaded") === "1");
       setMonitoringActive(!!sub || localStorage.getItem("cmf_monitoring_basic") === "1");
       setRegistryId(certs?.[0]?.registry_id ?? assets?.[0]?.registry_id ?? null);
-      const rows = (mentionsData ?? []) as MentionRow[];
+      const dbRows = (mentionsData ?? []) as MentionRow[];
+
+      // Fetch external mentions if external_actor_id exists
+      let externalRows: MentionRow[] = [];
+      const externalActorId = (prof as any)?.external_actor_id;
+      if (externalActorId) {
+        try {
+          const { data: extData } = await supabase.functions.invoke(
+            "actor-registry?action=get_mentions&actor_id=" + externalActorId,
+            { method: "GET" }
+          );
+          const extMentions = extData?.mentions || extData || [];
+          if (Array.isArray(extMentions)) {
+            externalRows = extMentions.map((m: any, i: number) => ({
+              id: m.id || `ext-${i}`,
+              mention_type: m.mention_type || m.platform || "Web",
+              title: m.title || m.finding || "",
+              url: m.url || null,
+              found_at: m.found_at || m.date || new Date().toISOString(),
+              status: m.status || "New Alert",
+              thumbnail_url: m.thumbnail_url || null,
+            }));
+          }
+        } catch (err) {
+          console.warn("Failed to fetch external mentions:", err);
+        }
+      }
+
+      // Merge: DB rows first, then external rows not already in DB
+      const dbUrls = new Set(dbRows.map(r => r.url).filter(Boolean));
+      const rows = [
+        ...dbRows,
+        ...externalRows.filter(r => !r.url || !dbUrls.has(r.url)),
+      ];
       setMentions(rows);
       setAlertCount(rows.filter(m => m.status === "New Alert").length);
 
