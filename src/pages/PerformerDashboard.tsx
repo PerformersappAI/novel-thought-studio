@@ -112,6 +112,13 @@ const PerformerDashboard = () => {
     toast({ title: "Mention dismissed" });
   };
 
+  const deleteMention = async (id: string) => {
+    const { error } = await supabase.from("mentions").delete().eq("id", id);
+    if (error) { toast({ title: "Failed to delete", variant: "destructive" }); return; }
+    setMentions(prev => prev.filter(m => m.id !== id));
+    toast({ title: "Deleted" });
+  };
+
   const profileComplete = !!(profile?.legal_name && profile?.stage_name);
   const faceCaptured = !!profile?.face_registered_at;
   const voiceRegistered = !!profile?.voice_registered_at;
