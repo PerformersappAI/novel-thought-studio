@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -13,88 +12,111 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Eye, AlertTriangle, ShieldCheck, Radar, ArrowRight, Lock, Music2,
-  Instagram, Facebook, Youtube, Twitter, Image as ImageIcon, Megaphone,
-  Linkedin, Search, Globe, Briefcase, FileText, Clapperboard, Newspaper,
-  ScanFace, Mic, Bot, MoreHorizontal, ExternalLink, Copy, Check, HelpCircle,
-  RefreshCw, Trash2, Clock,
+  Eye, AlertTriangle, Radar, Music2, Instagram, Facebook, Youtube, Twitter,
+  Linkedin, Search, Globe, Newspaper, Bot, MoreHorizontal, ExternalLink,
+  Copy, Check, Trash2, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag,
+  ShieldCheck, RefreshCw, FileText, Mic,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  FILTER_TABS, MOCK_FINDINGS, STATUS_STYLES, type Finding, type FindingCategory,
+  FILTER_TABS, STATUS_STYLES, type Finding, type FindingCategory,
 } from "@/components/monitoring/findings";
-import MonitoringTour, { TourStep } from "@/components/monitoring/MonitoringTour";
-import FindingThumbnail from "@/components/monitoring/FindingThumbnail";
-import TakedownCreditsCard from "@/components/monitoring/TakedownCreditsCard";
-import ImpersonatorDetection from "@/components/monitoring/ImpersonatorDetection";
 import { useToast } from "@/hooks/use-toast";
 
-const useIsPro = () => {
-  const { user } = useAuth();
-  const [isPro, setIsPro] = useState(false);
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("user_subscriptions")
-      .select("status")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .maybeSingle()
-      .then(({ data }) => setIsPro(!!data));
-  }, [user]);
-  return isPro;
+/* ─── Platform icon map ─── */
+const PLATFORM_ICONS: Record<string, any> = {
+  "Web": Globe, "Instagram": Instagram, "YouTube": Youtube, "Facebook": Facebook,
+  "X / Twitter": Twitter, "Twitter": Twitter, "TikTok": Music2, "LinkedIn": Linkedin,
+  "Google": Search, "News": Newspaper, "news": Newspaper, "AI": Bot, "Reddit": Globe,
 };
+function getPlatformIcon(type: string) {
+  for (const [key, Icon] of Object.entries(PLATFORM_ICONS)) {
+    if (type.toLowerCase().includes(key.toLowerCase())) return Icon;
+  }
+  return Globe;
+}
 
-const SOCIAL_PLATFORMS = [
-  { name: "TikTok", icon: Music2 },
-  { name: "Instagram", icon: Instagram },
-  { name: "Facebook", icon: Facebook },
-  { name: "YouTube", icon: Youtube },
-  { name: "X / Twitter", icon: Twitter },
-  { name: "LinkedIn", icon: Linkedin },
-  { name: "Pinterest", icon: ImageIcon },
-];
-
-const WEB_PLATFORMS = [
-  { name: "Google Image Search", icon: Search },
-  { name: "Bing Image Search", icon: Search },
-  { name: "Stock Sites", icon: ImageIcon },
-  { name: "Ad Networks", icon: Megaphone },
-  { name: "Fiverr", icon: Briefcase },
-  { name: "Upwork", icon: Briefcase },
-  { name: "Cameo", icon: Clapperboard },
-  { name: "Reddit", icon: Globe },
-  { name: "Content Platforms", icon: Globe },
-  { name: "News & Articles", icon: Newspaper },
-  { name: "Casting Platforms", icon: Clapperboard },
-];
-
-const AI_PLATFORMS = [
-  { name: "Reality Defender Deepfake Scan", icon: ScanFace },
-  { name: "AI Voice Clone Detection", icon: Mic },
-  { name: "AI Avatar Detection", icon: Bot },
-];
-
-const PlatformTile = ({ name, Icon, locked }: { name: string; Icon: any; locked: boolean }) => (
-  <div className="p-3 rounded-lg bg-secondary/30 border border-border/30 flex flex-col items-center text-center gap-2">
-    <Icon className="w-5 h-5 text-foreground" />
-    <div className="text-xs font-medium text-foreground leading-tight">{name}</div>
-    <div className="flex items-center gap-1.5">
-      <span
-        className={`w-2 h-2 rounded-full ${
-          locked ? "bg-muted-foreground/40" : "bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/60"
-        }`}
+/* ─── Radar SVG animation ─── */
+const RadarGraphic = ({ active }: { active: boolean }) => (
+  <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto">
+    {/* Rings */}
+    {[1, 2, 3].map((r) => (
+      <div
+        key={r}
+        className="absolute inset-0 rounded-full border border-primary/20"
+        style={{
+          margin: `${r * 28}px`,
+          animation: active ? `pulse 2s ease-out ${r * 0.3}s infinite` : undefined,
+        }}
       />
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-        {locked ? "Pro" : "Active"}
-      </span>
+    ))}
+    {/* Center dot */}
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className={`w-4 h-4 rounded-full bg-primary shadow-[0_0_20px_4px] shadow-primary/60 ${active ? "animate-pulse" : ""}`} />
     </div>
+    {/* Sweep line */}
+    {active && (
+      <div
+        className="absolute inset-0 origin-center"
+        style={{ animation: "spin 3s linear infinite" }}
+      >
+        <div
+          className="absolute left-1/2 top-0 h-1/2 w-0.5"
+          style={{
+            background: "linear-gradient(to top, hsl(var(--primary)), transparent)",
+            transformOrigin: "bottom center",
+          }}
+        />
+      </div>
+    )}
+    {/* Glow */}
+    {active && (
+      <div className="absolute inset-0 rounded-full bg-primary/5 animate-pulse" />
+    )}
   </div>
 );
 
+/* ─── Terminal feed line ─── */
+const TerminalLine = ({ finding, index }: { finding: Finding; index: number }) => {
+  const PIcon = getPlatformIcon(finding.platform);
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.08 }}
+      className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-background/40 border border-border/20 hover:border-primary/30 transition-colors group"
+    >
+      <PIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-foreground font-medium whitespace-normal break-words leading-snug">
+          {finding.finding}
+        </p>
+        {finding.url && finding.url !== "#" && (
+          <a
+            href={finding.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary/70 hover:text-primary mt-0.5 inline-flex items-center gap-1 truncate max-w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {finding.url.replace(/^https?:\/\//, "").substring(0, 50)}
+            <ExternalLink className="w-3 h-3 shrink-0" />
+          </a>
+        )}
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="text-[10px] text-muted-foreground font-mono">
+          {new Date(finding.date).toLocaleDateString()}
+        </span>
+        <span className={`w-2 h-2 rounded-full ${finding.status === "New Alert" ? "bg-primary shadow-[0_0_6px] shadow-primary/60" : "bg-emerald-500"}`} />
+      </div>
+    </motion.div>
+  );
+};
+
+/* ─── Types ─── */
 interface MentionRow {
   id: string;
   mention_type: string;
@@ -113,49 +135,32 @@ interface MentionRow {
 
 const Monitoring = () => {
   const { user } = useAuth();
-  const isPro = useIsPro();
   const { toast } = useToast();
 
-  const [stats, setStats] = useState({ facesMonitored: 0, alerts: 0, takedowns: 0, alertsThisMonth: 0 });
   const [findings, setFindings] = useState<Finding[]>([]);
   const [mentions, setMentions] = useState<MentionRow[]>([]);
   const [filter, setFilter] = useState<(typeof FILTER_TABS)[number]>("All");
-  const [search, setSearch] = useState("");
+  const [searchQ, setSearchQ] = useState("");
   const [selected, setSelected] = useState<Finding | null>(null);
   const [copied, setCopied] = useState(false);
-  const [performerName, setPerformerName] = useState<string>("");
-  const [registryId, setRegistryId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanDone, setScanDone] = useState(false);
+  const [liveFeed, setLiveFeed] = useState<Finding[]>([]);
   const scanAbortRef = useRef<AbortController | null>(null);
+  const feedRef = useRef<HTMLDivElement>(null);
 
-  // Tour
-  const [tourOpen, setTourOpen] = useState(false);
-  const coverageRef = useRef<HTMLDivElement>(null);
-  const tableRef = useRef<HTMLDivElement>(null);
-  const rowRef = useRef<HTMLTableRowElement>(null);
-  const filterRef = useRef<HTMLDivElement>(null);
-  const actionRef = useRef<HTMLButtonElement>(null);
-
-  const loadMentions = async () => {
+  /* ─── Load mentions ─── */
+  const loadMentions = useCallback(async () => {
     if (!user) return;
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
 
-    const [{ count: faces }, { data: mentionsData }, { count: violations }, { data: prof }, { data: certs }] = await Promise.all([
-      supabase.from("registry_assets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
+    const [{ data: mentionsData }, { data: prof }] = await Promise.all([
       supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
-      supabase.from("reported_violations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("profiles").select("stage_name, legal_name, full_name, external_actor_id").eq("user_id", user.id).maybeSingle(),
-      supabase.from("certificates").select("registry_id").eq("user_id", user.id).limit(1),
     ]);
-    setPerformerName(prof?.stage_name || prof?.legal_name || prof?.full_name || "");
-    setRegistryId(certs?.[0]?.registry_id ?? null);
 
     const dbRows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
 
-    // Fetch external mentions if external_actor_id exists
+    // Fetch external mentions
     let externalRows: MentionRow[] = [];
     const externalActorId = (prof as any)?.external_actor_id;
     if (externalActorId) {
@@ -187,15 +192,11 @@ const Monitoring = () => {
       }
     }
 
-    // Merge: DB rows first, then external rows not already in DB (by url or title)
     const dbUrls = new Set(dbRows.map(r => r.url).filter(Boolean));
-    const merged = [
-      ...dbRows,
-      ...externalRows.filter(r => !r.url || !dbUrls.has(r.url)),
-    ];
+    const merged = [...dbRows, ...externalRows.filter(r => !r.url || !dbUrls.has(r.url))];
     setMentions(merged);
 
-    const findingsFromMentions: Finding[] = merged.map((m) => ({
+    const data: Finding[] = merged.map((m) => ({
       id: m.id,
       platform: m.mention_type,
       finding: m.title,
@@ -213,24 +214,12 @@ const Monitoring = () => {
       matchLabel: m.match_label ?? undefined,
     }));
 
-    const data = findingsFromMentions;
-    const newAlerts = data.filter((d) => d.status === "New Alert").length;
-    const monthMs = monthStart.getTime();
-    const alertsMonth = data.filter((d) => new Date(d.date).getTime() >= monthMs).length;
-
     setFindings(data);
-    setStats({
-      facesMonitored: faces ?? 0,
-      alerts: newAlerts,
-      takedowns: violations ?? 0,
-      alertsThisMonth: alertsMonth,
-    });
-  };
-
-  useEffect(() => {
-    loadMentions();
   }, [user]);
 
+  useEffect(() => { loadMentions(); }, [loadMentions]);
+
+  /* ─── Run scan ─── */
   const runScan = async () => {
     if (scanning) {
       scanAbortRef.current?.abort();
@@ -241,68 +230,57 @@ const Monitoring = () => {
     }
     setScanning(true);
     setScanDone(false);
+    setLiveFeed([]);
     const controller = new AbortController();
     scanAbortRef.current = controller;
+
+    // Simulate live feed with existing findings while scan runs
+    const existingFindings = [...findings];
+    let feedIndex = 0;
+    const feedInterval = setInterval(() => {
+      if (feedIndex < existingFindings.length && !controller.signal.aborted) {
+        setLiveFeed(prev => [...prev, existingFindings[feedIndex]]);
+        feedIndex++;
+        // Auto-scroll
+        if (feedRef.current) {
+          feedRef.current.scrollTop = feedRef.current.scrollHeight;
+        }
+      }
+    }, 400);
+
     try {
-      await supabase.functions.invoke("actor-registry?action=scan", {
-        method: "POST",
-      });
-      // If aborted after invoke started, the abort handler already ran
-      if (controller.signal.aborted) return;
+      await supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+      if (controller.signal.aborted) { clearInterval(feedInterval); return; }
       setScanDone(true);
-      toast({ title: "Scan complete", description: "Check your results below." });
+      toast({ title: "Scan complete", description: "All results loaded." });
       await loadMentions();
     } catch (err: any) {
-      if (err.name === "AbortError") return;
-      toast({ title: "Scan failed", description: String(err), variant: "destructive" });
+      if (err.name === "AbortError") { clearInterval(feedInterval); return; }
+      // Even on failure, show existing results
+      setScanDone(true);
+      toast({ title: "Scan finished", description: "Showing available results." });
     } finally {
+      clearInterval(feedInterval);
       setScanning(false);
       scanAbortRef.current = null;
     }
   };
 
-  // Auto-launch tour first time
-  useEffect(() => {
-    if (!isPro) return;
-    const seen = localStorage.getItem("cmf_monitoring_tour_done");
-    if (!seen) {
-      const t = setTimeout(() => setTourOpen(true), 600);
-      return () => clearTimeout(t);
-    }
-  }, [isPro]);
-
+  /* ─── Filtered findings ─── */
   const filtered = useMemo(() => {
     return findings.filter((f) => {
       const matchesCat = filter === "All" || f.category === filter;
-      const q = search.trim().toLowerCase();
-      const matchesSearch =
-        !q || f.platform.toLowerCase().includes(q) || f.finding.toLowerCase().includes(q);
+      const q = searchQ.trim().toLowerCase();
+      const matchesSearch = !q || f.platform.toLowerCase().includes(q) || f.finding.toLowerCase().includes(q);
       return matchesCat && matchesSearch;
     });
-  }, [findings, filter, search]);
+  }, [findings, filter, searchQ]);
 
-  const statCards = [
-    { label: "Faces Monitored", value: stats.facesMonitored, icon: Eye },
-    { label: "Platforms Scanned", value: 18, icon: Radar },
-    { label: "Alerts This Month", value: isPro ? stats.alertsThisMonth : 0, icon: AlertTriangle },
-    { label: "Takedowns Filed", value: stats.takedowns, icon: ShieldCheck },
-  ];
-
-  const tourSteps: TourStep[] = [
-    { ref: coverageRef, title: "Your Scan Coverage", body: "This is every platform we watch for you — 24/7." },
-    { ref: tableRef, title: "Your Identity Footprint", body: "Everywhere we found you online — the good, the bad, and the forgotten." },
-    { ref: rowRef as any, title: "Tap any alert to see details", body: "Red alerts need your attention. Open a row to view the finding and take action." },
-    { ref: filterRef, title: "Filter what matters", body: "Focus on deepfakes, fake profiles, ads, or anything else — your call." },
-    { ref: actionRef as any, title: "One-tap takedowns", body: "File a DMCA notice in seconds — we do the heavy lifting." },
-  ];
-
-  const closeTour = () => {
-    setTourOpen(false);
-    localStorage.setItem("cmf_monitoring_tour_done", "1");
-  };
-
-  const handleAction = (f: Finding, action: string) => {
-    toast({ title: action, description: `${action} initiated for ${f.platform}.` });
+  /* ─── Actions ─── */
+  const handleDismiss = async (f: Finding) => {
+    await supabase.from("mentions").update({ status: "Resolved" } as any).eq("id", f.id);
+    setFindings(prev => prev.map(x => x.id === f.id ? { ...x, status: "Resolved" as const } : x));
+    toast({ title: "Dismissed — That's you, no action needed." });
   };
 
   const deleteFinding = async (f: Finding) => {
@@ -311,7 +289,7 @@ const Monitoring = () => {
     setFindings(prev => prev.filter(x => x.id !== f.id));
     setMentions(prev => prev.filter(x => x.id !== f.id));
     if (selected?.id === f.id) setSelected(null);
-    toast({ title: "Deleted", description: "Finding removed permanently." });
+    toast({ title: "Deleted" });
   };
 
   const copyUrl = (url: string) => {
@@ -320,379 +298,305 @@ const Monitoring = () => {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  const alertCount = findings.filter(f => f.status === "New Alert").length;
+
   return (
     <DashboardLayout>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        {/* Header */}
-        <div className="mb-6 flex items-start justify-between flex-wrap gap-3">
-          <div className="max-w-3xl">
-            <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">
-              Your Identity. <span className="text-primary">Everywhere.</span>
-            </h1>
-            <p className="text-muted-foreground mt-2 text-sm md:text-base">
-              We scan the web, social media, casting platforms, ad networks, and deepfake databases for unauthorized use of your face, voice, and name.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {isPro ? (
-              <Badge className="bg-primary/15 text-primary border border-primary/40">Pro Shield Active</Badge>
-            ) : (
-              <Badge variant="outline">Free</Badge>
-            )}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setTourOpen(true)}
-              className="gap-1.5"
-            >
-              <HelpCircle className="w-4 h-4" /> Take the tour
-            </Button>
-          </div>
-        </div>
+      <div className="max-w-5xl mx-auto">
+        {/* ─── HERO HEADER ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-2">
+            Identity <span className="text-primary">Intelligence</span>
+          </h1>
+          <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
+            Real-time scanning across social media, search engines, AI databases, and the dark web for unauthorized use of your likeness.
+          </p>
+        </motion.div>
 
-        {/* Takedown Credits */}
-        <TakedownCreditsCard isPro={isPro} />
+        {/* ─── RADAR + SCAN BUTTON ─── */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-8 mb-8"
+        >
+          <RadarGraphic active={scanning} />
 
-        {/* Stats */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {statCards.map((s) => (
-            <Card key={s.label} className="glass-card border-border/30">
-              <CardContent className="p-5">
-                <s.icon className="w-5 h-5 text-primary mb-3" />
-                <div className="font-display text-2xl font-bold text-foreground">{s.value}</div>
-                <div className="text-sm text-muted-foreground mt-1">{s.label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Scan Coverage */}
-        <div ref={coverageRef} className="relative mb-6">
-          <Card className="glass-card border-border/30">
-            <CardHeader>
-              <CardTitle className="font-display text-lg">Scan Coverage</CardTitle>
-              <p className="text-sm text-muted-foreground">Exactly where we look for you, every day.</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <section>
-                <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
-                  Social & Video Platforms
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-                  {SOCIAL_PLATFORMS.map((p) => (
-                    <PlatformTile key={p.name} name={p.name} Icon={p.icon} locked={!isPro} />
-                  ))}
-                </div>
-              </section>
-              <section>
-                <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
-                  Web & Commercial Use
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-                  {WEB_PLATFORMS.map((p) => (
-                    <PlatformTile key={p.name} name={p.name} Icon={p.icon} locked={!isPro} />
-                  ))}
-                </div>
-              </section>
-              <section>
-                <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
-                  Deepfake & AI Detection
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {AI_PLATFORMS.map((p) => (
-                    <PlatformTile key={p.name} name={p.name} Icon={p.icon} locked={!isPro} />
-                  ))}
-                </div>
-              </section>
-            </CardContent>
-          </Card>
-
-          {!isPro && (
-            <div className="absolute inset-0 backdrop-blur-[3px] bg-background/60 rounded-lg flex items-center justify-center p-6">
-              <div className="text-center max-w-md">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary flex items-center justify-center">
-                  <Lock className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <p className="font-display text-lg font-bold text-foreground mb-2">
-                  Pro Shield monitors 20+ platforms 24/7
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  for your face, voice, and name. Free accounts show a preview only.
-                </p>
-                <Link to="/#pricing">
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    Unlock Full Monitoring — Upgrade to Pro Shield <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Impersonator Detection */}
-        <ImpersonatorDetection performerName={performerName} registryId={registryId} />
-
-        {/* Run My Scan */}
-        <div className="mb-6">
-          <Button
-            onClick={runScan}
-            className={`w-full md:w-auto text-base font-semibold gap-2 ${
-              scanning
-                ? "bg-muted text-muted-foreground hover:bg-muted/80"
-                : "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            }`}
-            size="lg"
-          >
+          <div className="text-center mt-6 space-y-4">
             {scanning ? (
               <>
-                <RefreshCw className="w-5 h-5 animate-spin" /> Stop Scan
+                <div className="flex items-center justify-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-sm font-mono text-primary tracking-wider uppercase">
+                    Scanning {liveFeed.length} sources…
+                  </span>
+                </div>
+                <Button
+                  onClick={runScan}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+                >
+                  <RefreshCw className="w-4 h-4 animate-spin" /> Stop Scan
+                </Button>
+              </>
+            ) : scanDone ? (
+              <>
+                <div className="flex items-center justify-center gap-2 text-emerald-400">
+                  <ShieldCheck className="w-5 h-5" />
+                  <span className="text-sm font-semibold">Scan complete — {findings.length} results found</span>
+                </div>
+                <Button
+                  onClick={runScan}
+                  size="lg"
+                  className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                >
+                  <Radar className="w-5 h-5" /> Run Again
+                </Button>
               </>
             ) : (
               <>
-                <Radar className="w-5 h-5" /> Run My Scan
+                {alertCount > 0 && (
+                  <div className="flex items-center justify-center gap-2 text-primary">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-sm font-medium">{alertCount} alert{alertCount > 1 ? "s" : ""} need your attention</span>
+                  </div>
+                )}
+                <Button
+                  onClick={runScan}
+                  size="lg"
+                  className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base px-8"
+                >
+                  <Radar className="w-5 h-5" /> Run My Scan
+                </Button>
               </>
             )}
-          </Button>
-          {scanDone && !scanning && (
-            <p className="text-sm text-emerald-400 mt-2 flex items-center gap-2">
-              <Check className="w-4 h-4" /> Scan complete — check your results below
-            </p>
-          )}
-        </div>
-
-        {/* Scan overlay */}
-        {scanning && (
-          <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center gap-6">
-            <div className="relative">
-              <Clock className="w-16 h-16 text-primary animate-pulse" />
-              <Radar className="w-8 h-8 text-destructive absolute -bottom-1 -right-1 animate-spin" />
-            </div>
-            <div className="text-center space-y-2 max-w-sm px-4">
-              <h2 className="font-display text-2xl font-bold text-foreground">Scanning the web for you…</h2>
-              <p className="text-muted-foreground text-sm">This can take a minute. We're checking social media, search engines, and AI databases for unauthorized use of your likeness.</p>
-            </div>
-            <Button
-              onClick={runScan}
-              variant="outline"
-              size="lg"
-              className="gap-2"
-            >
-              <RefreshCw className="w-4 h-4" /> Stop Scan
-            </Button>
           </div>
-        )}
+        </motion.div>
 
-        {/* Identity Footprint */}
-        <Card className="glass-card border-border/30 mb-6 relative">
-          <CardHeader>
-            <CardTitle className="font-display text-lg flex items-center gap-2">
-              <Eye className="w-4 h-4 text-primary" /> Identity Footprint
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Every place your name, face, or profile appears — including the things you forgot about.
-            </p>
-          </CardHeader>
-          <CardContent>
-            {/* Filters */}
-            <div ref={filterRef} className="mb-4 space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {FILTER_TABS.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setFilter(t)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                      filter === t
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-secondary/40 text-muted-foreground border-border/40 hover:text-foreground hover:border-border"
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-              <Input
-                placeholder="Search platform or finding…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-sm"
-              />
-            </div>
-
-            {/* Table or empty state */}
-            {findings.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="relative w-20 h-20 mx-auto mb-5">
-                  <span className="absolute inset-5 rounded-full bg-primary flex items-center justify-center">
-                    <Radar className="w-6 h-6 text-primary-foreground" />
-                  </span>
+        {/* ─── LIVE TERMINAL FEED (during scan) ─── */}
+        <AnimatePresence>
+          {scanning && liveFeed.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8"
+            >
+              <div className="rounded-2xl border border-primary/20 bg-[hsl(var(--background))]/80 backdrop-blur-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/20 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs font-mono text-primary uppercase tracking-wider">Live Feed</span>
+                  <span className="text-xs text-muted-foreground font-mono ml-auto">{liveFeed.length} found</span>
                 </div>
+                <div
+                  ref={feedRef}
+                  className="max-h-72 overflow-y-auto p-3 space-y-1.5 scroll-smooth"
+                  style={{ scrollbarWidth: "thin" }}
+                >
+                  {liveFeed.map((f, i) => (
+                    <TerminalLine key={f.id + "-feed-" + i} finding={f} index={i} />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ─── RESULTS TABLE ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm mb-8"
+        >
+          <div className="px-5 py-4 border-b border-border/20 flex flex-col md:flex-row md:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-primary" />
+              <h2 className="font-display text-lg font-semibold">Identity Footprint</h2>
+              <Badge variant="outline" className="ml-2 text-xs">{findings.length}</Badge>
+            </div>
+            <div className="flex-1" />
+            <Input
+              placeholder="Search…"
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
+              className="max-w-xs bg-background/40 border-border/30"
+            />
+          </div>
+
+          {/* Filter tabs */}
+          <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
+            {FILTER_TABS.map((t) => (
+              <button
+                key={t}
+                onClick={() => setFilter(t)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  filter === t
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* Results */}
+          <div className="divide-y divide-border/10">
+            {filtered.length === 0 ? (
+              <div className="py-16 text-center">
+                <Radar className="w-10 h-10 text-primary/30 mx-auto mb-3" />
                 <p className="font-display text-lg font-semibold text-foreground">
-                  No results yet.
+                  {findings.length === 0 ? "No results yet" : "No results match this filter"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Hit "Run My Scan" above to scan the web for your likeness.
+                  {findings.length === 0 ? 'Hit "Run My Scan" to scan the web for your likeness.' : "Try a different filter or search term."}
                 </p>
               </div>
             ) : (
-              <div ref={tableRef} className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Platform</TableHead>
-                      <TableHead>What Was Found</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((f, i) => {
-                      const s = STATUS_STYLES[f.status];
-                      return (
-                        <TableRow
-                          key={f.id}
-                          ref={i === 0 ? rowRef : undefined}
-                          className="cursor-pointer"
-                          onClick={() => setSelected(f)}
-                        >
-                          <TableCell className="font-medium text-foreground whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              {f.platform}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground max-w-xs md:max-w-md">
-                            <div className="whitespace-normal break-words text-sm leading-snug">
-                              {f.finding}
-                            </div>
-                            {f.url && f.url !== "#" && (
-                              <a
-                                href={f.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-1"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Source <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground whitespace-nowrap">
-                            {new Date(f.date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <span className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${s.pill}`}>
-                              {s.label}
+              filtered.map((f) => {
+                const PIcon = getPlatformIcon(f.platform);
+                const s = STATUS_STYLES[f.status];
+                return (
+                  <div
+                    key={f.id}
+                    className="flex items-start gap-3 px-5 py-4 hover:bg-primary/5 transition-colors group cursor-pointer"
+                    onClick={() => setSelected(f)}
+                  >
+                    {/* Platform icon */}
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <PIcon className="w-4 h-4 text-primary" />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">
+                            {f.finding}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-muted-foreground">{f.platform}</span>
+                            <span className="text-[10px] text-muted-foreground/50">•</span>
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {new Date(f.date).toLocaleDateString()}
                             </span>
-                          </TableCell>
-                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-1 justify-end flex-wrap">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1 text-primary border-primary/40 hover:bg-primary/10"
-                                onClick={() => setSelected(f)}
-                              >
-                                <Eye className="w-4 h-4" /> View
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                                onClick={() => deleteFinding(f)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    ref={i === 0 ? actionRef : undefined}
-                                    size="sm"
-                                    variant="ghost"
-                                  >
-                                    <MoreHorizontal className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleAction(f, "Dismissed")}>
-                                    This is fine — Dismiss
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link to="/tools/dmca">File DMCA Notice</Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link to="/tools/contracts">Send Cease & Desist</Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleAction(f, "Reported to Platform")}>
-                                    Report to Platform
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => deleteFinding(f)}
-                                  >
-                                    Delete permanently
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {filtered.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                          No results match this filter.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                            {f.url && f.url !== "#" && (
+                              <>
+                                <span className="text-[10px] text-muted-foreground/50">•</span>
+                                <a
+                                  href={f.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Source <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${s.pill}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-emerald-500 hover:bg-emerald-500/10"
+                        onClick={() => handleDismiss(f)}
+                        title="That's me — dismiss"
+                      >
+                        <ThumbsUp className="w-4 h-4" />
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                            title="Not me — take action"
+                          >
+                            <ThumbsDown className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to="/tools/dmca" className="flex items-center gap-2">
+                              <Gavel className="w-4 h-4" /> File DMCA Notice
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to="/tools/contracts" className="flex items-center gap-2">
+                              <FileWarning className="w-4 h-4" /> Cease & Desist
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to="/dashboard/violations" className="flex items-center gap-2">
+                              <Flag className="w-4 h-4" /> Report to Platform
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive flex items-center gap-2"
+                            onClick={() => deleteFinding(f)}
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete permanently
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-primary hover:bg-primary/10"
+                        onClick={() => setSelected(f)}
+                        title="View details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
             )}
-          </CardContent>
+          </div>
+        </motion.div>
 
-          {!isPro && findings.length > 0 && (
-            <div className="absolute inset-0 top-[180px] backdrop-blur-md bg-background/70 rounded-b-lg flex items-center justify-center p-6">
-              <div className="text-center max-w-md">
-                <Lock className="w-8 h-8 text-primary mx-auto mb-3" />
-                <p className="font-display text-lg font-bold text-foreground mb-2">
-                  See every place your face appears
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Free accounts show a redacted preview. Upgrade to unlock your full identity footprint.
-                </p>
-                <Link to="/#pricing">
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    Unlock Full Monitoring <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-        </Card>
+        {/* ─── QUICK ACTIONS ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="grid sm:grid-cols-3 gap-3 mb-8"
+        >
+          <Link to="/tools/dmca">
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+              <Gavel className="w-4 h-4" /> Generate DMCA Notice
+            </Button>
+          </Link>
+          <Link to="/tools/contracts">
+            <Button variant="outline" className="w-full gap-2">
+              <FileWarning className="w-4 h-4" /> Cease & Desist
+            </Button>
+          </Link>
+          <Link to="/dashboard/violations">
+            <Button variant="outline" className="w-full gap-2">
+              <Flag className="w-4 h-4" /> Report Violation
+            </Button>
+          </Link>
+        </motion.div>
+      </div>
 
-        {/* Quick Actions */}
-        <Card className="glass-card border-border/30">
-          <CardHeader>
-            <CardTitle className="font-display text-lg">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="grid sm:grid-cols-3 gap-3">
-            <Link to="/tools/dmca">
-              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                Generate DMCA Notice
-              </Button>
-            </Link>
-            <Link to="/tools/contracts">
-              <Button variant="outline" className="w-full">Send Cease & Desist</Button>
-            </Link>
-            <Link to="/dashboard/violations">
-              <Button variant="outline" className="w-full">Report to Platform</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Detail modal */}
+      {/* ─── DETAIL DIALOG ─── */}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-lg">
           {selected && (
@@ -702,7 +606,6 @@ const Monitoring = () => {
                 <DialogDescription className="whitespace-normal break-words">{selected.finding}</DialogDescription>
               </DialogHeader>
 
-              {/* Preview image */}
               {selected.thumbnailUrl ? (
                 <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
                   <img src={selected.thumbnailUrl} alt={selected.finding} className="w-full h-full object-cover" />
@@ -712,8 +615,8 @@ const Monitoring = () => {
                   <img src={selected.url} alt={selected.finding} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
                 </div>
               ) : (
-                <div className="aspect-video w-full bg-secondary/40 border border-border/40 rounded-lg flex items-center justify-center">
-                  <FileText className="w-10 h-10 text-muted-foreground/40" />
+                <div className="aspect-video w-full bg-secondary/30 border border-border/40 rounded-lg flex items-center justify-center">
+                  <FileText className="w-10 h-10 text-muted-foreground/30" />
                 </div>
               )}
 
@@ -721,74 +624,45 @@ const Monitoring = () => {
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-muted-foreground">URL</span>
                   <div className="flex items-center gap-2 max-w-[60%]">
-                    <a
-                      href={selected.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="truncate text-foreground hover:text-primary inline-flex items-center gap-1"
-                    >
+                    <a href={selected.url} target="_blank" rel="noreferrer" className="truncate text-foreground hover:text-primary inline-flex items-center gap-1">
                       {selected.url} <ExternalLink className="w-3 h-3 shrink-0" />
                     </a>
-                    <button
-                      onClick={() => copyUrl(selected.url)}
-                      className="text-muted-foreground hover:text-foreground"
-                      aria-label="Copy URL"
-                    >
+                    <button onClick={() => copyUrl(selected.url)} className="text-muted-foreground hover:text-foreground" aria-label="Copy URL">
                       {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date first detected</span>
+                  <span className="text-muted-foreground">Date detected</span>
                   <span className="text-foreground">{new Date(selected.date).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date last seen</span>
-                  <span className="text-foreground">{new Date(selected.lastSeen).toLocaleDateString()}</span>
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-muted-foreground">AI confidence</span>
-                    <span className="text-foreground font-medium">
-                      {selected.confidence}% match to your registered face
-                    </span>
+                    <span className="text-foreground font-medium">{selected.confidence}%</span>
                   </div>
                   <Progress value={selected.confidence} />
-                </div>
-                <div className="rounded-lg bg-primary/10 border border-primary/30 p-3">
-                  <div className="text-xs uppercase tracking-wider text-primary font-semibold mb-1">
-                    Recommended action
-                  </div>
-                  <div className="text-sm text-foreground">{selected.recommended}</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 pt-2">
-                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Link to="/tools/dmca">File DMCA</Link>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1" onClick={() => { handleDismiss(selected); setSelected(null); }}>
+                  <ThumbsUp className="w-4 h-4" /> That's Me
+                </Button>
+                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1">
+                  <Link to="/tools/dmca"><Gavel className="w-4 h-4" /> File DMCA</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link to="/tools/contracts">Cease & Desist</Link>
+                  <Link to="/tools/contracts"><FileWarning className="w-4 h-4 mr-1" /> Cease & Desist</Link>
                 </Button>
-                <Button variant="outline" onClick={() => handleAction(selected, "Reported to Platform")}>
-                  Report
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    handleAction(selected, "Dismissed");
-                    setSelected(null);
-                  }}
-                >
-                  Dismiss
+                <Button asChild variant="outline">
+                  <Link to="/dashboard/violations"><Flag className="w-4 h-4 mr-1" /> Report</Link>
                 </Button>
               </div>
             </>
           )}
         </DialogContent>
       </Dialog>
-
-      <MonitoringTour steps={tourSteps} open={tourOpen} onClose={closeTour} />
     </DashboardLayout>
   );
 };
