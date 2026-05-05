@@ -118,6 +118,47 @@ interface MentionFolder {
 
 const FOLDER_COLORS = ["#C41230", "#D4A843", "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899"];
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const normalizeStatus = (status?: string | null): Finding["status"] => {
+  const value = (status || "").toLowerCase();
+  if (value.includes("resolved") || value.includes("dismiss")) return "Resolved";
+  if (value.includes("review") || value.includes("pending")) return "Under Review";
+  if (value.includes("takedown") || value.includes("filed")) return "Takedown Filed";
+  if (value.includes("info") || value.includes("legitimate")) return "Informational";
+  return "New Alert";
+};
+
+const normalizeCategory = (category?: string | null): FindingCategory => {
+  const valid = FILTER_TABS.filter((tab) => tab !== "All") as FindingCategory[];
+  return valid.includes(category as FindingCategory) ? (category as FindingCategory) : "News & Articles";
+};
+
+const normalizeMediaType = (mediaType?: string | null): Finding["mediaType"] => {
+  return mediaType === "image" || mediaType === "video" || mediaType === "audio" || mediaType === "article" ? mediaType : "article";
+};
+
+const createScanLine = (id: string, platform: string, finding: string): Finding => ({
+  id,
+  platform,
+  finding,
+  category: "News & Articles",
+  date: new Date().toISOString(),
+  lastSeen: new Date().toISOString(),
+  status: "Under Review",
+  url: "#",
+  confidence: 100,
+  recommended: "Report to Platform",
+  mediaType: "article",
+});
+
+const SCAN_LINES: Finding[] = [
+  createScanLine("scan-web", "Web", "Booting identity radar and checking public web indexes…"),
+  createScanLine("scan-social", "Social", "Scanning social platforms for image, name, and profile matches…"),
+  createScanLine("scan-ai", "AI", "Checking AI databases, synthetic media signals, and clone markers…"),
+  createScanLine("scan-news", "News", "Cross-referencing articles, casting listings, and commercial usage…"),
+];
+
 const Monitoring = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -172,7 +213,7 @@ const Monitoring = () => {
           "actor-registry?action=get_mentions&actor_id=" + externalActorId,
           { method: "GET" }
         );
-        const extMentions = extData?.mentions || extData || [];
+        const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || extData || [];
         if (Array.isArray(extMentions)) {
           externalRows = extMentions.map((m: any, i: number) => ({
             id: m.id || `ext-${i}`,
@@ -204,14 +245,14 @@ const Monitoring = () => {
       id: m.id,
       platform: m.mention_type,
       finding: m.title,
-      category: (m.category as FindingCategory) || "News & Articles",
+      category: normalizeCategory(m.category),
       date: m.found_at,
       lastSeen: m.found_at,
-      status: (m.status as Finding["status"]) || "New Alert",
+      status: normalizeStatus(m.status),
       url: m.url || "#",
       confidence: m.confidence ?? 90,
       recommended: "Report to Platform" as const,
-      mediaType: (m.media_type as Finding["mediaType"]) || "article",
+      mediaType: normalizeMediaType(m.media_type),
       thumbnailUrl: m.thumbnail_url ?? undefined,
       audioUrl: m.audio_url ?? undefined,
       excerpt: m.excerpt ?? undefined,
@@ -239,22 +280,34 @@ const Monitoring = () => {
     const controller = new AbortController();
     scanAbortRef.current = controller;
 
-    const existingFindings = [...findings];
+    let rotatingIndex = 0;
     let feedIndex = 0;
     const feedInterval = setInterval(() => {
-      if (feedIndex < existingFindings.length && !controller.signal.aborted) {
-        setLiveFeed(prev => [...prev, existingFindings[feedIndex]]);
+      if (controller.signal.aborted) return;
+      setLiveFeed(prev => {
+        const visibleLines = [...SCAN_LINES, ...findings];
+        if (feedIndex < visibleLines.length) {
+          return [...prev, { ...visibleLines[feedIndex], id: `${visibleLines[feedIndex].id}-${feedIndex}` }];
+        }
+        const line = SCAN_LINES[rotatingIndex % SCAN_LINES.length];
+        rotatingIndex++;
+        return [...prev.slice(-10), { ...line, id: `${line.id}-${Date.now()}` }];
+      });
+      if (feedIndex < SCAN_LINES.length + findings.length) {
         feedIndex++;
-        if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
       }
+      if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
     }, 400);
 
     try {
-      await supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+      const scanPromise = supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+      await Promise.allSettled([scanPromise, wait(3200)]);
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
+      await loadMentions();
+      if (controller.signal.aborted) { clearInterval(feedInterval); return; }
+      await wait(500);
       setScanDone(true);
       toast({ title: "Scan complete", description: "All results loaded." });
-      await loadMentions();
     } catch (err: any) {
       if (err.name === "AbortError") { clearInterval(feedInterval); return; }
       setScanDone(true);
@@ -625,7 +678,7 @@ const Monitoring = () => {
 
                 {filtered.map((f) => {
                   const PIcon = getPlatformIcon(f.platform);
-                  const s = STATUS_STYLES[f.status];
+                  const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
                   const isChecked = selectedIds.has(f.id);
                   const mention = mentions.find(m => m.id === f.id);
                   const folder = mention?.folder_id ? folders.find(fo => fo.id === mention.folder_id) : null;

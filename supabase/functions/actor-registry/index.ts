@@ -125,9 +125,22 @@ Deno.serve(async (req) => {
 
     // POST /scan
     if (action === "scan" && req.method === "POST") {
-      const extRes = await fetch(`${EXTERNAL_API}/scan`, { method: "POST" });
-      const extData = await extRes.json().catch(() => ({ ok: true }));
-      return new Response(JSON.stringify(extData), {
+      const backgroundScan = async () => {
+        try {
+          const extRes = await fetch(`${EXTERNAL_API}/scan`, { method: "POST" });
+          await extRes.text();
+        } catch (error) {
+          console.error("Background actor scan failed:", error);
+        }
+      };
+
+      const task = backgroundScan();
+      const edgeRuntime = (globalThis as any).EdgeRuntime;
+      if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(task);
+      else task.catch((error) => console.error("Actor scan task failed:", error));
+
+      return new Response(JSON.stringify({ accepted: true, status: "scanning" }), {
+        status: 202,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
