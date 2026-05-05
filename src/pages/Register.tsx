@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Camera, Check, Loader2, ArrowRight, Upload, Mic, MicOff, Play, Pause, Video,
-  RotateCcw, Lock, Eye, EyeOff, ArrowLeft, FileAudio, AudioWaveform,
+  RotateCcw, Lock, Eye, EyeOff, ArrowLeft, FileAudio, AudioWaveform, AlertTriangle,
 } from "lucide-react";
 import * as faceapi from "@vladmandic/face-api";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import logo from "@/assets/cmf-shield-logo.png";
 
 /* ─── constants ─── */
@@ -27,6 +28,13 @@ const POSES: { key: Pose; label: string; instruction: string }[] = [
 const MIN_VOICE_SEC = 20;
 const MAX_VOICE_SEC = 60;
 const SCRIPTED_PASSAGE = `My name is [say your full name]. I am registering my voice with ClaimMyFace today, on [say today's date]. The rainbow is a division of white light into many beautiful colors.`;
+
+const LOADING_MESSAGES = [
+  "Setting up your protection…",
+  "Encrypting your biometrics…",
+  "Registering your identity…",
+  "Finalizing your profile…",
+];
 
 async function sha256(blob: Blob) {
   const buf = await blob.arrayBuffer();
@@ -54,6 +62,87 @@ function playShutter() {
 /* ─── Sections enum ─── */
 type Section = "info" | "photos" | "voice";
 
+/* ─── Pose Guide Overlay ─── */
+const PoseGuideOverlay = ({ pose }: { pose: Pose }) => {
+  if (pose === "front") return null;
+  const isLeft = pose === "left";
+  return (
+    <motion.div
+      className="absolute bottom-4 left-0 right-0 flex flex-col items-center z-20 pointer-events-none"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      key={pose}
+    >
+      <motion.div
+        className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-primary/40"
+        animate={{ x: isLeft ? [0, -8, 0] : [0, 8, 0] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        {isLeft && (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-primary">
+            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+        <span className="text-sm font-semibold text-primary">
+          Turn {isLeft ? "← LEFT" : "RIGHT →"}
+        </span>
+        {!isLeft && (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-primary">
+            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+/* ─── Full-screen loading overlay ─── */
+const LoadingOverlay = () => {
+  const [msgIdx, setMsgIdx] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const msgTimer = setInterval(() => setMsgIdx(i => (i + 1) % LOADING_MESSAGES.length), 2500);
+    const progTimer = setInterval(() => setProgress(p => Math.min(p + 2, 95)), 300);
+    return () => { clearInterval(msgTimer); clearInterval(progTimer); };
+  }, []);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center gap-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <motion.img
+        src={logo}
+        alt="ClaimMyFace"
+        className="h-16 w-auto"
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <div className="w-64 space-y-3">
+        <Progress value={progress} className="h-2" />
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={msgIdx}
+            className="text-sm text-muted-foreground text-center font-body"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
+          >
+            {LOADING_MESSAGES[msgIdx]}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Lock className="w-3.5 h-3.5 text-primary" />
+        <span>End-to-end encrypted</span>
+      </div>
+    </motion.div>
+  );
+};
+
 const Register = () => {
   const { user, loading: authLoading, signUp } = useAuth();
   const navigate = useNavigate();
@@ -61,6 +150,7 @@ const Register = () => {
 
   const [section, setSection] = useState<Section>("info");
   const [submitting, setSubmitting] = useState(false);
+  const [finishing, setFinishing] = useState(false);
 
   /* ─── Info fields ─── */
   const [legalName, setLegalName] = useState("");
@@ -72,6 +162,7 @@ const Register = () => {
   const [headshotFile, setHeadshotFile] = useState<File | null>(null);
   const [headshotPreview, setHeadshotPreview] = useState<string | null>(null);
   const [accountCreated, setAccountCreated] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   /* ─── Face capture ─── */
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,12 +172,14 @@ const Register = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
   const [poseIdx, setPoseIdx] = useState(0);
   const [captures, setCaptures] = useState<Record<Pose, Capture | null>>({ front: null, left: null, right: null });
   const [descriptor, setDescriptor] = useState<number[] | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
+  const [photosCompleted, setPhotosCompleted] = useState(false);
 
   /* ─── Voice ─── */
   const [recording, setRecording] = useState(false);
@@ -99,6 +192,9 @@ const Register = () => {
   const chunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  /* ─── Auto-save debounce ref ─── */
+  const saveTimerRef = useRef<number | null>(null);
 
   /* ─── Load face models on mount ─── */
   useEffect(() => {
@@ -120,16 +216,47 @@ const Register = () => {
       stopCamera();
       stopVoiceStream();
       if (timerRef.current) clearInterval(timerRef.current);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, []);
 
-  /* If user is already logged in, prefill email */
+  /* ─── Prefill from existing profile when user is logged in ─── */
   useEffect(() => {
-    if (user) {
+    if (user && !profileLoaded) {
       setAccountCreated(true);
       setEmail(user.email ?? "");
+      (async () => {
+        const { data } = await supabase.from("profiles").select("legal_name, stage_name, bio, headshot_url, face_registered_at").eq("user_id", user.id).maybeSingle();
+        if (data) {
+          if (data.legal_name) setLegalName(data.legal_name);
+          if (data.stage_name) setStageName(data.stage_name);
+          if (data.bio?.startsWith("AKAs: ")) setAkas(data.bio.replace("AKAs: ", ""));
+          if (data.headshot_url) setHeadshotPreview(data.headshot_url);
+          if (data.face_registered_at) setPhotosCompleted(true);
+        }
+        setProfileLoaded(true);
+      })();
     }
-  }, [user]);
+  }, [user, profileLoaded]);
+
+  /* ─── Auto-save profile fields (debounced 1s) ─── */
+  const autoSaveProfile = useCallback(() => {
+    if (!user) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(async () => {
+      const payload: any = {};
+      if (legalName.trim()) { payload.legal_name = legalName.trim(); payload.full_name = legalName.trim(); }
+      if (stageName.trim()) payload.stage_name = stageName.trim();
+      if (akas.trim()) payload.bio = `AKAs: ${akas.trim()}`;
+      if (Object.keys(payload).length > 0) {
+        await supabase.from("profiles").update(payload).eq("user_id", user.id);
+      }
+    }, 1000);
+  }, [user, legalName, stageName, akas]);
+
+  useEffect(() => {
+    if (user && profileLoaded) autoSaveProfile();
+  }, [legalName, stageName, akas, user, profileLoaded, autoSaveProfile]);
 
   /* ─── Camera helpers ─── */
   const stopCamera = () => {
@@ -150,7 +277,6 @@ const Register = () => {
 
   const startCamera = async (deviceId?: string) => {
     try {
-      // Stop existing stream before switching
       streamRef.current?.getTracks().forEach(t => t.stop());
       const constraints: MediaStreamConstraints = {
         video: deviceId
@@ -162,14 +288,15 @@ const Register = () => {
       streamRef.current = stream;
       if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
       setCameraOpen(true);
-      // Enumerate after permission granted (labels become available)
+      setCameraError(false);
       const cams = await enumerateCams();
       const activeId = stream.getVideoTracks()[0]?.getSettings().deviceId;
       if (activeId) setSelectedDeviceId(activeId);
       else if (!selectedDeviceId && cams[0]) setSelectedDeviceId(cams[0].deviceId);
       runDetection();
     } catch (e: any) {
-      toast({ title: "Camera error", description: e.message, variant: "destructive" });
+      setCameraError(true);
+      toast({ title: "Camera unavailable", description: "Could not start camera. You can upload photos instead.", variant: "destructive" });
     }
   };
 
@@ -191,7 +318,6 @@ const Register = () => {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.clearRect(0, 0, dw, dh);
-      // oval guide
       ctx.strokeStyle = "rgba(255,255,255,0.25)";
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -205,7 +331,7 @@ const Register = () => {
       } else {
         setFaceDetected(false);
       }
-    }, 120); // faster detection (120ms vs 180ms)
+    }, 120);
   };
 
   const capturePhoto = async () => {
@@ -218,7 +344,7 @@ const Register = () => {
     if (!ctx) return;
     ctx.drawImage(video, 0, 0, c.width, c.height);
 
-    playShutter(); // shutter sound
+    playShutter();
 
     if (pose === "front") {
       const det = await faceapi.detectSingleFace(c, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
@@ -259,6 +385,15 @@ const Register = () => {
     setCaptures(prev => ({ ...prev, [pose]: null }));
     if (pose === "front") setDescriptor(null);
     setPoseIdx(POSES.findIndex(p => p.key === pose));
+    setPhotosCompleted(false);
+  };
+
+  const retakeAll = () => {
+    setCaptures({ front: null, left: null, right: null });
+    setDescriptor(null);
+    setPoseIdx(0);
+    setPhotosCompleted(false);
+    setCameraError(false);
   };
 
   const allCaptured = captures.front && captures.left && captures.right;
@@ -349,7 +484,6 @@ const Register = () => {
       await handleCreateAccount();
       return;
     }
-    // Save profile data
     if (!user) { setSection("photos"); return; }
     setSubmitting(true);
     try {
@@ -378,7 +512,7 @@ const Register = () => {
   /* ─── Final submit: save photos + voice + go to dashboard ─── */
   const handleFinish = async () => {
     if (!user) { navigate("/dashboard"); return; }
-    setSubmitting(true);
+    setFinishing(true);
     try {
       // Upload face captures
       if (allCaptured && descriptor) {
@@ -432,12 +566,15 @@ const Register = () => {
     } catch (e: any) {
       toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally {
-      setSubmitting(false);
+      setFinishing(false);
     }
   };
 
   const currentPose = POSES[poseIdx];
   const voiceReady = voiceBlob && voiceSec >= MIN_VOICE_SEC;
+
+  /* ─── Full-screen loading overlay when finishing ─── */
+  if (finishing) return <LoadingOverlay />;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -548,18 +685,48 @@ const Register = () => {
 
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
 
-              {!cameraOpen && !allCaptured && (
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <Button onClick={() => startCamera()} disabled={!modelsLoaded} size="lg" className="w-full font-display">
-                    {!modelsLoaded ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading…</> : <><Camera className="w-4 h-4 mr-1" /> Open Camera</>}
-                  </Button>
-                  <Button onClick={() => fileInputRef.current?.click()} disabled={!modelsLoaded} variant="outline" size="lg" className="w-full font-display">
-                    <Upload className="w-4 h-4 mr-1" /> Upload Photos
+              {/* Photos already completed state (bug #6) */}
+              {photosCompleted && !allCaptured && (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center space-y-3">
+                    <Check className="w-10 h-10 text-emerald-400 mx-auto" />
+                    <h2 className="font-display text-xl font-semibold text-emerald-300">Photos Already Captured</h2>
+                    <p className="text-sm text-muted-foreground">Your face photos were previously registered.</p>
+                    <Button onClick={retakeAll} variant="outline" className="mt-2">
+                      <RotateCcw className="w-4 h-4 mr-1" /> Retake All Photos
+                    </Button>
+                  </div>
+                  <Button onClick={() => { stopCamera(); setSection("voice"); }} size="lg" className="w-full font-display">
+                    Continue to Voice <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
               )}
 
-              {cameraOpen && !allCaptured && (
+              {/* Initial state: open camera or upload (bug #3: camera error fallback) */}
+              {!photosCompleted && !cameraOpen && !allCaptured && (
+                <div className="space-y-3">
+                  {cameraError && (
+                    <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-destructive">Camera unavailable</p>
+                        <p className="text-xs text-muted-foreground mt-1">Could not start video source. Please upload your photos instead.</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    <Button onClick={() => startCamera()} disabled={!modelsLoaded} size="lg" className="w-full font-display">
+                      {!modelsLoaded ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading…</> : <><Camera className="w-4 h-4 mr-1" /> {cameraError ? "Try Camera Again" : "Open Camera"}</>}
+                    </Button>
+                    <Button onClick={() => fileInputRef.current?.click()} disabled={!modelsLoaded} variant={cameraError ? "default" : "outline"} size="lg" className="w-full font-display">
+                      <Upload className="w-4 h-4 mr-1" /> Upload Photos
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Camera is open and not all captured */}
+              {!photosCompleted && cameraOpen && !allCaptured && (
                 <div className="space-y-4">
                   <div className="text-center">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground">Photo {poseIdx + 1} of 3 — {currentPose.label}</p>
@@ -573,6 +740,8 @@ const Register = () => {
                         {faceDetected ? "Face Detected ✓" : "No Face Detected"}
                       </span>
                     </div>
+                    {/* Bug #5: Animated pose guide overlay */}
+                    <PoseGuideOverlay pose={currentPose.key} />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {POSES.map((p, i) => (
@@ -610,6 +779,7 @@ const Register = () => {
                 </div>
               )}
 
+              {/* All captured - review */}
               {allCaptured && (
                 <div className="space-y-4">
                   <h2 className="font-display text-xl font-semibold">Review Your Captures</h2>
@@ -629,7 +799,7 @@ const Register = () => {
                       );
                     })}
                   </div>
-                  <Button onClick={() => { stopCamera(); setSection("voice"); }} size="lg" className="w-full font-display">
+                  <Button onClick={() => { stopCamera(); setPhotosCompleted(true); setSection("voice"); }} size="lg" className="w-full font-display">
                     Photos Look Good — Continue <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
