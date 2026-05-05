@@ -244,7 +244,9 @@ const Monitoring = () => {
           "actor-registry?action=get_mentions&actor_id=" + externalActorId,
           { method: "GET" }
         );
+        console.log("[Monitoring] Raw extData:", JSON.stringify(extData).substring(0, 3000));
         const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || extData || [];
+        console.log("[Monitoring] extMentions count:", extMentions.length, "first 3 mention_types:", extMentions.slice?.(0, 3).map?.((m: any) => m.mention_type));
         if (Array.isArray(extMentions)) {
           externalRows = extMentions.map((m: any, i: number) => ({
             id: m.id || `ext-${i}`,
