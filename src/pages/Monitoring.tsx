@@ -125,6 +125,9 @@ const Monitoring = () => {
   const [copied, setCopied] = useState(false);
   const [performerName, setPerformerName] = useState<string>("");
   const [registryId, setRegistryId] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanDone, setScanDone] = useState(false);
+  const scanAbortRef = useRef<AbortController | null>(null);
 
   // Tour
   const [tourOpen, setTourOpen] = useState(false);
