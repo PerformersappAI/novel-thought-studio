@@ -283,7 +283,7 @@ const Monitoring = () => {
       url: m.url || "#",
       confidence: m.confidence ?? 90,
       recommended: "Report to Platform" as const,
-      mediaType: normalizeMediaType(m.media_type),
+      mediaType: normalizeMediaType(m.media_type, m.mention_type),
       thumbnailUrl: m.thumbnail_url ?? undefined,
       audioUrl: m.audio_url ?? undefined,
       excerpt: m.excerpt ?? undefined,
