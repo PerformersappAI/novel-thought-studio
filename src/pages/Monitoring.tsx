@@ -465,17 +465,15 @@ const Monitoring = () => {
             {findings.length === 0 ? (
               <div className="py-12 text-center">
                 <div className="relative w-20 h-20 mx-auto mb-5">
-                  <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                  <span className="absolute inset-2 rounded-full bg-primary/30 animate-ping [animation-delay:200ms]" />
                   <span className="absolute inset-5 rounded-full bg-primary flex items-center justify-center">
                     <Radar className="w-6 h-6 text-primary-foreground" />
                   </span>
                 </div>
                 <p className="font-display text-lg font-semibold text-foreground">
-                  Your first scan is running.
+                  No results yet.
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  We'll notify you when we find results — usually within 24 hours.
+                  Hit "Run My Scan" above to scan the web for your likeness.
                 </p>
               </div>
             ) : (
