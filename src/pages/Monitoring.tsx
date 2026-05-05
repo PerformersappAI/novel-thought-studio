@@ -392,6 +392,39 @@ const Monitoring = () => {
         {/* Impersonator Detection */}
         <ImpersonatorDetection performerName={performerName} registryId={registryId} />
 
+        {/* Run My Scan */}
+        <div className="mb-6">
+          <Button
+            onClick={runScan}
+            className={`w-full md:w-auto text-base font-semibold gap-2 ${
+              scanning
+                ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                : "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            }`}
+            size="lg"
+          >
+            {scanning ? (
+              <>
+                <RefreshCw className="w-5 h-5 animate-spin" /> Stop Scan
+              </>
+            ) : (
+              <>
+                <Radar className="w-5 h-5" /> Run My Scan
+              </>
+            )}
+          </Button>
+          {scanning && (
+            <p className="text-sm text-muted-foreground mt-2 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin" /> Scanning the web for you…
+            </p>
+          )}
+          {scanDone && !scanning && (
+            <p className="text-sm text-emerald-400 mt-2 flex items-center gap-2">
+              <Check className="w-4 h-4" /> Scan complete — check your results below
+            </p>
+          )}
+        </div>
+
         {/* Identity Footprint */}
         <Card className="glass-card border-border/30 mb-6 relative">
           <CardHeader>
