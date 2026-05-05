@@ -699,13 +699,23 @@ const Monitoring = () => {
             <>
               <DialogHeader>
                 <DialogTitle className="font-display text-xl">{selected.platform}</DialogTitle>
-                <DialogDescription>{selected.finding}</DialogDescription>
+                <DialogDescription className="whitespace-normal break-words">{selected.finding}</DialogDescription>
               </DialogHeader>
 
-              {/* Thumbnail placeholder */}
-              <div className="aspect-video w-full bg-secondary/40 border border-border/40 rounded-lg flex items-center justify-center">
-                <FileText className="w-10 h-10 text-muted-foreground/40" />
-              </div>
+              {/* Preview image */}
+              {selected.thumbnailUrl ? (
+                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
+                  <img src={selected.thumbnailUrl} alt={selected.finding} className="w-full h-full object-cover" />
+                </div>
+              ) : selected.url && selected.url !== "#" && /\.(jpg|jpeg|png|gif|webp|svg)/i.test(selected.url) ? (
+                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
+                  <img src={selected.url} alt={selected.finding} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                </div>
+              ) : (
+                <div className="aspect-video w-full bg-secondary/40 border border-border/40 rounded-lg flex items-center justify-center">
+                  <FileText className="w-10 h-10 text-muted-foreground/40" />
+                </div>
+              )}
 
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
