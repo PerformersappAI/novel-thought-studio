@@ -583,7 +583,7 @@ const Register = () => {
         full_name: legalName.trim(),
         stage_name: stageName.trim() || null,
       };
-      if (akas.trim()) payload.bio = `AKAs: ${akas.trim()}`;
+      
       if (headshot_url) payload.headshot_url = headshot_url;
       await supabase.from("profiles").update(payload).eq("user_id", user.id);
     } catch {}
