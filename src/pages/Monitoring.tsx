@@ -453,17 +453,34 @@ const Monitoring = () => {
               </>
             )}
           </Button>
-          {scanning && (
-            <p className="text-sm text-muted-foreground mt-2 flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin" /> Scanning the web for you…
-            </p>
-          )}
           {scanDone && !scanning && (
             <p className="text-sm text-emerald-400 mt-2 flex items-center gap-2">
               <Check className="w-4 h-4" /> Scan complete — check your results below
             </p>
           )}
         </div>
+
+        {/* Scan overlay */}
+        {scanning && (
+          <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center gap-6">
+            <div className="relative">
+              <Clock className="w-16 h-16 text-primary animate-pulse" />
+              <Radar className="w-8 h-8 text-destructive absolute -bottom-1 -right-1 animate-spin" />
+            </div>
+            <div className="text-center space-y-2 max-w-sm px-4">
+              <h2 className="font-display text-2xl font-bold text-foreground">Scanning the web for you…</h2>
+              <p className="text-muted-foreground text-sm">This can take a minute. We're checking social media, search engines, and AI databases for unauthorized use of your likeness.</p>
+            </div>
+            <Button
+              onClick={runScan}
+              variant="outline"
+              size="lg"
+              className="gap-2"
+            >
+              <RefreshCw className="w-4 h-4" /> Stop Scan
+            </Button>
+          </div>
+        )}
 
         {/* Identity Footprint */}
         <Card className="glass-card border-border/30 mb-6 relative">
