@@ -289,23 +289,47 @@ const Register = () => {
       };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-      if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
       setCameraOpen(true);
       setCameraError(false);
       const cams = await enumerateCams();
       const activeId = stream.getVideoTracks()[0]?.getSettings().deviceId;
       if (activeId) setSelectedDeviceId(activeId);
       else if (!selectedDeviceId && cams[0]) setSelectedDeviceId(cams[0].deviceId);
-      runDetection();
     } catch (e: any) {
       setCameraError(true);
       toast({ title: "Camera unavailable", description: "Could not start camera. You can upload photos instead.", variant: "destructive" });
     }
   };
 
+  // Attach stream to video element after it renders
+  useEffect(() => {
+    if (cameraOpen && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().then(() => runDetection()).catch(() => {});
+    }
+  }, [cameraOpen]);
+
   const switchCamera = async (deviceId: string) => {
     setSelectedDeviceId(deviceId);
-    if (cameraOpen) await startCamera(deviceId);
+    if (cameraOpen) {
+      // Stop detection and get new stream
+      if (detectRef.current) { clearInterval(detectRef.current); detectRef.current = null; }
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: deviceId }, width: { ideal: 720 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+          runDetection();
+        }
+      } catch (e: any) {
+        toast({ title: "Camera error", description: e?.message || "Could not switch camera.", variant: "destructive" });
+      }
+    }
   };
 
   useEffect(() => {
