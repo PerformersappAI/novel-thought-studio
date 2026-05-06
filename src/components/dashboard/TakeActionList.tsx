@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, ShieldAlert, FileSearch, Mic, BadgeCheck, IdCard, UserX } from "lucide-react";
+import { ArrowRight, ShieldAlert, FileSearch, Mic, BadgeCheck, IdCard, UserX, Stamp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SITUATIONS = [
