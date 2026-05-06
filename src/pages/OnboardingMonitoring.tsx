@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import TrustBanner from "@/components/onboarding/TrustBanner";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
 import OnboardingBackButton from "@/components/onboarding/OnboardingBackButton";
