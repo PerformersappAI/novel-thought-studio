@@ -355,8 +355,8 @@ const TrademarkKit = () => {
           asChild
           className="w-full font-display bg-destructive hover:bg-destructive/90 text-destructive-foreground"
         >
-          <a href="https://www.americanbar.org/groups/intellectual_property_law/resources/find-a-lawyer/" target="_blank" rel="noopener noreferrer">
-            Find a Trademark Attorney <ExternalLink className="w-4 h-4 ml-1" />
+          <a href="https://www.legalzoom.com/business/intellectual-property/trademark-registration-overview.html" target="_blank" rel="noopener noreferrer">
+            File My Trademark on LegalZoom <ExternalLink className="w-4 h-4 ml-1" />
           </a>
         </Button>
       </div>
