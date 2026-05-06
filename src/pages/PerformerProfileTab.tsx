@@ -22,6 +22,7 @@ const YEARS = ["0-2", "3-5", "6-10", "10+"];
 const MARKETS = ["Los Angeles", "New York", "Atlanta", "Chicago", "London", "Other"];
 
 const PerformerProfileTab = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
