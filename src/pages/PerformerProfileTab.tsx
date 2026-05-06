@@ -50,6 +50,8 @@ const PerformerProfileTab = () => {
         tiktok_handle: data?.tiktok_handle ?? "",
         youtube_handle: data?.youtube_handle ?? "",
         is_discoverable: data?.is_discoverable ?? false,
+        signature_phrase: data?.signature_phrase ?? "",
+        trademark_entity: data?.trademark_entity ?? "",
       });
 
       const paths = [data?.face_capture_front_url, data?.face_capture_left_url, data?.face_capture_right_url].filter(Boolean) as string[];
