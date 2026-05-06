@@ -178,6 +178,33 @@ export type Database = {
           },
         ]
       }
+      contracts: {
+        Row: {
+          created_at: string
+          extracted_text: string
+          flagged_terms: Json
+          id: string
+          risk_level: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          extracted_text?: string
+          flagged_terms?: Json
+          id?: string
+          risk_level?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          extracted_text?: string
+          flagged_terms?: Json
+          id?: string
+          risk_level?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       identity_verifications: {
         Row: {
           created_at: string
