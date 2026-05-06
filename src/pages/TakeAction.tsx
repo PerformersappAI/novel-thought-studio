@@ -22,7 +22,8 @@ type SituationKey =
   | "voice-misuse"
   | "share-verified"
   | "build-kit"
-  | "fake-profile";
+  | "fake-profile"
+  | "protect-trademark";
 
 const SITUATIONS: { key: SituationKey; icon: any; label: string }[] = [
   { key: "found-face", icon: ShieldAlert, label: "I found my face used without permission" },
