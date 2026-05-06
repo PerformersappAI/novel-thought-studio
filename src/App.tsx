@@ -32,6 +32,7 @@ import LikenessMonitor from "./pages/LikenessMonitor";
 import Monitoring from "./pages/Monitoring";
 import FaceClaimWizard from "./pages/FaceClaimWizard";
 import ContractChecker from "./pages/ContractChecker";
+import TrademarkKit from "./pages/TrademarkKit";
 import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
 import Register from "./pages/Register";
@@ -97,6 +98,7 @@ const App = () => (
             <Route path="/onboarding/monitoring" element={<ProtectedRoute><OnboardingMonitoring /></ProtectedRoute>} />
             <Route path="/onboarding/complete" element={<ProtectedRoute><OnboardingComplete /></ProtectedRoute>} />
             <Route path="/dashboard/profile" element={<ProtectedRoute><PerformerProfileTab /></ProtectedRoute>} />
+            <Route path="/dashboard/trademark" element={<ProtectedRoute><TrademarkKit /></ProtectedRoute>} />
             <Route path="/dashboard/action/dmca" element={<ProtectedRoute><DmcaAction /></ProtectedRoute>} />
             <Route path="/dashboard/action/cease-desist" element={<ProtectedRoute><CeaseDesistAction /></ProtectedRoute>} />
             <Route path="/dashboard/action/report" element={<ProtectedRoute><ReportPlatformAction /></ProtectedRoute>} />

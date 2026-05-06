@@ -442,9 +442,12 @@ export type Database = {
           preferred_language: string
           primary_market: string | null
           production_type: string | null
+          signature_phrase: string | null
           slug: string | null
           stage_name: string | null
           tiktok_handle: string | null
+          trademark_entity: string | null
+          trademark_status: string | null
           union_affiliation: string | null
           union_id: string | null
           union_verified: boolean | null
@@ -489,9 +492,12 @@ export type Database = {
           preferred_language?: string
           primary_market?: string | null
           production_type?: string | null
+          signature_phrase?: string | null
           slug?: string | null
           stage_name?: string | null
           tiktok_handle?: string | null
+          trademark_entity?: string | null
+          trademark_status?: string | null
           union_affiliation?: string | null
           union_id?: string | null
           union_verified?: boolean | null
@@ -536,9 +542,12 @@ export type Database = {
           preferred_language?: string
           primary_market?: string | null
           production_type?: string | null
+          signature_phrase?: string | null
           slug?: string | null
           stage_name?: string | null
           tiktok_handle?: string | null
+          trademark_entity?: string | null
+          trademark_status?: string | null
           union_affiliation?: string | null
           union_id?: string | null
           union_verified?: boolean | null
