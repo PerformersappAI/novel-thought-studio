@@ -32,6 +32,7 @@ const SITUATIONS: { key: SituationKey; icon: any; label: string }[] = [
   { key: "share-verified", icon: BadgeCheck, label: "I want to share my verified status" },
   { key: "build-kit", icon: IdCard, label: "I need to build my media kit" },
   { key: "fake-profile", icon: UserX, label: "I want to report a fake profile using my photos" },
+  { key: "protect-trademark", icon: Stamp, label: "I want to protect my name or catchphrase" },
 ];
 
 type Tool = {
