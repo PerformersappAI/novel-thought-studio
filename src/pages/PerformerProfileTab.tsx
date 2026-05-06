@@ -296,10 +296,28 @@ const PerformerProfileTab = () => {
             </div>
           </div>
 
-          <Button asChild className="font-display w-full sm:w-auto">
-            <Link to="/dashboard/trademark">
-              Start My Trademark Kit <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
+          <Button
+            className="font-display w-full sm:w-auto"
+            onClick={async () => {
+              if (!user) return;
+              setSaving(true);
+              const { error } = await supabase
+                .from("profiles")
+                .update({
+                  signature_phrase: form.signature_phrase || null,
+                  trademark_entity: form.trademark_entity || null,
+                } as any)
+                .eq("user_id", user.id);
+              setSaving(false);
+              if (error) {
+                toast({ title: "Save failed", description: error.message, variant: "destructive" });
+                return;
+              }
+              navigate("/dashboard/trademark");
+            }}
+            disabled={saving}
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Start My Trademark Kit <ArrowRight className="w-4 h-4 ml-1" /></>}
           </Button>
         </div>
 
