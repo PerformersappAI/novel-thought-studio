@@ -185,9 +185,36 @@ const OnboardingMonitoring = () => {
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center">
-            You can upgrade to Pro Shield anytime from your dashboard.
-          </p>
+          {/* Promo code */}
+          <div className="text-center space-y-2">
+            {!promoOpen ? (
+              <button
+                onClick={() => setPromoOpen(true)}
+                className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
+              >
+                Have a promo code?
+              </button>
+            ) : (
+              <div className="max-w-sm mx-auto space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => { setPromoCode(e.target.value); setPromoError(""); }}
+                    className="text-sm"
+                    onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+                  />
+                  <Button onClick={applyPromo} variant="secondary" size="sm" className="font-display shrink-0">
+                    Apply
+                  </Button>
+                </div>
+                {promoError && <p className="text-xs text-destructive">{promoError}</p>}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              You can upgrade to Pro Shield anytime from your dashboard.
+            </p>
+          </div>
         </motion.div>
       </div>
     </div>
