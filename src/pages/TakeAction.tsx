@@ -7,6 +7,7 @@ import {
   Mic,
   BadgeCheck,
   IdCard,
+  Stamp,
   UserX,
   ArrowRight,
   ChevronDown,
@@ -21,7 +22,8 @@ type SituationKey =
   | "voice-misuse"
   | "share-verified"
   | "build-kit"
-  | "fake-profile";
+  | "fake-profile"
+  | "protect-trademark";
 
 const SITUATIONS: { key: SituationKey; icon: any; label: string }[] = [
   { key: "found-face", icon: ShieldAlert, label: "I found my face used without permission" },
@@ -30,6 +32,7 @@ const SITUATIONS: { key: SituationKey; icon: any; label: string }[] = [
   { key: "share-verified", icon: BadgeCheck, label: "I want to share my verified status" },
   { key: "build-kit", icon: IdCard, label: "I need to build my media kit" },
   { key: "fake-profile", icon: UserX, label: "I want to report a fake profile using my photos" },
+  { key: "protect-trademark", icon: Stamp, label: "I want to protect my name or catchphrase" },
 ];
 
 type Tool = {
@@ -95,6 +98,15 @@ const TOOLS: Tool[] = [
     to: "/dashboard/monitor",
     cta: "Open Scanner",
     triggers: ["found-face", "fake-profile"],
+  },
+  {
+    id: "trademark",
+    title: "Start Your Trademark Kit",
+    whenToUse:
+      "Protect your name, stage name, or signature catchphrase with a trademark filing. We'll walk you through setting up your sound mark, business entity, and filing status.",
+    to: "/dashboard/trademark",
+    cta: "Open Trademark Kit",
+    triggers: ["protect-trademark", "share-verified"],
   },
 ];
 

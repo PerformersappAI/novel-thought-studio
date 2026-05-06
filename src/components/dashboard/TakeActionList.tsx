@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, ShieldAlert, FileSearch, Mic, BadgeCheck, IdCard, UserX } from "lucide-react";
+import { ArrowRight, ShieldAlert, FileSearch, Mic, BadgeCheck, IdCard, UserX, Stamp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SITUATIONS = [
@@ -32,6 +32,11 @@ const SITUATIONS = [
     icon: UserX,
     label: "I want to report a fake profile using my photos",
     to: "/dashboard/take-action",
+  },
+  {
+    icon: Stamp,
+    label: "I want to protect my name or catchphrase",
+    to: "/dashboard/trademark",
   },
 ];
 
