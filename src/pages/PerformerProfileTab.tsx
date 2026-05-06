@@ -252,6 +252,56 @@ const PerformerProfileTab = () => {
           )}
         </div>
 
+        {/* Trademark Protection */}
+        <div className="glass-card rounded-2xl p-6 space-y-5">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+              <Stamp className="w-5 h-5 text-accent" /> Trademark Protection
+            </h2>
+            <Badge
+              variant={
+                profile?.trademark_status === "filed" ? "default" :
+                profile?.trademark_status === "in_progress" ? "secondary" : "outline"
+              }
+              className={
+                profile?.trademark_status === "filed" ? "bg-green-600/20 text-green-400 border-green-500/30" :
+                profile?.trademark_status === "in_progress" ? "bg-yellow-600/20 text-yellow-400 border-yellow-500/30" :
+                "text-muted-foreground"
+              }
+            >
+              {profile?.trademark_status === "filed" ? "Filed" :
+               profile?.trademark_status === "in_progress" ? "In Progress" : "Not Started"}
+            </Badge>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Signature Phrase (Sound Mark)</Label>
+              <Input
+                placeholder={`Hey it's ${form.stage_name || form.legal_name || "[Your Name]"}`}
+                value={form.signature_phrase}
+                onChange={(e) => update("signature_phrase", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Your unique catchphrase that identifies you — this becomes your registered sound mark.</p>
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Business Entity Name</Label>
+              <Input
+                placeholder={`${form.stage_name || form.legal_name || "[Name]"} Rights Management LLC`}
+                value={form.trademark_entity}
+                onChange={(e) => update("trademark_entity", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">The legal entity that will own your trademark filing.</p>
+            </div>
+          </div>
+
+          <Button asChild className="font-display w-full sm:w-auto">
+            <Link to="/dashboard/trademark">
+              Start My Trademark Kit <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </Button>
+        </div>
+
         <DashboardTrustFooter />
       </div>
     </DashboardLayout>
