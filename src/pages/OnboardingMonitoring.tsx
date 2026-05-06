@@ -57,12 +57,26 @@ const Tile = ({ name, Icon }: { name: string; Icon: any }) => (
   </div>
 );
 
+const VALID_PROMO_CODES = ["CLAIMVIP", "PROSHIELD2026", "SALFREE"];
+
 const OnboardingMonitoring = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [promoCode, setPromoCode] = useState("");
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoError, setPromoError] = useState("");
 
   const continueBasic = () => navigate("/onboarding/complete?tier=basic");
   const activatePro = () => navigate("/pricing?tier=pro&from=onboarding");
+
+  const applyPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    if (VALID_PROMO_CODES.includes(code)) {
+      navigate("/onboarding/complete?tier=pro&promo=" + code);
+    } else {
+      setPromoError("Invalid promo code. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
