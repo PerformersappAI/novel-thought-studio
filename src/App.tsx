@@ -100,6 +100,7 @@ const App = () => (
             <Route path="/onboarding/complete" element={<ProtectedRoute><OnboardingComplete /></ProtectedRoute>} />
             <Route path="/dashboard/profile" element={<ProtectedRoute><PerformerProfileTab /></ProtectedRoute>} />
             <Route path="/dashboard/trademark" element={<ProtectedRoute><TrademarkKit /></ProtectedRoute>} />
+            <Route path="/dashboard/contract-scanner" element={<ProtectedRoute><ContractScannerPage /></ProtectedRoute>} />
             <Route path="/dashboard/action/dmca" element={<ProtectedRoute><DmcaAction /></ProtectedRoute>} />
             <Route path="/dashboard/action/cease-desist" element={<ProtectedRoute><CeaseDesistAction /></ProtectedRoute>} />
             <Route path="/dashboard/action/report" element={<ProtectedRoute><ReportPlatformAction /></ProtectedRoute>} />
