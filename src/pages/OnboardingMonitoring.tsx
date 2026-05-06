@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import TrustBanner from "@/components/onboarding/TrustBanner";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
 import OnboardingBackButton from "@/components/onboarding/OnboardingBackButton";
@@ -55,12 +57,26 @@ const Tile = ({ name, Icon }: { name: string; Icon: any }) => (
   </div>
 );
 
+const VALID_PROMO_CODES = ["CLAIMVIP", "PROSHIELD2026", "SALFREE"];
+
 const OnboardingMonitoring = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [promoCode, setPromoCode] = useState("");
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoError, setPromoError] = useState("");
 
   const continueBasic = () => navigate("/onboarding/complete?tier=basic");
   const activatePro = () => navigate("/pricing?tier=pro&from=onboarding");
+
+  const applyPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    if (VALID_PROMO_CODES.includes(code)) {
+      navigate("/onboarding/complete?tier=pro&promo=" + code);
+    } else {
+      setPromoError("Invalid promo code. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -169,9 +185,36 @@ const OnboardingMonitoring = () => {
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center">
-            You can upgrade to Pro Shield anytime from your dashboard.
-          </p>
+          {/* Promo code */}
+          <div className="text-center space-y-2">
+            {!promoOpen ? (
+              <button
+                onClick={() => setPromoOpen(true)}
+                className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
+              >
+                Have a promo code?
+              </button>
+            ) : (
+              <div className="max-w-sm mx-auto space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => { setPromoCode(e.target.value); setPromoError(""); }}
+                    className="text-sm"
+                    onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+                  />
+                  <Button onClick={applyPromo} variant="secondary" size="sm" className="font-display shrink-0">
+                    Apply
+                  </Button>
+                </div>
+                {promoError && <p className="text-xs text-destructive">{promoError}</p>}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              You can upgrade to Pro Shield anytime from your dashboard.
+            </p>
+          </div>
         </motion.div>
       </div>
     </div>
