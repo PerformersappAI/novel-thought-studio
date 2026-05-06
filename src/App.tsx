@@ -33,6 +33,7 @@ import Monitoring from "./pages/Monitoring";
 import FaceClaimWizard from "./pages/FaceClaimWizard";
 import ContractChecker from "./pages/ContractChecker";
 import TrademarkKit from "./pages/TrademarkKit";
+import ContractScannerPage from "./pages/ContractScannerPage";
 import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
 import Register from "./pages/Register";
