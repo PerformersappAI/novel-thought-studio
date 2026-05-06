@@ -13,6 +13,7 @@ const performerLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "My Protection" },
   { to: "/dashboard/monitoring", icon: ScanSearch, label: "Scan Results" },
   { to: "/dashboard/take-action", icon: ShieldAlert, label: "Take Action" },
+  { to: "/dashboard/trademark", icon: Stamp, label: "Trademark Kit" },
   { to: "/dashboard/profile", icon: UserCircle, label: "My Profile" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
