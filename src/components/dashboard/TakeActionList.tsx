@@ -33,6 +33,11 @@ const SITUATIONS = [
     label: "I want to report a fake profile using my photos",
     to: "/dashboard/take-action",
   },
+  {
+    icon: Stamp,
+    label: "I want to protect my name or catchphrase",
+    to: "/dashboard/trademark",
+  },
 ];
 
 const TakeActionList = () => {
