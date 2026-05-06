@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Lock, RefreshCw, Shield, Stamp, ArrowRight } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import TrustBanner from "@/components/onboarding/TrustBanner";
