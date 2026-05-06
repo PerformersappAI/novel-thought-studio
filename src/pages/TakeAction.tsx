@@ -7,6 +7,7 @@ import {
   Mic,
   BadgeCheck,
   IdCard,
+  Stamp,
   UserX,
   ArrowRight,
   ChevronDown,
