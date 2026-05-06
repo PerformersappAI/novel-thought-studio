@@ -99,6 +99,15 @@ const TOOLS: Tool[] = [
     cta: "Open Scanner",
     triggers: ["found-face", "fake-profile"],
   },
+  {
+    id: "trademark",
+    title: "Start Your Trademark Kit",
+    whenToUse:
+      "Protect your name, stage name, or signature catchphrase with a trademark filing. We'll walk you through setting up your sound mark, business entity, and filing status.",
+    to: "/dashboard/trademark",
+    cta: "Open Trademark Kit",
+    triggers: ["protect-trademark", "share-verified"],
+  },
 ];
 
 const TakeAction = () => {
