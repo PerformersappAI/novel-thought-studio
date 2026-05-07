@@ -304,6 +304,45 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_reports: {
+        Row: {
+          created_at: string
+          description: string
+          evidence_url: string | null
+          id: string
+          infringing_url: string
+          platform: string
+          status: string
+          updated_at: string
+          user_id: string
+          violation_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          evidence_url?: string | null
+          id?: string
+          infringing_url: string
+          platform: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          violation_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          evidence_url?: string | null
+          id?: string
+          infringing_url?: string
+          platform?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          violation_type?: string
+        }
+        Relationships: []
+      }
       legal_documents: {
         Row: {
           content: string
