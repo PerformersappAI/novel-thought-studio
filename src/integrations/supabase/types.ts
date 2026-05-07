@@ -238,6 +238,33 @@ export type Database = {
         }
         Relationships: []
       }
+      dmca_notices: {
+        Row: {
+          created_at: string
+          id: string
+          infringing_url: string
+          notice_text: string
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          infringing_url: string
+          notice_text: string
+          platform: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          infringing_url?: string
+          notice_text?: string
+          platform?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       identity_statements: {
         Row: {
           created_at: string
