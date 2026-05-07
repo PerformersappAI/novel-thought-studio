@@ -36,6 +36,7 @@ import TrademarkKit from "./pages/TrademarkKit";
 import ContractScannerPage from "./pages/ContractScannerPage";
 import EvidencePacketPage from "./pages/EvidencePacketPage";
 import IdentityStatementPage from "./pages/IdentityStatementPage";
+import AIRightsPage from "./pages/AIRightsPage";
 import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
 import Register from "./pages/Register";
@@ -105,6 +106,7 @@ const App = () => (
             <Route path="/dashboard/contract-scanner" element={<ProtectedRoute><ContractScannerPage /></ProtectedRoute>} />
             <Route path="/dashboard/evidence-packet" element={<ProtectedRoute><EvidencePacketPage /></ProtectedRoute>} />
             <Route path="/dashboard/identity-statement" element={<ProtectedRoute><IdentityStatementPage /></ProtectedRoute>} />
+            <Route path="/dashboard/ai-rights" element={<ProtectedRoute><AIRightsPage /></ProtectedRoute>} />
             <Route path="/dashboard/action/dmca" element={<ProtectedRoute><DmcaAction /></ProtectedRoute>} />
             <Route path="/dashboard/action/cease-desist" element={<ProtectedRoute><CeaseDesistAction /></ProtectedRoute>} />
             <Route path="/dashboard/action/report" element={<ProtectedRoute><ReportPlatformAction /></ProtectedRoute>} />
