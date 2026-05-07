@@ -205,6 +205,33 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_statements: {
+        Row: {
+          created_at: string
+          digital_signature: string
+          id: string
+          signed_at: string
+          statement_text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digital_signature: string
+          id?: string
+          signed_at?: string
+          statement_text: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digital_signature?: string
+          id?: string
+          signed_at?: string
+          statement_text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       identity_verifications: {
         Row: {
           created_at: string
