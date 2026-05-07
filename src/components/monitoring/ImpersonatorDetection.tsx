@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,11 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   Instagram, Music2, Facebook, Twitter, Youtube, Linkedin,
   MessageCircle, Lock as LockIcon, Info, UserX, ArrowRight, Trash2,
+  RefreshCw, ExternalLink, Search,
 } from "lucide-react";
 import ImpersonatorReportModal from "./ImpersonatorReportModal";
 import { useToast } from "@/hooks/use-toast";
@@ -28,24 +30,48 @@ const PLATFORMS = [
   { name: "Content Platforms", Icon: LockIcon },
 ];
 
-type Status = "Confirmed Fake" | "Suspected Fake" | "Fan Account" | "Resolved";
+const STATUS_LABELS: Record<string, string> = {
+  needs_review: "Needs Review",
+  possible_impersonation: "Possible Impersonation",
+  public_profile_found: "Public Profile Found",
+  possible_unauthorized_use: "Possible Unauthorized Use",
+  dismissed: "Dismissed",
+  confirmed: "Confirmed Impersonation",
+};
 
-interface Row {
+const STATUS_STYLES: Record<string, string> = {
+  needs_review: "bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))] border-[hsl(var(--gold))]/40",
+  possible_impersonation: "bg-[hsl(var(--crimson))]/15 text-[hsl(var(--crimson-bright))] border-[hsl(var(--crimson))]/40",
+  public_profile_found: "bg-blue-500/15 text-blue-300 border-blue-500/40",
+  possible_unauthorized_use: "bg-orange-500/15 text-orange-300 border-orange-500/40",
+  dismissed: "bg-emerald-500/15 text-emerald-400 border-emerald-500/40",
+  confirmed: "bg-[hsl(var(--crimson))]/25 text-[hsl(var(--crimson-bright))] border-[hsl(var(--crimson))]/60",
+};
+
+const RISK_STYLES: Record<string, string> = {
+  low: "bg-emerald-500/15 text-emerald-400 border-emerald-500/40",
+  medium: "bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))] border-[hsl(var(--gold))]/40",
+  high: "bg-[hsl(var(--crimson))]/15 text-[hsl(var(--crimson-bright))] border-[hsl(var(--crimson))]/40",
+  critical: "bg-[hsl(var(--crimson))]/25 text-[hsl(var(--crimson-bright))] border-[hsl(var(--crimson))]/60",
+};
+
+const PLATFORM_ICONS: Record<string, any> = {
+  Instagram, TikTok: Music2, LinkedIn: Linkedin, Facebook, YouTube: Youtube, Twitter,
+};
+
+interface FakeProfile {
   id: string;
   platform: string;
-  account: string;
-  followers: string;
-  finding: string;
-  date: string;
-  status: Status;
+  url: string;
+  username: string | null;
+  display_name: string | null;
+  bio_snippet: string | null;
+  confidence_score: number;
+  risk_level: string;
+  status: string;
+  search_query: string | null;
+  found_at: string;
 }
-
-const STATUS_STYLES: Record<Status, string> = {
-  "Confirmed Fake": "bg-[hsl(var(--crimson))]/15 text-[hsl(var(--crimson-bright))] border-[hsl(var(--crimson))]/40",
-  "Suspected Fake": "bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))] border-[hsl(var(--gold))]/40",
-  "Fan Account": "bg-blue-500/15 text-blue-300 border-blue-500/40",
-  "Resolved": "bg-emerald-500/15 text-emerald-400 border-emerald-500/40",
-};
 
 interface Props {
   performerName?: string;
@@ -55,45 +81,89 @@ interface Props {
 const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [rows, setRows] = useState<Row[]>([]);
-  const [modalRow, setModalRow] = useState<Row | null>(null);
+  const [rows, setRows] = useState<FakeProfile[]>([]);
+  const [modalRow, setModalRow] = useState<FakeProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [scanning, setScanning] = useState(false);
 
-  useEffect(() => {
+  const fetchResults = useCallback(async () => {
     if (!user) return;
-    (async () => {
-      const { data } = await supabase
-        .from("mentions")
-        .select("id, mention_type, title, url, found_at, status")
-        .eq("user_id", user.id)
-        .in("status", ["New Alert", "Under Review"])
-        .order("found_at", { ascending: false });
-      
-      const mapped: Row[] = (data ?? []).map((m: any) => ({
-        id: m.id,
-        platform: m.mention_type || "Web",
-        account: m.url ? new URL(m.url).pathname.split("/").pop() || "" : "",
-        followers: "",
-        finding: m.title,
-        date: m.found_at,
-        status: "Suspected Fake" as Status,
-      }));
-      setRows(mapped);
-      setLoading(false);
-    })();
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("possible_fake_profiles" as any)
+      .select("*")
+      .eq("user_id", user.id)
+      .neq("status", "dismissed")
+      .order("found_at", { ascending: false });
+
+    if (!error && data) {
+      setRows(data as unknown as FakeProfile[]);
+    }
+    setLoading(false);
   }, [user]);
 
+  useEffect(() => {
+    fetchResults();
+  }, [fetchResults]);
+
+  const runScan = async () => {
+    if (!user) return;
+    setScanning(true);
+    toast({ title: "Social scan started", description: "Searching Instagram, TikTok, and LinkedIn for possible impersonation profiles…" });
+
+    try {
+      // Get profile data for search queries
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, stage_name")
+        .eq("user_id", user.id)
+        .single();
+
+      const legalName = profile?.full_name || performerName || "";
+      const stageName = profile?.stage_name || "";
+
+      if (!legalName) {
+        toast({ title: "Missing name", description: "Please add your name in your profile first.", variant: "destructive" });
+        setScanning(false);
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("social-scan", {
+        body: { user_id: user.id, legal_name: legalName, stage_name: stageName },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Scan complete",
+        description: `Found ${data?.saved || 0} new possible profiles across social platforms.`,
+      });
+
+      await fetchResults();
+    } catch (err: any) {
+      console.error("Social scan error:", err);
+      toast({ title: "Scan failed", description: err.message || "Something went wrong.", variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const dismissRow = async (id: string) => {
+    await supabase.from("possible_fake_profiles" as any).update({ status: "dismissed" } as any).eq("id", id);
+    setRows((r) => r.filter((x) => x.id !== id));
+    toast({ title: "Dismissed" });
+  };
+
   const deleteRow = async (id: string) => {
-    const { error } = await supabase.from("mentions").delete().eq("id", id);
+    const { error } = await supabase.from("possible_fake_profiles" as any).delete().eq("id", id);
     if (error) { toast({ title: "Failed to delete", variant: "destructive" }); return; }
     setRows((r) => r.filter((x) => x.id !== id));
     toast({ title: "Deleted" });
   };
 
-  const dismiss = async (id: string) => {
-    await supabase.from("mentions").update({ status: "Dismissed" } as any).eq("id", id);
-    setRows((r) => r.filter((x) => x.id !== id));
-    toast({ title: "Dismissed" });
+  const PlatformIcon = ({ platform }: { platform: string }) => {
+    const Icon = PLATFORM_ICONS[platform] || Search;
+    return <Icon className="w-4 h-4" />;
   };
 
   return (
@@ -111,15 +181,24 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
                       <button aria-label="More info"><Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" /></button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      Impersonators create real accounts pretending to be you — using your photos to scam fans, solicit money, or damage your reputation.
+                      Scans public social media profiles on Instagram, TikTok, and LinkedIn for possible impersonation using your name and stage name.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Fake profiles using your photos, name, or likeness across social platforms.
+                Possible fake or impersonation profiles found using your photos, name, or likeness across social platforms.
               </p>
             </div>
+            <Button
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shrink-0"
+              onClick={runScan}
+              disabled={scanning}
+            >
+              <RefreshCw className={`w-4 h-4 ${scanning ? "animate-spin" : ""}`} />
+              {scanning ? "Scanning…" : "Run Social Scan"}
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -143,9 +222,19 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
           {/* Results table */}
           {rows.length === 0 ? (
             <div className="py-10 text-center">
+              <UserX className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">
-                {loading ? "Loading…" : "No impersonator accounts detected. We're watching 24/7."}
+                {loading
+                  ? "Loading…"
+                  : scanning
+                  ? "Scanning social platforms…"
+                  : "No possible social impersonation profiles found yet."}
               </p>
+              {!loading && !scanning && (
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  Click "Run Social Scan" to search Instagram, TikTok, and LinkedIn.
+                </p>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -153,26 +242,58 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Platform</TableHead>
-                    <TableHead>What Was Found</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Profile</TableHead>
+                    <TableHead>Risk</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Date Found</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rows.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium text-foreground whitespace-nowrap">{r.platform}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-md">
-                        <div className="truncate">{r.finding}</div>
+                      <TableCell className="font-medium text-foreground whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <PlatformIcon platform={r.platform} />
+                          {r.platform}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground whitespace-nowrap">
-                        {new Date(r.date).toLocaleDateString()}
+                      <TableCell className="max-w-md">
+                        <div>
+                          <div className="text-foreground font-medium truncate">
+                            {r.display_name || r.username || "Unknown"}
+                          </div>
+                          {r.username && (
+                            <div className="text-xs text-muted-foreground">@{r.username}</div>
+                          )}
+                          {r.bio_snippet && (
+                            <div className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-1">{r.bio_snippet}</div>
+                          )}
+                          {r.url && (
+                            <a
+                              href={r.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5 mt-0.5"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              View Profile <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <span className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${STATUS_STYLES[r.status] || ""}`}>
-                          {r.status}
+                        <span className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${RISK_STYLES[r.risk_level] || ""}`}>
+                          {r.risk_level.charAt(0).toUpperCase() + r.risk_level.slice(1)} ({r.confidence_score}%)
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${STATUS_STYLES[r.status] || STATUS_STYLES.needs_review}`}>
+                          {STATUS_LABELS[r.status] || r.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
+                        {new Date(r.found_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-wrap gap-2 justify-end">
@@ -189,10 +310,10 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
                             className="bg-primary hover:bg-primary/90 text-primary-foreground"
                             onClick={() => setModalRow(r)}
                           >
-                            Report as Fake <ArrowRight className="w-3 h-3 ml-1" />
+                            Report <ArrowRight className="w-3 h-3 ml-1" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => dismiss(r.id)}>
-                            This is Fine
+                          <Button size="sm" variant="outline" onClick={() => dismissRow(r.id)}>
+                            Dismiss
                           </Button>
                         </div>
                       </TableCell>
@@ -211,7 +332,7 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
         performerName={performerName}
         registryId={registryId}
         defaultPlatform={modalRow?.platform || ""}
-        defaultUrl={""}
+        defaultUrl={modalRow?.url || ""}
       />
     </>
   );
