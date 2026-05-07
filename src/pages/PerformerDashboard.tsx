@@ -171,6 +171,18 @@ const PerformerDashboard = () => {
   const faceCaptured = !!profile?.face_registered_at;
   const voiceRegistered = !!profile?.voice_registered_at;
 
+  const hasHeadshot = !!profile?.headshot_url;
+
+  const vaultItems = [
+    { label: "Profile complete (legal name & stage name)", done: profileComplete, points: 20, linkTo: "/dashboard/profile", linkLabel: "Complete" },
+    { label: "Headshot uploaded", done: hasHeadshot, points: 15, linkTo: "/dashboard/profile", linkLabel: "Upload" },
+    { label: "Face capture photos taken", done: faceCaptured, points: 15, linkTo: "/register", linkLabel: "Capture" },
+    { label: "Voice recording uploaded", done: voiceRegistered, points: 15, linkTo: "/register", linkLabel: "Record" },
+    { label: "Scan run at least once", done: hasRunScan, points: 15, linkTo: "/dashboard/monitoring", linkLabel: "Scan" },
+    { label: "Contract scanner used", done: hasUsedContractScanner, points: 10, linkTo: "/dashboard/contract-scanner", linkLabel: "Scan" },
+    { label: "Evidence packet generated", done: hasGeneratedEvidence, points: 10, linkTo: "/dashboard/evidence-packet", linkLabel: "Generate" },
+  ];
+
   let score = 0;
   if (profileComplete) score += 25;
   if (faceCaptured) score += 25;
