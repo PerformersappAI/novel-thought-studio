@@ -597,6 +597,60 @@ export type Database = {
         }
         Relationships: []
       }
+      possible_fake_profiles: {
+        Row: {
+          bio_snippet: string | null
+          confidence_score: number
+          created_at: string
+          display_name: string | null
+          found_at: string
+          id: string
+          platform: string
+          risk_level: string
+          search_query: string | null
+          status: string
+          updated_at: string
+          url: string
+          url_hash: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          bio_snippet?: string | null
+          confidence_score?: number
+          created_at?: string
+          display_name?: string | null
+          found_at?: string
+          id?: string
+          platform: string
+          risk_level?: string
+          search_query?: string | null
+          status?: string
+          updated_at?: string
+          url: string
+          url_hash: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          bio_snippet?: string | null
+          confidence_score?: number
+          created_at?: string
+          display_name?: string | null
+          found_at?: string
+          id?: string
+          platform?: string
+          risk_level?: string
+          search_query?: string | null
+          status?: string
+          updated_at?: string
+          url?: string
+          url_hash?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string | null
