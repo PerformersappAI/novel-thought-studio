@@ -114,6 +114,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               >
                 <link.icon className="w-4 h-4" />
                 {link.label}
+                {"indicator" in link && link.indicator && (
+                  <span className="ml-auto w-2 h-2 rounded-full bg-destructive" />
+                )}
               </Link>
             ))}
           </nav>
