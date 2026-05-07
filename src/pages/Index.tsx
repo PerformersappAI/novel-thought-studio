@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight, FileSignature, Stamp, ShieldCheck, AlertTriangle, FileText, Siren, Target, Award, Quote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -215,6 +216,42 @@ const Index = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="relative py-20 md:py-28 border-t border-border/20">
+        <div className="container px-4 max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Frequently Asked <span className="text-gradient-gold">Questions</span>
+            </h2>
+          </motion.div>
+
+          <Accordion type="single" collapsible className="space-y-3">
+            {[
+              { q: "Is ClaimMyFace a law firm?", a: "No. ClaimMyFace is a documentation and evidence-vault platform. We help you build timestamped proof of your identity and likeness — but we are not attorneys and do not provide legal advice." },
+              { q: "How is this different from just watermarking my photos?", a: "Watermarks can be removed. ClaimMyFace creates SHA-256 cryptographic hashes of your assets, timestamps them on registration, and stores them in a secure vault — creating legal-weight evidence of prior ownership." },
+              { q: "What does the $29 registration fee cover?", a: "Your one-time registration includes identity verification, face vault setup, your Face Registration Certificate, and your Identity Statement — all timestamped proof of ownership." },
+              { q: "Do I need to be SAG-AFTRA to register?", a: "No. ClaimMyFace is open to any performer, creator, or public figure who wants to protect their digital likeness." },
+              { q: "What happens if someone is using my face without permission?", a: "Use our Emergency Response protocol — it walks you through documentation, DMCA filing, and incident reporting step by step." },
+              { q: "Is my data private?", a: "Yes. Your uploaded assets are stored in a private encrypted vault. We never share, sell, or display your personal assets." },
+            ].map((item, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="glass-card border border-border/30 rounded-lg px-5">
+                <AccordionTrigger className="font-display text-sm font-semibold text-left hover:no-underline py-4">
+                  {item.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground font-body leading-relaxed pb-4">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </section>
 
