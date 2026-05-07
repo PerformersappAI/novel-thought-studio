@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch, Stamp, FileSearch, FileArchive, FileSignature, ShieldCheck, AlertTriangle, FileText } from "lucide-react";
+import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch, Stamp, FileSearch, FileArchive, FileSignature, ShieldCheck, AlertTriangle, FileText, Siren } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/cmf-shield-logo.png";
@@ -21,6 +21,7 @@ const performerLinks = [
   { to: "/dashboard/ai-rights", icon: ShieldCheck, label: "AI Usage Rights" },
   { to: "/dashboard/incident-report", icon: AlertTriangle, label: "Report Violation", indicator: true },
   { to: "/dashboard/dmca", icon: FileText, label: "DMCA Generator" },
+  { to: "/dashboard/emergency", icon: Siren, label: "Emergency Response", emergency: true },
   { to: "/dashboard/profile", icon: UserCircle, label: "My Profile" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
@@ -107,9 +108,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 to={link.to}
                 className={cn(
                   "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors",
-                  location.pathname === link.to
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  "emergency" in link && link.emergency
+                    ? "bg-destructive text-destructive-foreground font-semibold hover:bg-destructive/90"
+                    : location.pathname === link.to
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
               >
                 <link.icon className="w-4 h-4" />
@@ -138,9 +141,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     onClick={() => setMobileOpen(false)}
                     className={cn(
                       "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors",
-                      location.pathname === link.to
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                      "emergency" in link && link.emergency
+                        ? "bg-destructive text-destructive-foreground font-semibold hover:bg-destructive/90"
+                        : location.pathname === link.to
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                     )}
                   >
                     <link.icon className="w-4 h-4" />
