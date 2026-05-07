@@ -108,9 +108,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 to={link.to}
                 className={cn(
                   "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors",
-                  location.pathname === link.to
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  "emergency" in link && link.emergency
+                    ? "bg-destructive text-destructive-foreground font-semibold hover:bg-destructive/90"
+                    : location.pathname === link.to
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
               >
                 <link.icon className="w-4 h-4" />
