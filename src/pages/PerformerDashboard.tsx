@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
 import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
 import FacePanel from "@/components/dashboard/FacePanel";
+import VaultCompletionScore from "@/components/dashboard/VaultCompletionScore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -62,6 +63,9 @@ const PerformerDashboard = () => {
   const [externalRiskScore, setExternalRiskScore] = useState<number | null>(null);
   const [mentions, setMentions] = useState<MentionRow[]>([]);
   const [viewMention, setViewMention] = useState<MentionRow | null>(null);
+  const [hasRunScan, setHasRunScan] = useState(false);
+  const [hasUsedContractScanner, setHasUsedContractScanner] = useState(false);
+  const [hasGeneratedEvidence, setHasGeneratedEvidence] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -73,6 +77,8 @@ const PerformerDashboard = () => {
         { data: sub },
         { data: assets },
         { data: mentionsData },
+        { data: scansData },
+        { data: contractsData },
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("identity_verifications").select("status").eq("user_id", user.id).maybeSingle(),
@@ -80,11 +86,17 @@ const PerformerDashboard = () => {
         supabase.from("user_subscriptions").select("status").eq("user_id", user.id).eq("status", "active").maybeSingle(),
         supabase.from("registry_assets").select("registry_id").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1),
         supabase.from("mentions").select("id, mention_type, title, url, found_at, status, thumbnail_url").eq("user_id", user.id).order("found_at", { ascending: false }),
+        supabase.from("likeness_scans").select("id").eq("user_id", user.id).limit(1),
+        supabase.from("contracts").select("id").eq("user_id", user.id).limit(1),
       ]);
 
       setProfile(prof);
       setHasCertificate((certs && certs.length > 0) || localStorage.getItem("cmf_cert_downloaded") === "1");
       setMonitoringActive(!!sub || localStorage.getItem("cmf_monitoring_basic") === "1");
+      setRegistryId(certs?.[0]?.registry_id ?? assets?.[0]?.registry_id ?? null);
+      setHasRunScan(!!(scansData && scansData.length > 0));
+      setHasUsedContractScanner(!!(contractsData && contractsData.length > 0));
+      setHasGeneratedEvidence(localStorage.getItem("cmf_evidence_generated") === "1");
       setRegistryId(certs?.[0]?.registry_id ?? assets?.[0]?.registry_id ?? null);
       const dbRows = (mentionsData ?? []) as MentionRow[];
 
@@ -159,6 +171,18 @@ const PerformerDashboard = () => {
   const faceCaptured = !!profile?.face_registered_at;
   const voiceRegistered = !!profile?.voice_registered_at;
 
+  const hasHeadshot = !!profile?.headshot_url;
+
+  const vaultItems = [
+    { label: "Profile complete (legal name & stage name)", done: profileComplete, points: 20, linkTo: "/dashboard/profile", linkLabel: "Complete" },
+    { label: "Headshot uploaded", done: hasHeadshot, points: 15, linkTo: "/dashboard/profile", linkLabel: "Upload" },
+    { label: "Face capture photos taken", done: faceCaptured, points: 15, linkTo: "/register", linkLabel: "Capture" },
+    { label: "Voice recording uploaded", done: voiceRegistered, points: 15, linkTo: "/register", linkLabel: "Record" },
+    { label: "Scan run at least once", done: hasRunScan, points: 15, linkTo: "/dashboard/monitoring", linkLabel: "Scan" },
+    { label: "Contract scanner used", done: hasUsedContractScanner, points: 10, linkTo: "/dashboard/contract-scanner", linkLabel: "Scan" },
+    { label: "Evidence packet generated", done: hasGeneratedEvidence, points: 10, linkTo: "/dashboard/evidence-packet", linkLabel: "Generate" },
+  ];
+
   let score = 0;
   if (profileComplete) score += 25;
   if (faceCaptured) score += 25;
@@ -195,6 +219,8 @@ const PerformerDashboard = () => {
         </header>
 
         <ProtectionScoreCard score={score} />
+
+        <VaultCompletionScore items={vaultItems} />
 
         <FacePanel thumbs={thumbs} registryId={registryId} registeredAt={profile?.face_registered_at} />
 
