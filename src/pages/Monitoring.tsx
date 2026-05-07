@@ -818,6 +818,9 @@ const Monitoring = () => {
           </div>
         </motion.div>
 
+        {/* ─── SOCIAL IMPERSONATION DETECTION ─── */}
+        <ImpersonatorDetection />
+
         {/* ─── QUICK ACTIONS ─── */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid sm:grid-cols-3 gap-3 mb-8">
           <Link to="/tools/dmca">
