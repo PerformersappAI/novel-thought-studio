@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import ImpersonatorDetection from "@/components/monitoring/ImpersonatorDetection";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
