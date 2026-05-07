@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
 import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
 import FacePanel from "@/components/dashboard/FacePanel";
+import VaultCompletionScore from "@/components/dashboard/VaultCompletionScore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
