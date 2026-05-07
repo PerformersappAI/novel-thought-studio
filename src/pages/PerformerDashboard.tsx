@@ -94,6 +94,10 @@ const PerformerDashboard = () => {
       setHasCertificate((certs && certs.length > 0) || localStorage.getItem("cmf_cert_downloaded") === "1");
       setMonitoringActive(!!sub || localStorage.getItem("cmf_monitoring_basic") === "1");
       setRegistryId(certs?.[0]?.registry_id ?? assets?.[0]?.registry_id ?? null);
+      setHasRunScan(!!(scansData && scansData.length > 0));
+      setHasUsedContractScanner(!!(contractsData && contractsData.length > 0));
+      setHasGeneratedEvidence(localStorage.getItem("cmf_evidence_generated") === "1");
+      setRegistryId(certs?.[0]?.registry_id ?? assets?.[0]?.registry_id ?? null);
       const dbRows = (mentionsData ?? []) as MentionRow[];
 
       // Fetch external mentions if external_actor_id exists
