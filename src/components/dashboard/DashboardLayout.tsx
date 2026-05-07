@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch, Stamp, FileSearch, FileArchive, FileSignature } from "lucide-react";
+import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch, Stamp, FileSearch, FileArchive, FileSignature, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/cmf-shield-logo.png";
@@ -18,6 +18,7 @@ const performerLinks = [
   { to: "/dashboard/contract-scanner", icon: FileSearch, label: "Contract Scanner" },
   { to: "/dashboard/evidence-packet", icon: FileArchive, label: "Evidence Packet" },
   { to: "/dashboard/identity-statement", icon: FileSignature, label: "Identity Statement" },
+  { to: "/dashboard/ai-rights", icon: ShieldCheck, label: "AI Usage Rights" },
   { to: "/dashboard/profile", icon: UserCircle, label: "My Profile" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
