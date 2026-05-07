@@ -221,6 +221,115 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section className="relative py-20 md:py-28 border-t border-border/20">
+        <div className="container px-4 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Choose Your <span className="text-gradient-gold">Protection</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Card 1 — Register & Scan */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <Card className="glass-card border-border/30 h-full flex flex-col">
+                <CardContent className="p-6 flex flex-col flex-1 gap-4">
+                  <h3 className="font-display text-xl font-bold">Register &amp; Scan</h3>
+                  <p className="font-display text-3xl font-bold">$29.99 <span className="text-sm font-normal text-muted-foreground">one-time</span></p>
+                  <ul className="space-y-2 flex-1">
+                    {["Face registered in vault", "SHA-256 cryptographic certificate", "One full platform scan", "Identity Statement", "DMCA generator access"].map(f => (
+                      <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground font-body">
+                        <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    size="lg"
+                    className="w-full font-display font-semibold glow-red mt-4"
+                    onClick={async () => {
+                      try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        const res = await supabase.functions.invoke('create-checkout', {
+                          body: { price_id: 'price_1TUa9bC3S0CSSOB1qjtoOeJj', user_id: user?.id },
+                        });
+                        if (res.data?.url) window.location.href = res.data.url;
+                        else throw new Error(res.data?.error || 'Could not start checkout');
+                      } catch (e: any) { toast.error(e.message); }
+                    }}
+                  >
+                    Get Protected Now <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Card 2 — Pro Shield */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+              <Card className="glass-card border-primary/50 h-full flex flex-col relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-display font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1">
+                  <Star className="w-3 h-3" /> Most Popular
+                </div>
+                <CardContent className="p-6 flex flex-col flex-1 gap-4">
+                  <h3 className="font-display text-xl font-bold">Pro Shield</h3>
+                  <p className="font-display text-3xl font-bold">$9.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                  <ul className="space-y-2 flex-1">
+                    {["Everything in Register & Scan", "Continuous automated monitoring", "Real-time match alerts", "Unlimited DMCA notices", "Monthly protection report", "Priority support"].map(f => (
+                      <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground font-body">
+                        <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    size="lg"
+                    className="w-full font-display font-semibold glow-red mt-4"
+                    onClick={async () => {
+                      try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        const res = await supabase.functions.invoke('create-checkout', {
+                          body: { price_id: 'price_1TUaDHC3S0CSSOB1GtTxWynQ', user_id: user?.id },
+                        });
+                        if (res.data?.url) window.location.href = res.data.url;
+                        else throw new Error(res.data?.error || 'Could not start checkout');
+                      } catch (e: any) { toast.error(e.message); }
+                    }}
+                  >
+                    Start Pro Shield <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Card 3 — Enterprise */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+              <Card className="glass-card border-border/30 h-full flex flex-col">
+                <CardContent className="p-6 flex flex-col flex-1 gap-4">
+                  <h3 className="font-display text-xl font-bold">Enterprise</h3>
+                  <p className="font-display text-lg font-semibold text-muted-foreground flex items-center gap-2"><Building2 className="w-5 h-5" /> For agencies, managers &amp; studios</p>
+                  <ul className="space-y-2 flex-1">
+                    {["Multi-talent vault management", "Bulk registration", "Dedicated account manager", "Custom reporting", "API access"].map(f => (
+                      <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground font-body">
+                        <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button asChild size="lg" variant="outline" className="w-full font-display font-semibold mt-4 border-border/50">
+                    <a href="mailto:will@claimyourface.com">
+                      Contact Us <ArrowRight className="w-4 h-4 ml-2" />
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="relative py-20 md:py-28 border-t border-border/20">
         <div className="container px-4 max-w-3xl mx-auto">
