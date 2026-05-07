@@ -291,6 +291,7 @@ const EvidencePacketPage = () => {
       doc.text("© ClaimMyFace.com — Confidential", pw / 2, ph - 8, { align: "center" });
 
       doc.save(`ClaimMyFace-Evidence-Packet-${new Date().toISOString().slice(0, 10)}.pdf`);
+      localStorage.setItem("cmf_evidence_generated", "1");
       toast({ title: "Evidence Packet PDF downloaded" });
     } catch (err) {
       console.error(err);
