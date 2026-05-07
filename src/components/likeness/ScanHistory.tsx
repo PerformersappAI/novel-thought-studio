@@ -292,7 +292,12 @@ const ScanHistory = ({ scans, loading, onUpdate, profile }: ScanHistoryProps) =>
                       <a href={result.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <div className="font-medium text-sm text-foreground truncate">{result.title || result.url}</div>
-                          {result.match_type && (
+                          {result.match_type === "face_match" && (
+                            <Badge className="text-[10px] shrink-0 bg-primary text-primary-foreground border-primary glow-red animate-pulse font-bold tracking-wide">
+                              🔴 FACE MATCH
+                            </Badge>
+                          )}
+                          {result.match_type && result.match_type !== "face_match" && (
                             <Badge variant="outline" className="text-[10px] shrink-0">
                               {result.match_type === "visually_similar" ? "Similar" : result.match_type === "name_match" ? "Name Match" : "Match"}
                             </Badge>
