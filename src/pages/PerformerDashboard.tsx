@@ -77,6 +77,8 @@ const PerformerDashboard = () => {
         { data: sub },
         { data: assets },
         { data: mentionsData },
+        { data: scansData },
+        { data: contractsData },
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("identity_verifications").select("status").eq("user_id", user.id).maybeSingle(),
@@ -84,6 +86,8 @@ const PerformerDashboard = () => {
         supabase.from("user_subscriptions").select("status").eq("user_id", user.id).eq("status", "active").maybeSingle(),
         supabase.from("registry_assets").select("registry_id").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1),
         supabase.from("mentions").select("id, mention_type, title, url, found_at, status, thumbnail_url").eq("user_id", user.id).order("found_at", { ascending: false }),
+        supabase.from("likeness_scans").select("id").eq("user_id", user.id).limit(1),
+        supabase.from("contracts").select("id").eq("user_id", user.id).limit(1),
       ]);
 
       setProfile(prof);
