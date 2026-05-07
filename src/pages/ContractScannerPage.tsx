@@ -22,8 +22,8 @@ function findFlags(text: string): string[] {
 }
 
 function getRiskLevel(count: number): "green" | "yellow" | "red" {
-  if (count === 0) return "green";
-  if (count <= 3) return "yellow";
+  if (count <= 1) return "green";
+  if (count <= 4) return "yellow";
   return "red";
 }
 
@@ -47,7 +47,7 @@ function highlightText(text: string, flags: string[]): React.ReactNode {
 const riskConfig = {
   green: { label: "Low Risk", color: "text-green-400", bg: "bg-green-500/10 border-green-500/30", icon: CheckCircle },
   yellow: { label: "Medium Risk", color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/30", icon: AlertTriangle },
-  red: { label: "High Risk", color: "text-red-400", bg: "bg-red-500/10 border-red-500/30", icon: ShieldAlert },
+  red: { label: "High Risk — Attorney Review Strongly Recommended", color: "text-red-400", bg: "bg-red-500/10 border-red-500/30", icon: ShieldAlert },
 };
 
 const ContractScannerPage = () => {
@@ -187,7 +187,7 @@ const ContractScannerPage = () => {
             )}
 
             <p className="text-xs text-muted-foreground text-center italic">
-              This is an automated risk flag, not a legal interpretation.
+              This is an automated risk flag only, not legal advice.
             </p>
           </>
         )}
