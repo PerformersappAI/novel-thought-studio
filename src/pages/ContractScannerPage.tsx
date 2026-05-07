@@ -22,8 +22,8 @@ function findFlags(text: string): string[] {
 }
 
 function getRiskLevel(count: number): "green" | "yellow" | "red" {
-  if (count === 0) return "green";
-  if (count <= 3) return "yellow";
+  if (count <= 1) return "green";
+  if (count <= 4) return "yellow";
   return "red";
 }
 
