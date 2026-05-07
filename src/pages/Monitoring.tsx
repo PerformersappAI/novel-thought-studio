@@ -841,26 +841,36 @@ const Monitoring = () => {
                 <DialogDescription className="whitespace-normal break-words">{selected.finding}</DialogDescription>
               </DialogHeader>
 
-              {selected.thumbnailUrl ? (
-                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
-                  <img src={selected.thumbnailUrl} alt={selected.finding} className="w-full h-full object-cover" />
-                </div>
-              ) : selected.url && selected.url !== "#" && /\.(jpg|jpeg|png|gif|webp|svg)/i.test(selected.url) ? (
-                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border/40">
-                  <img src={selected.url} alt={selected.finding} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
-                </div>
-              ) : selected.url && selected.url !== "#" ? (
-                <a href={selected.url} target="_blank" rel="noopener noreferrer" className="block w-full rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:bg-secondary/30 transition-colors p-4">
-                  <div className="flex items-center gap-3">
-                    {(() => { const PIcon = getPlatformIcon(selected.platform); return <PIcon className="w-8 h-8 text-primary shrink-0" />; })()}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{selected.finding || selected.platform}</p>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{selected.url}</p>
+              {/* Screenshot preview */}
+              {selected.url && selected.url !== "#" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Page Preview</p>
+                  <a href={selected.url} target="_blank" rel="noopener noreferrer" className="block w-full rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors relative group">
+                    <div className="aspect-video w-full bg-secondary/30 relative">
+                      <img
+                        src={selected.thumbnailUrl || `https://image.thum.io/get/width/600/crop/400/${selected.url}`}
+                        alt={`Preview of ${selected.finding}`}
+                        className="w-full h-full object-cover object-top"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = "none";
+                          const fallback = target.parentElement?.querySelector(".preview-fallback") as HTMLElement;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                      <div className="preview-fallback absolute inset-0 items-center justify-center bg-secondary/40 hidden">
+                        {(() => { const PIcon = getPlatformIcon(selected.platform); return <PIcon className="w-10 h-10 text-muted-foreground/40" />; })()}
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                          <ExternalLink className="w-3 h-3" /> Open page
+                        </span>
+                      </div>
                     </div>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
-                  </div>
-                </a>
-              ) : null}
+                  </a>
+                </div>
+              )}
 
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
