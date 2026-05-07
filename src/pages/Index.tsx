@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight } from "lucide-react";
+import { Shield, ArrowRight, FileSignature, Stamp, ShieldCheck, AlertTriangle, FileText, Siren, Target, Award } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -113,6 +114,67 @@ const Index = () => {
           >
             Free. Takes 5 minutes. No credit card required.
           </motion.p>
+        </div>
+      </section>
+
+      {/* Your Complete Protection Suite */}
+      <section className="relative py-20 md:py-28">
+        <div className="container px-4 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Your Complete <span className="text-gradient-gold">Protection Suite</span>
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto font-body">
+              Every tool a performer needs to document, defend, and protect their identity — all in one dashboard.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: FileSignature, title: "Identity Statement", desc: "Sign a timestamped declaration proving ownership of your face, voice, and likeness." },
+              { icon: Stamp, title: "Trademark Kit", desc: "Prepare and file sound marks and visual trademarks to legally protect your identity." },
+              { icon: ShieldCheck, title: "AI Usage Rights", desc: "Publicly declare what AI can and cannot do with your voice, face, and name." },
+              { icon: AlertTriangle, title: "Report Violation", desc: "File incident reports when your likeness is used without consent on any platform." },
+              { icon: FileText, title: "DMCA Generator", desc: "Generate legally formatted DMCA takedown notices ready to send to any platform." },
+              { icon: Siren, title: "Emergency Response", desc: "Follow a step-by-step protocol when your identity is being actively misused." },
+              { icon: Target, title: "Vault Score", desc: "Track your protection progress and see exactly what steps remain to secure your identity." },
+              { icon: Award, title: "Face Certificate", desc: "Receive a cryptographic ownership certificate proving your biometric registration." },
+            ].map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Card className="glass-card border-border/30 h-full hover:border-primary/30 transition-colors">
+                  <CardContent className="p-5 space-y-3">
+                    <feature.icon className="w-6 h-6 text-primary" />
+                    <h3 className="font-display font-bold text-sm">{feature.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed font-body">{feature.desc}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mt-12"
+          >
+            <Button asChild size="lg" className="font-display text-base font-semibold px-8 h-14 glow-red">
+              <Link to="/register">
+                Start Protecting Yourself Free <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
+            </Button>
+          </motion.div>
         </div>
       </section>
 
