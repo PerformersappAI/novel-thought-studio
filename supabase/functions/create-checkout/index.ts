@@ -23,8 +23,12 @@ Deno.serve(async (req) => {
 
     const origin = req.headers.get('origin') || 'https://claimmyface.com'
 
+    // Fetch the price from Stripe to determine if it's recurring
+    const price = await stripe.prices.retrieve(price_id)
+    const mode = price.recurring ? 'subscription' : 'payment'
+
     const session = await stripe.checkout.sessions.create({
-      mode: price_id.includes('MONTHLY') || price_id.includes('month') ? 'subscription' : 'payment',
+      mode,
       line_items: [{ price: price_id, quantity: 1 }],
       success_url: `${origin}/dashboard?upgraded=true`,
       cancel_url: `${origin}/`,
