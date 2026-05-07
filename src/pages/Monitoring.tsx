@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import ImpersonatorDetection from "@/components/monitoring/ImpersonatorDetection";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -816,6 +817,9 @@ const Monitoring = () => {
             )}
           </div>
         </motion.div>
+
+        {/* ─── SOCIAL IMPERSONATION DETECTION ─── */}
+        <ImpersonatorDetection />
 
         {/* ─── QUICK ACTIONS ─── */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid sm:grid-cols-3 gap-3 mb-8">
