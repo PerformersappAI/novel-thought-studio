@@ -531,6 +531,39 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          dmca_updates: boolean
+          id: string
+          policy_changes: boolean
+          scan_match: boolean
+          updated_at: string
+          user_id: string
+          weekly_summary: boolean
+        }
+        Insert: {
+          created_at?: string
+          dmca_updates?: boolean
+          id?: string
+          policy_changes?: boolean
+          scan_match?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_summary?: boolean
+        }
+        Update: {
+          created_at?: string
+          dmca_updates?: boolean
+          id?: string
+          policy_changes?: boolean
+          scan_match?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_summary?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
