@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight, FileSignature, Stamp, ShieldCheck, AlertTriangle, FileText, Siren, Target, Award } from "lucide-react";
+import { Shield, ArrowRight, FileSignature, Stamp, ShieldCheck, AlertTriangle, FileText, Siren, Target, Award, Quote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
@@ -175,6 +175,46 @@ const Index = () => {
               </Link>
             </Button>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="relative py-20 md:py-28 border-t border-border/20">
+        <div className="container px-4 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              What Performers Are <span className="text-gradient-gold">Saying</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              { name: "Sarah K., Commercial Actor", quote: "I found my face being used in an AI ad without my consent. ClaimMyFace gave me the evidence packet and DMCA notice I needed in minutes." },
+              { name: "Marcus T., Voice Actor", quote: "The AI Usage Rights declaration alone was worth it. Now I have a timestamped record of exactly what I consented to." },
+              { name: "Jenna R., SAG Award Winner", quote: "Every performer needs this. The Vault Score showed me exactly what I was missing and the certificate gives me legal-weight proof of registration." },
+            ].map((t, i) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Card className="glass-card border-border/30 h-full">
+                  <CardContent className="p-6 flex flex-col gap-4">
+                    <Quote className="w-5 h-5 text-primary/60" />
+                    <p className="text-sm text-muted-foreground leading-relaxed font-body italic">"{t.quote}"</p>
+                    <p className="text-sm font-display font-semibold text-foreground mt-auto">{t.name}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
