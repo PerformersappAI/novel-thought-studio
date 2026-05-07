@@ -63,6 +63,9 @@ const PerformerDashboard = () => {
   const [externalRiskScore, setExternalRiskScore] = useState<number | null>(null);
   const [mentions, setMentions] = useState<MentionRow[]>([]);
   const [viewMention, setViewMention] = useState<MentionRow | null>(null);
+  const [hasRunScan, setHasRunScan] = useState(false);
+  const [hasUsedContractScanner, setHasUsedContractScanner] = useState(false);
+  const [hasGeneratedEvidence, setHasGeneratedEvidence] = useState(false);
 
   useEffect(() => {
     if (!user) return;
