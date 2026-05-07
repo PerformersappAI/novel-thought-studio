@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_consent_declarations: {
+        Row: {
+          created_at: string
+          face_likeness: boolean
+          id: string
+          name_use: boolean
+          posthumous_use: boolean
+          updated_at: string
+          user_id: string
+          voice_cloning: boolean
+        }
+        Insert: {
+          created_at?: string
+          face_likeness?: boolean
+          id?: string
+          name_use?: boolean
+          posthumous_use?: boolean
+          updated_at?: string
+          user_id: string
+          voice_cloning?: boolean
+        }
+        Update: {
+          created_at?: string
+          face_likeness?: boolean
+          id?: string
+          name_use?: boolean
+          posthumous_use?: boolean
+          updated_at?: string
+          user_id?: string
+          voice_cloning?: boolean
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
