@@ -327,23 +327,32 @@ const Monitoring = () => {
     const merged = [...dbRows, ...externalRows.filter(r => !r.url || !dbUrls.has(r.url))];
     setMentions(merged);
 
-    const data: Finding[] = merged.map((m) => ({
-      id: m.id,
-      platform: m.mention_type,
-      finding: m.title,
-      category: normalizeCategory(m.mention_type, m.category),
-      date: m.found_at,
-      lastSeen: m.found_at,
-      status: normalizeStatus(m.status),
-      url: m.url || "#",
-      confidence: m.confidence ?? 90,
-      recommended: "Report to Platform" as const,
-      mediaType: normalizeMediaType(m.media_type, m.mention_type),
-      thumbnailUrl: m.thumbnail_url ?? undefined,
-      audioUrl: m.audio_url ?? undefined,
-      excerpt: m.excerpt ?? undefined,
-      matchLabel: m.match_label ?? undefined,
-    }));
+    const data: Finding[] = merged.map((m) => {
+      const enrichedTitle = deriveTitle(m.title, m.url);
+      const enrichedExcerpt = deriveExcerpt(m.excerpt, m.url);
+      const dbCategory = normalizeCategory(m.mention_type, m.category);
+      const isGeneric = isGenericTitle(m.title);
+      const finalCategory = isGeneric || dbCategory === "News & Articles"
+        ? classifyByDomain(m.url, enrichedTitle, enrichedExcerpt)
+        : dbCategory;
+      return {
+        id: m.id,
+        platform: m.mention_type,
+        finding: enrichedTitle,
+        category: finalCategory,
+        date: m.found_at,
+        lastSeen: m.found_at,
+        status: normalizeStatus(m.status),
+        url: m.url || "#",
+        confidence: m.confidence ?? 90,
+        recommended: "Report to Platform" as const,
+        mediaType: normalizeMediaType(m.media_type, m.mention_type),
+        thumbnailUrl: m.thumbnail_url ?? undefined,
+        audioUrl: m.audio_url ?? undefined,
+        excerpt: enrichedExcerpt || undefined,
+        matchLabel: m.match_label ?? undefined,
+      };
+    });
 
     setFindings(data);
   }, [user]);
