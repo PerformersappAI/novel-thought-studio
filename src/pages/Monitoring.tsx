@@ -793,9 +793,22 @@ const Monitoring = () => {
                         />
                       </div>
 
-                      {/* Platform icon */}
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <PIcon className="w-4 h-4 text-primary" />
+                      {/* Platform icon (favicon when available) */}
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
+                        {f.url && f.url !== "#" && faviconUrl(f.url) ? (
+                          <img
+                            src={faviconUrl(f.url)}
+                            alt=""
+                            className="w-5 h-5 rounded-sm"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              img.style.display = "none";
+                              const sib = img.nextElementSibling as HTMLElement | null;
+                              if (sib) sib.style.display = "block";
+                            }}
+                          />
+                        ) : null}
+                        <PIcon className="w-4 h-4 text-primary" style={{ display: f.url && f.url !== "#" && faviconUrl(f.url) ? "none" : "block" }} />
                       </div>
 
                       {/* Content */}
@@ -803,8 +816,14 @@ const Monitoring = () => {
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
+                            {f.excerpt && (
+                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
+                            )}
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className="text-xs text-muted-foreground">{f.platform}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5 uppercase tracking-wider">
+                                {f.category}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{extractDomain(f.url) || f.platform}</span>
                               <span className="text-[10px] text-muted-foreground/50">•</span>
                               <span className="text-xs text-muted-foreground font-mono">{new Date(f.date).toLocaleDateString()}</span>
                               {folder && (
