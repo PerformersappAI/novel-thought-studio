@@ -66,6 +66,9 @@ interface FakeProfile {
   username: string | null;
   display_name: string | null;
   bio_snippet: string | null;
+  profile_pic_url: string | null;
+  follower_count: number | null;
+  match_reason: string | null;
   confidence_score: number;
   risk_level: string;
   status: string;
@@ -76,6 +79,13 @@ interface FakeProfile {
 interface Props {
   performerName?: string;
   registryId?: string | null;
+}
+
+function formatFollowers(n?: number | null): string {
+  if (n == null) return "";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return `${n}`;
 }
 
 const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
