@@ -40,6 +40,58 @@ function getPlatformIcon(type: string) {
   return Globe;
 }
 
+/* ─── URL → domain / category / title helpers ─── */
+function extractDomain(url?: string | null): string {
+  if (!url) return "";
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+function extractPath(url?: string | null): string {
+  if (!url) return "";
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return (u.pathname + u.search).replace(/\/$/, "") || "/";
+  } catch {
+    return "";
+  }
+}
+function classifyByDomain(url?: string | null, title?: string | null, snippet?: string | null): FindingCategory {
+  const d = extractDomain(url).toLowerCase();
+  const text = `${title || ""} ${snippet || ""}`.toLowerCase();
+  if (/(deepfake|ai generated|ai-generated|cloned|clone of)/.test(text)) return "Deepfakes";
+  if (/(instagram|tiktok|facebook|twitter|x\.com|linkedin|youtube|threads\.net|reddit)/.test(d)) return "Social Media";
+  if (/(actorsaccess|backstage|castingnetworks|imdb|lacasting|nycasting|castingfrontier)/.test(d)) return "Casting Platforms";
+  if (/(variety|deadline|hollywoodreporter|people|tmz|ew\.com|nytimes|bbc|cnn|guardian|reuters|forbes|vulture)/.test(d)) return "News & Articles";
+  if (/(shutterstock|gettyimages|adobe|istockphoto|alamy|doubleclick|googlesyndication|ads)/.test(d)) return "Ads & Commercial";
+  return "News & Articles";
+}
+function isGenericTitle(title?: string | null): boolean {
+  if (!title) return true;
+  const t = title.trim().toLowerCase();
+  return t === "" || t.startsWith("web result for") || t.startsWith("result for") || t === "untitled";
+}
+function deriveTitle(rawTitle: string | null | undefined, url: string | null | undefined): string {
+  if (!isGenericTitle(rawTitle)) return rawTitle as string;
+  const d = extractDomain(url);
+  return d || rawTitle || "Untitled result";
+}
+function deriveExcerpt(rawExcerpt: string | null | undefined, url: string | null | undefined): string {
+  const e = (rawExcerpt || "").trim();
+  if (e) return e;
+  const d = extractDomain(url);
+  const p = extractPath(url);
+  return d ? `${d}${p}` : "";
+}
+function faviconUrl(url?: string | null): string {
+  const d = extractDomain(url);
+  if (!d) return "";
+  return `https://www.google.com/s2/favicons?domain=${d}&sz=64`;
+}
+
 /* ─── Radar SVG animation ─── */
 const RadarGraphic = ({ active }: { active: boolean }) => (
   <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto">
