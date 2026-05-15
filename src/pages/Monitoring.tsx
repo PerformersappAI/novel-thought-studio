@@ -300,6 +300,9 @@ const Monitoring = () => {
   const [findings, setFindings] = useState<Finding[]>([]);
   const [mentions, setMentions] = useState<MentionRow[]>([]);
   const [filter, setFilter] = useState<(typeof FILTER_TABS)[number]>("All");
+  const [identityFilter, setIdentityFilter] = useState<string>("All");
+  const [threatFilter, setThreatFilter] = useState<string>("All");
+  const [nameTokens, setNameTokens] = useState<string[]>([]);
   const [searchQ, setSearchQ] = useState("");
   const [selected, setSelected] = useState<Finding | null>(null);
   const [copied, setCopied] = useState(false);
