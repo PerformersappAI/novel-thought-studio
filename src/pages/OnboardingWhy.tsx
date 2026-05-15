@@ -108,15 +108,14 @@ const OnboardingWhy = () => {
             <div className="w-11 h-11 rounded-xl bg-primary/15 border border-primary/40 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="font-display text-2xl font-bold">Your Face Is Already at Risk.</h2>
+            <h2 className="font-display text-2xl font-bold">Your Face, Voice, and Name Can Be Cloned.</h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
-            AI can clone your face from just 3 photos. Your voice from 60 seconds of audio. Right
-            now — without your knowledge — deepfake versions of performers are being used in ads,
-            scam videos, fake social profiles, and unauthorized commercial content. It happened to
-            Tom Hanks. It happened to Taylor Swift. It is happening to working actors, voice
-            artists, and content creators every single day. You do not have to be famous to be a
-            target. You just have to exist online.
+            AI can clone your face from 3 photos. Your voice from 60 seconds of audio.
+            Right now — without your knowledge — deepfake versions of performers are being used
+            in ads, scam videos, fake social profiles, and unauthorized commercial content. You
+            don't have to be famous to be a target. You just have to exist online. The first
+            move is to claim what's yours: build your identity map here.
           </p>
         </motion.section>
 
