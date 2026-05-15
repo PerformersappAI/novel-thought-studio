@@ -148,14 +148,12 @@ Deno.serve(async (req) => {
     // GET /mentions/{actor_id}
     if (action === "get_mentions" && req.method === "GET") {
       let actorId = url.searchParams.get("actor_id");
-      if (!actorId) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("external_actor_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        actorId = (profile as any)?.external_actor_id ?? null;
-      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("external_actor_id, full_name, stage_name, legal_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!actorId) actorId = (profile as any)?.external_actor_id ?? null;
       if (!actorId) {
         return new Response(JSON.stringify({ mentions: [] }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -163,16 +161,81 @@ Deno.serve(async (req) => {
       }
       const extRes = await fetch(`${EXTERNAL_API}/mentions/${actorId}`);
       const rawText = await extRes.text();
-      console.log("External API raw response (first 2000 chars):", rawText.substring(0, 2000));
-      let extData;
+      let extData: any;
       try { extData = JSON.parse(rawText); } catch { extData = { mentions: [] }; }
-      const mentionsList = extData?.mentions || extData?.results || extData?.data || [];
-      if (Array.isArray(mentionsList) && mentionsList.length > 0) {
-        console.log("First mention keys:", JSON.stringify(Object.keys(mentionsList[0])));
-        console.log("First 3 mention_types:", JSON.stringify(mentionsList.slice(0, 3).map((m: any) => m.mention_type)));
-        console.log("All unique mention_types:", JSON.stringify([...new Set(mentionsList.map((m: any) => m.mention_type))]));
+      const mentionsList: any[] = extData?.mentions || extData?.results || extData?.data || [];
+
+      // Build name tokens for relevance matching
+      const rawNames = [
+        (profile as any)?.full_name,
+        (profile as any)?.stage_name,
+        (profile as any)?.legal_name,
+      ].filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+      const nameTokens = new Set<string>();
+      for (const n of rawNames) {
+        const lower = n.toLowerCase().trim();
+        if (lower.length < 4) continue;
+        nameTokens.add(lower);                          // "will roberts"
+        nameTokens.add(lower.replace(/\s+/g, "-"));     // "will-roberts"
+        nameTokens.add(lower.replace(/\s+/g, "_"));     // "will_roberts"
+        nameTokens.add(lower.replace(/\s+/g, ""));      // "willroberts"
+        nameTokens.add(lower.replace(/\s+/g, "+"));     // url-encoded
       }
-      return new Response(JSON.stringify(extData), {
+
+      const ALLOWED_DOMAINS = new Set([
+        "youtube.com","youtu.be","instagram.com","tiktok.com","facebook.com",
+        "twitter.com","x.com","imdb.com","backstage.com","castingnetworks.com",
+        "actorsaccess.com","spotlight.com","mandy.com","linkedin.com","vimeo.com",
+        "threads.net","twitch.tv",
+      ]);
+      const BLOCKED_PATTERNS: RegExp[] = [
+        /(^|\.)microsoft\.com$/i,
+        /(^|\.)bing\.com$/i,
+        /(^|\.)whatsapp\.com$/i,
+        /(^|\.)wikipedia\.org$/i,
+        /(^|\.)wikihow\.com$/i,
+        /(^|\.)bill\.com$/i,
+        /(^|\.)legilist\.com$/i,
+        /(^|\.)govtrack\.us$/i,
+        /\.gov$/i,
+        /dictionary/i,
+        /7esl\.com$/i,
+        /robertscamera\.com$/i,
+        /wmagazine\.com$/i,
+      ];
+
+      const filtered = (mentionsList || []).filter((m: any) => {
+        const url: string = (m?.url || "").toString();
+        const title: string = (m?.title || "").toString();
+        if (!url) return false;
+        let host = "";
+        let path = "";
+        try {
+          const u = new URL(url);
+          host = u.hostname.toLowerCase().replace(/^www\./, "");
+          path = (u.pathname + " " + u.search).toLowerCase();
+        } catch { return false; }
+
+        if (BLOCKED_PATTERNS.some((re) => re.test(host))) return false;
+
+        const haystack = (path + " " + title.toLowerCase()).replace(/%20/g, " ");
+        const hasNameMatch = nameTokens.size === 0
+          ? false
+          : [...nameTokens].some((tok) => haystack.includes(tok));
+
+        const rootDomain = host.split(".").slice(-2).join(".");
+        const isAllowed = ALLOWED_DOMAINS.has(host) || ALLOWED_DOMAINS.has(rootDomain);
+
+        // Require name match for everything (allowlisted or not) to prevent
+        // junk like facebook.com/wmagazine or youtube.com/watch?v=W
+        if (!hasNameMatch) return false;
+        // Outside allowlist, only keep if there is a name match (already true here).
+        return isAllowed || hasNameMatch;
+      });
+
+      console.log(`Filtered mentions ${mentionsList.length} → ${filtered.length} for tokens`, [...nameTokens]);
+
+      return new Response(JSON.stringify({ ...extData, mentions: filtered }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
