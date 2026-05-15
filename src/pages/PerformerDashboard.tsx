@@ -213,10 +213,18 @@ const PerformerDashboard = () => {
     setScanning(true);
     toast({ title: "Scanning social media…", description: "This can take up to a minute." });
     try {
-      const { data, error } = await supabase.functions.invoke("scan-performer", {
-        body: { name, stage_name: profile?.stage_name || undefined },
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token || "";
+      const resp = await fetch("https://erylrcexcsaqhptrapvl.supabase.co/functions/v1/smooth-responder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ performer_name: name }),
       });
-      if (error) throw error;
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
       const found = data?.saved ?? data?.total_found ?? 0;
       toast({ title: "Social scan complete", description: `Found ${found} profile${found === 1 ? "" : "s"} across Instagram, TikTok, and LinkedIn.` });
     } catch (err: any) {
