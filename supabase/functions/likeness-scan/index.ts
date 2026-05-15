@@ -3,20 +3,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const EXACT_NAME_QUERY = 'Will Roberts';
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { query, scanId } = await req.json();
-
-    if (!query) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Query is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { scanId } = await req.json();
 
     const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!apiKey) {
@@ -26,7 +21,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const exactQuery = `"${String(query).trim()}"`;
+    const exactQuery = `"${EXACT_NAME_QUERY}"`;
     console.log('Running likeness scan for exact phrase:', exactQuery);
 
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
@@ -68,7 +63,7 @@ Deno.serve(async (req) => {
       "tripadvisor.com","booking.com","expedia.com","walmart.com","ebay.com",
       "etsy.com","aliexpress.com","whitehouse.gov","senate.gov","congress.gov",
     ];
-    const queryLower = String(query).toLowerCase().trim();
+    const queryLower = EXACT_NAME_QUERY.toLowerCase();
 
     const isRelevant = (r: any): boolean => {
       const url: string = (r.url || "").toLowerCase();
