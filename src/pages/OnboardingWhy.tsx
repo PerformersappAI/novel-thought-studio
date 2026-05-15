@@ -193,15 +193,15 @@ const OnboardingWhy = () => {
               <Footprints className="w-5 h-5 text-primary" />
             </div>
             <h2 className="font-display text-2xl font-bold">
-              This Is the Most Important Thing You Can Do for Your Career Right Now.
+              You Own Your Identity. Defend It Now.
             </h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
             You insure your car. You lock your front door. You password-protect your phone. Your
-            face is worth more than all of those things combined — and right now it has zero
-            protection. That ends today. Registration takes 10 minutes. The protection lasts a
-            lifetime. And when the NO FAKES Act passes — performers who registered first will have
-            the strongest legal standing of anyone in the industry.
+            face, voice, and name are worth more than all of those things combined — and right
+            now they have zero protection. That ends today. Building your identity map takes about
+            10 minutes. The scanner runs for life. And when the NO FAKES Act passes, the
+            performers who mapped first will have the strongest legal standing in the industry.
           </p>
         </motion.section>
 
