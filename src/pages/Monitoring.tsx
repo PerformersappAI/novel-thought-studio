@@ -210,9 +210,13 @@ const normalizeCategory = (mentionType?: string | null, category?: string | null
 const MENTION_TYPE_TO_MEDIA: Record<string, Finding["mediaType"]> = {
   youtube: "video",
   tiktok: "video",
+  social_tiktok: "image",
+  social_instagram: "image",
   deepfake: "video",
+  face_match: "image",
   image: "image",
   fake_profile: "image",
+  casting: "image",
   casting_platform: "image",
   ads_commercial: "image",
   voice_clone: "audio",
