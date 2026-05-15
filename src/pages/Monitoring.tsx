@@ -751,10 +751,10 @@ const Monitoring = () => {
               <div className="py-16 text-center">
                 <Radar className="w-10 h-10 text-primary/30 mx-auto mb-3" />
                 <p className="font-display text-lg font-semibold text-foreground">
-                  {findings.length === 0 ? "No results yet" : "No results match this filter"}
+                  {findings.length === 0 ? "Scanner is active. No matches yet." : "No results match this filter"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {findings.length === 0 ? 'Hit "Run My Scan" to scan the web for your likeness.' : "Try a different filter or search term."}
+                  {findings.length === 0 ? 'Run the scanner to sweep the web and social media for your mapped identity.' : "Try a different filter or search term."}
                 </p>
               </div>
             ) : (
