@@ -202,6 +202,30 @@ const PerformerDashboard = () => {
 
   const nextStep = getNextStep();
 
+  const [scanning, setScanning] = useState(false);
+  const handleScanSocial = async () => {
+    if (scanning) return;
+    const name = profile?.legal_name || profile?.full_name;
+    if (!name) {
+      toast({ title: "Add your name first", description: "Complete your profile to run a social scan.", variant: "destructive" });
+      return;
+    }
+    setScanning(true);
+    toast({ title: "Scanning social media…", description: "This can take up to a minute." });
+    try {
+      const { data, error } = await supabase.functions.invoke("scan-performer", {
+        body: { name, stage_name: profile?.stage_name || undefined },
+      });
+      if (error) throw error;
+      const found = data?.saved ?? data?.total_found ?? 0;
+      toast({ title: "Social scan complete", description: `Found ${found} profile${found === 1 ? "" : "s"} across Instagram, TikTok, and LinkedIn.` });
+    } catch (err: any) {
+      toast({ title: "Scan failed", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
+  };
+
   /* Check if URL likely contains an image */
   const urlHasImage = (url: string | null) => {
     if (!url) return false;
