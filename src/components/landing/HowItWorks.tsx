@@ -4,12 +4,12 @@ import { UserPlus, ShieldCheck, Upload, Search, FileCheck, Award } from "lucide-
 import { cn } from "@/lib/utils";
 
 const steps = [
-  { icon: UserPlus, title: "Create Account", desc: "Sign up with your email and build your performer profile. It only takes a minute to get started." },
-  { icon: ShieldCheck, title: "Verify Identity", desc: "Upload a government-issued ID and a clear selfie. Our team verifies your identity to ensure authenticity." },
-  { icon: Upload, title: "Upload Assets", desc: "Register your images, voice samples, video clips, or AI model files. Each is hashed and timestamped for ownership proof." },
-  { icon: Search, title: "Get Reviewed", desc: "Our admin team reviews your submissions, verifies authenticity, and approves your registry entries." },
-  { icon: Award, title: "Get Certified", desc: "Receive a unique Registry ID and downloadable certificate with cryptographic proof of ownership." },
-  { icon: FileCheck, title: "Track & Monitor", desc: "Monitor where your likeness is used. Get alerts on potential misuse. Maintain a full audit trail." },
+  { icon: UserPlus, title: "Create Account", desc: "Sign up and start your identity map. Takes about a minute." },
+  { icon: ShieldCheck, title: "Verify Identity", desc: "Upload a government ID and a clear selfie so every match the scanner finds is provably tied to you." },
+  { icon: Upload, title: "Map Your Identity", desc: "Add your face, voice, videos, and the names you go by. Each one is hashed and timestamped as proof of ownership." },
+  { icon: Search, title: "Scanner Goes Live", desc: "Our scanner starts sweeping the web and social media — Instagram, TikTok, YouTube, Facebook, casting sites, AI/deepfake sources." },
+  { icon: Award, title: "Get Certified", desc: "Receive your Registry ID and downloadable certificate with cryptographic proof you mapped your identity here first." },
+  { icon: FileCheck, title: "Take Action", desc: "Review every match, dismiss what's yours, and fire DMCA notices, cease-and-desists, or platform reports in one tap." },
 ];
 
 const HowItWorks = () => {
