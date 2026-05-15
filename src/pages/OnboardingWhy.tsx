@@ -222,7 +222,7 @@ const OnboardingWhy = () => {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                I'm Ready — Let's Claim My Face <ArrowRight className="w-4 h-4 ml-2" />
+                I'm Ready — Start My Identity Map <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}
           </Button>
