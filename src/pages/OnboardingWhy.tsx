@@ -165,9 +165,9 @@ const OnboardingWhy = () => {
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             {[
-              { Icon: Lock, label: "Official Certificate" },
+              { Icon: Lock, label: "Identity Map Secured" },
               { Icon: BadgeCheck, label: "Verified Badge" },
-              { Icon: Eye, label: "24/7 Monitoring" },
+              { Icon: Eye, label: "Scanner Active 24/7" },
               { Icon: Zap, label: "One-Tap Takedowns" },
             ].map(({ Icon, label }) => (
               <div
