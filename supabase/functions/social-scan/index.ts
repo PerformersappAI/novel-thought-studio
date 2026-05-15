@@ -180,6 +180,58 @@ async function searchLinkedIn(query: string, reason: string): Promise<ProfileRes
   })).filter((r) => r.url);
 }
 
+async function searchYouTube(query: string, reason: string): Promise<ProfileResult[]> {
+  // streamers/youtube-scraper accepts searchKeywords and returns videos with channel info
+  const items = await runApifyActor("streamers~youtube-scraper", {
+    searchKeywords: query,
+    maxResults: 10,
+    maxResultsShorts: 0,
+    maxResultStreams: 0,
+  });
+  const seen = new Set<string>();
+  const out: ProfileResult[] = [];
+  for (const item of items) {
+    const handle = item.channelUsername || item.channelName || item.channelId || "";
+    const channelUrl = item.channelUrl || (handle ? `https://www.youtube.com/${handle.startsWith("@") ? handle : "@" + handle}` : "");
+    if (!channelUrl || seen.has(channelUrl)) continue;
+    seen.add(channelUrl);
+    out.push({
+      platform: "YouTube",
+      url: channelUrl,
+      username: handle,
+      display_name: item.channelName || handle,
+      bio_snippet: (item.channelDescription || item.text || "").slice(0, 300),
+      profile_pic_url: item.channelAvatarUrl || item.channelThumbnail || "",
+      follower_count: typeof item.numberOfSubscribers === "number" ? item.numberOfSubscribers : undefined,
+      search_query: query,
+      match_reason: reason,
+    });
+    if (out.length >= 10) break;
+  }
+  return out;
+}
+
+async function searchFacebook(query: string, reason: string): Promise<ProfileResult[]> {
+  // apify/facebook-pages-search-scraper - searches public Facebook pages by keyword
+  const items = await runApifyActor("apify~facebook-pages-search-scraper", {
+    searchQueries: [query],
+    queries: [query],
+    maxItems: 10,
+    maxResults: 10,
+  });
+  return items.slice(0, 10).map((item: any) => ({
+    platform: "Facebook",
+    url: item.url || item.pageUrl || item.facebookUrl || "",
+    username: item.username || item.pageName || "",
+    display_name: item.title || item.name || item.pageName || "",
+    bio_snippet: (item.intro || item.about || item.description || "").slice(0, 300),
+    profile_pic_url: item.profilePictureUrl || item.profilePhoto || item.image || "",
+    follower_count: typeof item.followers === "number" ? item.followers : (typeof item.likes === "number" ? item.likes : undefined),
+    search_query: query,
+    match_reason: reason,
+  })).filter((r) => r.url);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
