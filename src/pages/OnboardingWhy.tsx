@@ -90,10 +90,10 @@ const OnboardingWhy = () => {
             Before You Begin
           </span>
           <h1 className="font-display text-4xl sm:text-5xl font-bold leading-tight">
-            2 Minutes That Could <span className="text-primary">Save Your Career.</span>
+            Map Your Identity. <span className="text-primary">We'll Watch the Internet for It.</span>
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground">
-            Read this before you register. It matters.
+            We're going to help you map four things — your face, your voice, your work, and your names. Then our scanner watches for them online.
           </p>
         </motion.header>
 
