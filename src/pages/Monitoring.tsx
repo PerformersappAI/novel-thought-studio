@@ -185,9 +185,13 @@ const normalizeStatus = (status?: string | null): Finding["status"] => {
 const MENTION_TYPE_TO_CATEGORY: Record<string, FindingCategory> = {
   youtube: "Social Media",
   tiktok: "Social Media",
+  social_tiktok: "Social Media",
+  social_instagram: "Social Media",
   fake_profile: "Fake Profiles",
+  casting: "Casting Platforms",
   casting_platform: "Casting Platforms",
   deepfake: "Deepfakes",
+  face_match: "Deepfakes",
   ads_commercial: "Ads & Commercial",
   news: "News & Articles",
   voice_clone: "Voice Clones",
