@@ -39,10 +39,10 @@ const ThreeSteps = () => {
           className="text-center mb-14 max-w-2xl mx-auto"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4 leading-tight">
-            Three Steps. <span className="text-gradient-gold">Total Protection.</span>
+            Map your identity. <span className="text-gradient-gold">We do the watching.</span>
           </h2>
           <p className="text-muted-foreground text-base md:text-lg font-body">
-            From zero to legally protected in under 10 minutes.
+            Three steps to put your face, voice, and name under active defense.
           </p>
         </motion.div>
 
