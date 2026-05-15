@@ -25,6 +25,48 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   FILTER_TABS, STATUS_STYLES, type Finding, type FindingCategory,
 } from "@/components/monitoring/findings";
+import { ShieldAlert } from "lucide-react";
+
+/* ─── Section grouping by mention_type ─── */
+const IDENTITY_TYPES = new Set(["face_match", "news", "casting", "web"]);
+const THREAT_TYPES = new Set([
+  "deepfake", "voice_clone", "fake_profile", "social_tiktok", "social_instagram",
+]);
+
+const IDENTITY_TABS: { key: string; label: string }[] = [
+  { key: "All", label: "All" },
+  { key: "face_match", label: "Face Matches" },
+  { key: "news", label: "News" },
+  { key: "casting", label: "Casting" },
+  { key: "web", label: "Web" },
+];
+const THREAT_TABS: { key: string; label: string }[] = [
+  { key: "All", label: "All" },
+  { key: "deepfake", label: "Deepfakes" },
+  { key: "voice_clone", label: "Voice Clones" },
+  { key: "fake_profile", label: "Fake Profiles" },
+  { key: "social_tiktok", label: "TikTok" },
+  { key: "social_instagram", label: "Instagram" },
+];
+
+const buildNameTokens = (names: (string | null | undefined)[]): string[] => {
+  const tokens = new Set<string>();
+  for (const n of names) {
+    if (!n) continue;
+    const lower = n.toLowerCase().trim().replace(/\s+/g, " ");
+    if (lower.length < 3) continue;
+    const parts = lower.split(" ").filter(Boolean);
+    if (parts.length >= 2) {
+      tokens.add(parts.join(" "));
+      tokens.add(parts.join("-"));
+      tokens.add(parts.join("_"));
+      tokens.add(parts.join(""));
+    } else {
+      tokens.add(lower);
+    }
+  }
+  return [...tokens];
+};
 import { useToast } from "@/hooks/use-toast";
 
 /* ─── Platform icon map ─── */
