@@ -202,6 +202,30 @@ const PerformerDashboard = () => {
 
   const nextStep = getNextStep();
 
+  const [scanning, setScanning] = useState(false);
+  const handleScanSocial = async () => {
+    if (scanning) return;
+    const name = profile?.legal_name || profile?.full_name;
+    if (!name) {
+      toast({ title: "Add your name first", description: "Complete your profile to run a social scan.", variant: "destructive" });
+      return;
+    }
+    setScanning(true);
+    toast({ title: "Scanning social media…", description: "This can take up to a minute." });
+    try {
+      const { data, error } = await supabase.functions.invoke("scan-performer", {
+        body: { name, stage_name: profile?.stage_name || undefined },
+      });
+      if (error) throw error;
+      const found = data?.saved ?? data?.total_found ?? 0;
+      toast({ title: "Social scan complete", description: `Found ${found} profile${found === 1 ? "" : "s"} across Instagram, TikTok, and LinkedIn.` });
+    } catch (err: any) {
+      toast({ title: "Scan failed", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
+  };
+
   /* Check if URL likely contains an image */
   const urlHasImage = (url: string | null) => {
     if (!url) return false;
@@ -211,11 +235,17 @@ const PerformerDashboard = () => {
   return (
     <DashboardLayout>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto space-y-8">
-        <header>
-          <h1 className="font-display text-3xl md:text-4xl font-bold">
-            Hey {firstName}. {faceCaptured ? "Your face is claimed." : "Let's protect your face."}
-          </h1>
-          <p className="text-muted-foreground mt-1">Here's your protection status at a glance.</p>
+        <header className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="font-display text-3xl md:text-4xl font-bold">
+              Hey {firstName}. {faceCaptured ? "Your face is claimed." : "Let's protect your face."}
+            </h1>
+            <p className="text-muted-foreground mt-1">Here's your protection status at a glance.</p>
+          </div>
+          <Button onClick={handleScanSocial} disabled={scanning} className="shrink-0">
+            <ScanSearch className={`w-4 h-4 mr-2 ${scanning ? "animate-spin" : ""}`} />
+            {scanning ? "Scanning…" : "Scan Social Media"}
+          </Button>
         </header>
 
         <ProtectionScoreCard score={score} />
