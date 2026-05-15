@@ -195,7 +195,7 @@ const PerformerDashboard = () => {
     if (!faceCaptured) return { title: "Register Your Face", description: "Capture 3 quick photos to create your timestamped claim.", cta: "Start Face Capture", to: "/register" };
     if (!profileComplete) return { title: "Complete Your Profile", description: "Add your stage name and details.", cta: "Complete Profile", to: "/register" };
     if (!hasCertificate) return { title: "Download Your Certificate", description: "Get your official Face Registration Certificate.", cta: "Get Certificate", to: "/dashboard/certificate" };
-    if (!monitoringActive) return { title: "Activate Monitoring", description: "Turn on 24/7 scanning.", cta: "Activate", to: "/onboarding/monitoring" };
+    if (!monitoringActive) return { title: "Switch On the Scanner", description: "Start watching the web for your mapped identity.", cta: "Activate", to: "/onboarding/monitoring" };
     if (alertCount > 0) return { title: "Review Matches", description: `${alertCount} potential match${alertCount > 1 ? "es" : ""} found.`, cta: "View Results", to: "/dashboard/monitoring" };
     return null;
   };
