@@ -527,10 +527,10 @@ const Monitoring = () => {
         {/* ─── HERO HEADER ─── */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-2">
-            Identity <span className="text-primary">Intelligence</span>
+            The <span className="text-primary">Scanner</span>
           </h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
-            Real-time scanning across social media, search engines, AI databases, and the dark web for unauthorized use of your likeness.
+            What we found across the web and social media for your mapped identity — face, voice, videos, names.
           </p>
         </motion.div>
 
