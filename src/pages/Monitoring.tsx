@@ -286,23 +286,29 @@ const Monitoring = () => {
 
   useEffect(() => { loadFolders(); }, [loadFolders]);
 
-  /* ─── Load mentions ─── */
+  /* ─── Load mentions (always fresh, no cache) ─── */
   const loadMentions = useCallback(async () => {
     if (!user) return;
 
-    const [{ data: mentionsData }, { data: prof }] = await Promise.all([
-      supabase.from("mentions").select("*").eq("user_id", user.id).order("found_at", { ascending: false }),
-      supabase.from("profiles").select("stage_name, legal_name, full_name, external_actor_id").eq("user_id", user.id).maybeSingle(),
-    ]);
+    // Clear any stale state immediately so old results never linger
+    setMentions([]);
+    setFindings([]);
 
-    const dbRows: MentionRow[] = (mentionsData ?? []) as MentionRow[];
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("stage_name, legal_name, full_name, external_actor_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const dbRows: MentionRow[] = [];
 
     let externalRows: MentionRow[] = [];
     const externalActorId = (prof as any)?.external_actor_id;
     if (externalActorId) {
       try {
+        const cacheBust = `&_=${Date.now()}`;
         const { data: extData } = await supabase.functions.invoke(
-          "actor-registry?action=get_mentions&actor_id=" + externalActorId,
+          "actor-registry?action=get_mentions&actor_id=" + externalActorId + cacheBust,
           { method: "GET" }
         );
         console.log("[Monitoring] Raw extData:", JSON.stringify(extData).substring(0, 3000));
