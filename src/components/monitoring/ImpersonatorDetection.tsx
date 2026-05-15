@@ -269,27 +269,53 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-md">
-                        <div>
-                          <div className="text-foreground font-medium truncate">
-                            {r.display_name || r.username || "Unknown"}
+                        <div className="flex items-start gap-3">
+                          {r.profile_pic_url ? (
+                            <img
+                              src={r.profile_pic_url}
+                              alt=""
+                              className="w-10 h-10 rounded-full object-cover border border-border/30 shrink-0"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-secondary/40 border border-border/30 flex items-center justify-center shrink-0">
+                              <PlatformIcon platform={r.platform} />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="text-foreground font-medium truncate">
+                              {r.display_name || r.username || "Unknown"}
+                            </div>
+                            {r.username && (
+                              <div className="text-xs text-muted-foreground">@{r.username}</div>
+                            )}
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              {r.follower_count != null && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  {formatFollowers(r.follower_count)} followers
+                                </span>
+                              )}
+                              {r.match_reason && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5">
+                                  {r.match_reason}
+                                </span>
+                              )}
+                            </div>
+                            {r.bio_snippet && (
+                              <div className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-1">{r.bio_snippet}</div>
+                            )}
+                            {r.url && (
+                              <a
+                                href={r.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5 mt-0.5"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                View Profile <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
                           </div>
-                          {r.username && (
-                            <div className="text-xs text-muted-foreground">@{r.username}</div>
-                          )}
-                          {r.bio_snippet && (
-                            <div className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-1">{r.bio_snippet}</div>
-                          )}
-                          {r.url && (
-                            <a
-                              href={r.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5 mt-0.5"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              View Profile <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
                         </div>
                       </TableCell>
                       <TableCell>
