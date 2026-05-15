@@ -254,13 +254,14 @@ Deno.serve(async (req) => {
 
     const allResults: ProfileResult[] = [];
     for (const { q, reason } of queries) {
-      const [ig, tt, li] = await Promise.all([
+      const [ig, tt, yt, fb] = await Promise.all([
         searchInstagram(q, reason),
         searchTikTok(q, reason),
-        searchLinkedIn(q, reason),
+        searchYouTube(q, reason),
+        searchFacebook(q, reason),
       ]);
-      console.log(`Query "${q}" → IG:${ig.length} TT:${tt.length} LI:${li.length}`);
-      allResults.push(...ig, ...tt, ...li);
+      console.log(`Query "${q}" → IG:${ig.length} TT:${tt.length} YT:${yt.length} FB:${fb.length}`);
+      allResults.push(...ig, ...tt, ...yt, ...fb);
     }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
