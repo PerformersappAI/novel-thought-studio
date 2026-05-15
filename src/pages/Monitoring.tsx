@@ -676,309 +676,212 @@ const Monitoring = () => {
           )}
         </AnimatePresence>
 
-        {/* ─── FOLDERS SIDEBAR + RESULTS ─── */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm mb-8">
-          {/* Header row */}
-          <div className="px-5 py-4 border-b border-border/20 flex flex-col md:flex-row md:items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Eye className="w-5 h-5 text-primary" />
-              <h2 className="font-display text-lg font-semibold">Web &amp; Social Matches</h2>
-              <Badge variant="outline" className="ml-2 text-xs">{findings.length}</Badge>
-            </div>
-            <div className="flex-1" />
-            <Input placeholder="Search…" value={searchQ} onChange={(e) => setSearchQ(e.target.value)} className="max-w-xs bg-background/40 border-border/30" />
-          </div>
+        {/* ─── SHARED SEARCH ─── */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-4 flex items-center gap-2">
+          <Search className="w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search across all results…"
+            value={searchQ}
+            onChange={(e) => setSearchQ(e.target.value)}
+            className="max-w-md bg-background/40 border-border/30"
+          />
+        </motion.div>
 
-          {/* Folders bar */}
-          <div className="px-5 py-3 border-b border-border/10 flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setActiveFolder(null)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                activeFolder === null
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
-              }`}
-            >
-              <FolderOpen className="w-3 h-3" /> All
-            </button>
-            <button
-              onClick={() => setActiveFolder("__unfiled__")}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                activeFolder === "__unfiled__"
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
-              }`}
-            >
-              <Folder className="w-3 h-3" /> Unfiled
-            </button>
-            {folders.map((folder) => (
-              <div key={folder.id} className="relative group">
-                <button
-                  onClick={() => setActiveFolder(folder.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                    activeFolder === folder.id
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
-                  }`}
-                >
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: folder.color }} />
-                  {folder.name}
-                  <span className="text-[10px] opacity-60">
-                    ({mentions.filter(m => m.folder_id === folder.id).length})
-                  </span>
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteFolder(folder.id); }}
-                  className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Delete folder"
-                >
-                  <X className="w-2.5 h-2.5" />
-                </button>
-              </div>
-            ))}
-            {showNewFolder ? (
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="Folder name…"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && createFolder()}
-                  className="h-8 w-32 text-xs bg-background/40 border-border/30"
-                  autoFocus
-                />
-                <div className="flex gap-1">
-                  {FOLDER_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setNewFolderColor(c)}
-                      className={`w-4 h-4 rounded-full border-2 transition-transform ${newFolderColor === c ? "border-foreground scale-125" : "border-transparent"}`}
-                      style={{ backgroundColor: c }}
+        {(() => {
+          const renderRow = (f: Finding) => {
+            const PIcon = getPlatformIcon(f.platform);
+            const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
+            return (
+              <div
+                key={f.id}
+                className="flex items-start gap-3 px-5 py-4 hover:bg-primary/5 transition-colors group cursor-pointer"
+                onClick={() => setSelected(f)}
+              >
+                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
+                  {f.url && f.url !== "#" && faviconUrl(f.url) ? (
+                    <img
+                      src={faviconUrl(f.url)}
+                      alt=""
+                      className="w-5 h-5 rounded-sm"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        img.style.display = "none";
+                        const sib = img.nextElementSibling as HTMLElement | null;
+                        if (sib) sib.style.display = "block";
+                      }}
                     />
-                  ))}
+                  ) : null}
+                  <PIcon className="w-4 h-4 text-primary" style={{ display: f.url && f.url !== "#" && faviconUrl(f.url) ? "none" : "block" }} />
                 </div>
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={createFolder}>
-                  <Check className="w-3 h-3" />
-                </Button>
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => { setShowNewFolder(false); setNewFolderName(""); }}>
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowNewFolder(true)}
-                className="px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-border/40 text-muted-foreground hover:text-foreground hover:border-border transition-colors flex items-center gap-1.5"
-              >
-                <Plus className="w-3 h-3" /> New Folder
-              </button>
-            )}
-          </div>
-
-          {/* Filter tabs */}
-          <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
-            {FILTER_TABS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setFilter(t)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  filter === t
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
-          {/* Bulk actions bar */}
-          <AnimatePresence>
-            {someSelected && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="px-5 py-3 border-b border-primary/20 bg-primary/5 flex items-center gap-3 flex-wrap"
-              >
-                <span className="text-sm font-medium text-primary">{selectedIds.size} selected</span>
-                <Button size="sm" variant="destructive" className="h-7 gap-1.5 text-xs" onClick={bulkDelete}>
-                  <Trash2 className="w-3 h-3" /> Delete Selected
-                </Button>
-                {folders.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10">
-                        <FolderPlus className="w-3 h-3" /> Move to Folder
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      {folders.map((folder) => (
-                        <DropdownMenuItem key={folder.id} onClick={() => bulkMoveToFolder(folder.id)} className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: folder.color }} />
-                          {folder.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground" onClick={() => setSelectedIds(new Set())}>
-                  Clear selection
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Results */}
-          <div className="divide-y divide-border/10">
-            {filtered.length === 0 ? (
-              <div className="py-16 text-center">
-                <Radar className="w-10 h-10 text-primary/30 mx-auto mb-3" />
-                <p className="font-display text-lg font-semibold text-foreground">
-                  {findings.length === 0 ? "Scanner is active. No matches yet." : "No results match this filter"}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {findings.length === 0 ? 'Run the scanner to sweep the web and social media for your mapped identity.' : "Try a different filter or search term."}
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Select all row */}
-                <div className="flex items-center gap-3 px-5 py-2.5 bg-secondary/10 border-b border-border/10">
-                  <Checkbox
-                    checked={allSelected}
-                    onCheckedChange={toggleAll}
-                    className="border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
-                  <span className="text-xs text-muted-foreground font-medium">
-                    {allSelected ? "Deselect all" : `Select all ${filtered.length} results`}
-                  </span>
-                </div>
-
-                {filtered.map((f) => {
-                  const PIcon = getPlatformIcon(f.platform);
-                  const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
-                  const isChecked = selectedIds.has(f.id);
-                  const mention = mentions.find(m => m.id === f.id);
-                  const folder = mention?.folder_id ? folders.find(fo => fo.id === mention.folder_id) : null;
-
-                  return (
-                    <div
-                      key={f.id}
-                      className={`flex items-start gap-3 px-5 py-4 hover:bg-primary/5 transition-colors group cursor-pointer ${isChecked ? "bg-primary/[0.03]" : ""}`}
-                      onClick={() => setSelected(f)}
-                    >
-                      {/* Checkbox */}
-                      <div className="shrink-0 mt-1" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={isChecked}
-                          onCheckedChange={() => toggleSelect(f.id)}
-                          className="border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                        />
-                      </div>
-
-                      {/* Platform icon (favicon when available) */}
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
-                        {f.url && f.url !== "#" && faviconUrl(f.url) ? (
-                          <img
-                            src={faviconUrl(f.url)}
-                            alt=""
-                            className="w-5 h-5 rounded-sm"
-                            onError={(e) => {
-                              const img = e.currentTarget;
-                              img.style.display = "none";
-                              const sib = img.nextElementSibling as HTMLElement | null;
-                              if (sib) sib.style.display = "block";
-                            }}
-                          />
-                        ) : null}
-                        <PIcon className="w-4 h-4 text-primary" style={{ display: f.url && f.url !== "#" && faviconUrl(f.url) ? "none" : "block" }} />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
-                            {f.excerpt && (
-                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
-                            )}
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5 uppercase tracking-wider">
-                                {f.category}
-                              </span>
-                              <span className="text-xs text-muted-foreground">{extractDomain(f.url) || f.platform}</span>
-                              <span className="text-[10px] text-muted-foreground/50">•</span>
-                              <span className="text-xs text-muted-foreground font-mono">{new Date(f.date).toLocaleDateString()}</span>
-                              {folder && (
-                                <>
-                                  <span className="text-[10px] text-muted-foreground/50">•</span>
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full border flex items-center gap-1" style={{ borderColor: folder.color + "40", color: folder.color }}>
-                                    <Folder className="w-2.5 h-2.5" /> {folder.name}
-                                  </span>
-                                </>
-                              )}
-                              {f.url && f.url !== "#" && (
-                                <>
-                                  <span className="text-[10px] text-muted-foreground/50">•</span>
-                                  <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-                                    Source <ExternalLink className="w-3 h-3" />
-                                  </a>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${s.pill}`}>{s.label}</span>
-                        </div>
-                      </div>
-
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-emerald-500 hover:bg-emerald-500/10" onClick={() => handleDismiss(f)} title="That's me — dismiss">
-                          <ThumbsUp className="w-4 h-4" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" title="Not me — take action">
-                              <ThumbsDown className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to="/tools/dmca" className="flex items-center gap-2"><Gavel className="w-4 h-4" /> File DMCA Notice</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link to="/tools/contracts" className="flex items-center gap-2"><FileWarning className="w-4 h-4" /> Cease & Desist</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link to="/dashboard/violations" className="flex items-center gap-2"><Flag className="w-4 h-4" /> Report to Platform</Link>
-                            </DropdownMenuItem>
-                            {folders.length > 0 && (
-                              <>
-                                <DropdownMenuSeparator />
-                                {folders.map((folder) => (
-                                  <DropdownMenuItem key={folder.id} onClick={() => bulkMoveToFolder(folder.id)} className="flex items-center gap-2">
-                                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: folder.color }} />
-                                    Move to {folder.name}
-                                  </DropdownMenuItem>
-                                ))}
-                              </>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive focus:text-destructive flex items-center gap-2" onClick={() => deleteFinding(f)}>
-                              <Trash2 className="w-4 h-4" /> Delete permanently
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-primary hover:bg-primary/10" onClick={() => setSelected(f)} title="View details">
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
+                      {f.excerpt && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5 uppercase tracking-wider">
+                          {f.platform}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{extractDomain(f.url) || f.platform}</span>
+                        <span className="text-[10px] text-muted-foreground/50">•</span>
+                        <span className="text-xs text-muted-foreground font-mono">{new Date(f.date).toLocaleDateString()}</span>
+                        {f.url && f.url !== "#" && (
+                          <>
+                            <span className="text-[10px] text-muted-foreground/50">•</span>
+                            <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                              Source <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </>
+                        )}
                       </div>
                     </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        </motion.div>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${s.pill}`}>{s.label}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-emerald-500 hover:bg-emerald-500/10" onClick={() => handleDismiss(f)} title="That's me — dismiss">
+                    <ThumbsUp className="w-4 h-4" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" title="Not me — take action">
+                        <ThumbsDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to="/tools/dmca" className="flex items-center gap-2"><Gavel className="w-4 h-4" /> File DMCA Notice</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/tools/contracts" className="flex items-center gap-2"><FileWarning className="w-4 h-4" /> Cease & Desist</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard/violations" className="flex items-center gap-2"><Flag className="w-4 h-4" /> Report to Platform</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive focus:text-destructive flex items-center gap-2" onClick={() => deleteFinding(f)}>
+                        <Trash2 className="w-4 h-4" /> Delete permanently
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-primary hover:bg-primary/10" onClick={() => setSelected(f)} title="View details">
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <>
+              {/* ─── SECTION 1: YOUR IDENTITY ONLINE ─── */}
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm mb-8">
+                <div className="px-5 py-4 border-b border-border/20 flex flex-col md:flex-row md:items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    <div>
+                      <h2 className="font-display text-lg font-semibold">Your Identity Online</h2>
+                      <p className="text-xs text-muted-foreground">Where you appear online — verified legitimate results.</p>
+                    </div>
+                    <Badge variant="outline" className="ml-2 text-xs border-emerald-500/40 text-emerald-400 bg-emerald-500/10">
+                      {identityFindings.length}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
+                  {IDENTITY_TABS.map((t) => {
+                    const count = t.key === "All"
+                      ? findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase()) && hasNameMatch(f)).length
+                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && hasNameMatch(f)).length;
+                    return (
+                      <button
+                        key={t.key}
+                        onClick={() => setIdentityFilter(t.key)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+                          identityFilter === t.key
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
+                        }`}
+                      >
+                        {t.label}
+                        <span className="text-[10px] opacity-70">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="divide-y divide-border/10">
+                  {identityFindings.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <ShieldCheck className="w-9 h-9 text-emerald-400/40 mx-auto mb-2" />
+                      <p className="font-display text-base font-semibold text-foreground">No verified identity matches yet</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Run a scan to see where your name appears across the web, news, and casting platforms.
+                      </p>
+                    </div>
+                  ) : (
+                    identityFindings.map(renderRow)
+                  )}
+                </div>
+              </motion.div>
+
+              {/* ─── SECTION 2: POTENTIAL THREATS ─── */}
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="rounded-2xl border border-primary/30 bg-card/20 backdrop-blur-sm mb-8">
+                <div className="px-5 py-4 border-b border-border/20 flex flex-col md:flex-row md:items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-primary" />
+                    <div>
+                      <h2 className="font-display text-lg font-semibold">Potential Threats</h2>
+                      <p className="text-xs text-muted-foreground">Threats to monitor — these need your attention.</p>
+                    </div>
+                    <Badge variant="outline" className="ml-2 text-xs border-primary/40 text-primary bg-primary/10">
+                      {threatFindings.length}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
+                  {THREAT_TABS.map((t) => {
+                    const count = t.key === "All"
+                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase())).length
+                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key).length;
+                    return (
+                      <button
+                        key={t.key}
+                        onClick={() => setThreatFilter(t.key)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+                          threatFilter === t.key
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
+                        }`}
+                      >
+                        {t.label}
+                        <span className="text-[10px] opacity-70">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="divide-y divide-border/10">
+                  {threatFindings.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <ShieldAlert className="w-9 h-9 text-primary/40 mx-auto mb-2" />
+                      <p className="font-display text-base font-semibold text-foreground">No threats detected</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        We haven't found any deepfakes, voice clones, or impersonation profiles. Run a scan to check again.
+                      </p>
+                    </div>
+                  ) : (
+                    threatFindings.map(renderRow)
+                  )}
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
 
         {/* ─── SOCIAL IMPERSONATION DETECTION ─── */}
         <ImpersonatorDetection />
