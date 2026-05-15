@@ -37,7 +37,7 @@ const WhyClaimMyFace = () => {
             Why <span className="text-gradient-gold">ClaimMyFace?</span>
           </h2>
           <p className="text-muted-foreground text-base md:text-lg font-body">
-            Three reasons performers register their face here first.
+            Your face, voice, and name belong to you. We help you map them, defend them, and prove they're yours.
           </p>
         </motion.div>
 
