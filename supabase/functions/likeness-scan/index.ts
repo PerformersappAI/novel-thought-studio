@@ -26,7 +26,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Running likeness scan for:', query);
+    const exactQuery = `"${String(query).trim()}"`;
+    console.log('Running likeness scan for exact phrase:', exactQuery);
 
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
@@ -35,7 +36,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: `"${String(query).trim()}"`,
+        query: exactQuery,
         limit: 20,
         scrapeOptions: { formats: ['markdown'] },
       }),
@@ -68,7 +69,6 @@ Deno.serve(async (req) => {
       "etsy.com","aliexpress.com","whitehouse.gov","senate.gov","congress.gov",
     ];
     const queryLower = String(query).toLowerCase().trim();
-    const nameTokens = queryLower.split(/\s+/).filter((t) => t.length > 2);
 
     const isRelevant = (r: any): boolean => {
       const url: string = (r.url || "").toLowerCase();
@@ -81,9 +81,7 @@ Deno.serve(async (req) => {
       if (BLOCKED_TLDS.some((t) => host.endsWith(t))) return false;
       const allowed = ALLOWED_DOMAINS.some((d) => host === d || host.endsWith("." + d));
       const haystack = `${url} ${title} ${desc}`;
-      const nameMatch =
-        haystack.includes(queryLower) ||
-        (nameTokens.length >= 2 && nameTokens.every((t) => haystack.includes(t)));
+      const nameMatch = haystack.includes(queryLower);
       return allowed || nameMatch;
     };
 
