@@ -131,16 +131,15 @@ const OnboardingWhy = () => {
               <Shield className="w-5 h-5 text-primary" />
             </div>
             <h2 className="font-display text-2xl font-bold">
-              The Law Protects You — But Only If You Can Prove You Came First.
+              The Identity Map: Face, Voice, Videos, Names.
             </h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
-            The Right of Publicity gives every performer legal control over how their face, voice,
-            and name are used commercially. But to enforce that right — to file a takedown, send a
-            cease and desist, or take legal action — you need proof. Proof that this is your face.
-            Proof of when you registered it. Proof that you came before anyone else claimed it.
-            ClaimMyFace creates that proof. A timestamped, cryptographically secured record that
-            your face is yours — on this date, in this registry, before anyone else.
+            With your help we collect four things: your <strong>face</strong> (photos and capture),
+            your <strong>voice</strong> (a short voiceprint), your <strong>videos</strong> (reels
+            and clips), and your <strong>names</strong> (legal name, stage name, AKAs, press).
+            Each piece is encrypted, hashed, and timestamped — proof that this identity is yours,
+            registered here, on this date, before anyone else claimed it.
           </p>
         </motion.section>
 
