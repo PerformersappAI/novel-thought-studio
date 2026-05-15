@@ -145,8 +145,8 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
       if (error) throw error;
 
       toast({
-        title: "Scan complete",
-        description: `Found ${data?.saved || 0} new possible profiles across social platforms.`,
+        title: "Social scan complete",
+        description: `Found ${data?.saved || 0} profiles matching your name across Instagram, TikTok, and LinkedIn.`,
       });
 
       await fetchResults();
