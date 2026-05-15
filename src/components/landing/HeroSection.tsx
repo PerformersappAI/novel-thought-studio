@@ -92,7 +92,7 @@ const HeroSection = () => {
                 className="font-body text-base font-semibold px-8 h-13 glow-red"
               >
                 <Link to="/signup">
-                  Claim My Face — It's Free
+                  Start My Identity Map — Free
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
