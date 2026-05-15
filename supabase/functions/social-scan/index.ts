@@ -53,8 +53,8 @@ function scoreResult(displayName: string, bio: string) {
 
 async function runApifyActor(actorId: string, input: Record<string, unknown>, timeoutMs = 90000): Promise<any[]> {
   if (!APIFY_TOKEN) return [];
-  const encodedActorId = encodeURIComponent(actorId);
-  const url = `https://api.apify.com/v2/acts/${encodedActorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}&timeout=${Math.floor(timeoutMs / 1000)}`;
+  const apiActorId = actorId.replace("/", "~");
+  const url = `https://api.apify.com/v2/acts/${apiActorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}&timeout=${Math.floor(timeoutMs / 1000)}`;
 
   try {
     const ctrl = new AbortController();
