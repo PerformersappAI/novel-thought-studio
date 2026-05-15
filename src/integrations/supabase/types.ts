@@ -603,9 +603,12 @@ export type Database = {
           confidence_score: number
           created_at: string
           display_name: string | null
+          follower_count: number | null
           found_at: string
           id: string
+          match_reason: string | null
           platform: string
+          profile_pic_url: string | null
           risk_level: string
           search_query: string | null
           status: string
@@ -620,9 +623,12 @@ export type Database = {
           confidence_score?: number
           created_at?: string
           display_name?: string | null
+          follower_count?: number | null
           found_at?: string
           id?: string
+          match_reason?: string | null
           platform: string
+          profile_pic_url?: string | null
           risk_level?: string
           search_query?: string | null
           status?: string
@@ -637,9 +643,12 @@ export type Database = {
           confidence_score?: number
           created_at?: string
           display_name?: string | null
+          follower_count?: number | null
           found_at?: string
           id?: string
+          match_reason?: string | null
           platform?: string
+          profile_pic_url?: string | null
           risk_level?: string
           search_query?: string | null
           status?: string

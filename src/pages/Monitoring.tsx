@@ -40,6 +40,58 @@ function getPlatformIcon(type: string) {
   return Globe;
 }
 
+/* ─── URL → domain / category / title helpers ─── */
+function extractDomain(url?: string | null): string {
+  if (!url) return "";
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+function extractPath(url?: string | null): string {
+  if (!url) return "";
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return (u.pathname + u.search).replace(/\/$/, "") || "/";
+  } catch {
+    return "";
+  }
+}
+function classifyByDomain(url?: string | null, title?: string | null, snippet?: string | null): FindingCategory {
+  const d = extractDomain(url).toLowerCase();
+  const text = `${title || ""} ${snippet || ""}`.toLowerCase();
+  if (/(deepfake|ai generated|ai-generated|cloned|clone of)/.test(text)) return "Deepfakes";
+  if (/(instagram|tiktok|facebook|twitter|x\.com|linkedin|youtube|threads\.net|reddit)/.test(d)) return "Social Media";
+  if (/(actorsaccess|backstage|castingnetworks|imdb|lacasting|nycasting|castingfrontier)/.test(d)) return "Casting Platforms";
+  if (/(variety|deadline|hollywoodreporter|people|tmz|ew\.com|nytimes|bbc|cnn|guardian|reuters|forbes|vulture)/.test(d)) return "News & Articles";
+  if (/(shutterstock|gettyimages|adobe|istockphoto|alamy|doubleclick|googlesyndication|ads)/.test(d)) return "Ads & Commercial";
+  return "News & Articles";
+}
+function isGenericTitle(title?: string | null): boolean {
+  if (!title) return true;
+  const t = title.trim().toLowerCase();
+  return t === "" || t.startsWith("web result for") || t.startsWith("result for") || t === "untitled";
+}
+function deriveTitle(rawTitle: string | null | undefined, url: string | null | undefined): string {
+  if (!isGenericTitle(rawTitle)) return rawTitle as string;
+  const d = extractDomain(url);
+  return d || rawTitle || "Untitled result";
+}
+function deriveExcerpt(rawExcerpt: string | null | undefined, url: string | null | undefined): string {
+  const e = (rawExcerpt || "").trim();
+  if (e) return e;
+  const d = extractDomain(url);
+  const p = extractPath(url);
+  return d ? `${d}${p}` : "";
+}
+function faviconUrl(url?: string | null): string {
+  const d = extractDomain(url);
+  if (!d) return "";
+  return `https://www.google.com/s2/favicons?domain=${d}&sz=64`;
+}
+
 /* ─── Radar SVG animation ─── */
 const RadarGraphic = ({ active }: { active: boolean }) => (
   <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto">
@@ -275,23 +327,32 @@ const Monitoring = () => {
     const merged = [...dbRows, ...externalRows.filter(r => !r.url || !dbUrls.has(r.url))];
     setMentions(merged);
 
-    const data: Finding[] = merged.map((m) => ({
-      id: m.id,
-      platform: m.mention_type,
-      finding: m.title,
-      category: normalizeCategory(m.mention_type, m.category),
-      date: m.found_at,
-      lastSeen: m.found_at,
-      status: normalizeStatus(m.status),
-      url: m.url || "#",
-      confidence: m.confidence ?? 90,
-      recommended: "Report to Platform" as const,
-      mediaType: normalizeMediaType(m.media_type, m.mention_type),
-      thumbnailUrl: m.thumbnail_url ?? undefined,
-      audioUrl: m.audio_url ?? undefined,
-      excerpt: m.excerpt ?? undefined,
-      matchLabel: m.match_label ?? undefined,
-    }));
+    const data: Finding[] = merged.map((m) => {
+      const enrichedTitle = deriveTitle(m.title, m.url);
+      const enrichedExcerpt = deriveExcerpt(m.excerpt, m.url);
+      const dbCategory = normalizeCategory(m.mention_type, m.category);
+      const isGeneric = isGenericTitle(m.title);
+      const finalCategory = isGeneric || dbCategory === "News & Articles"
+        ? classifyByDomain(m.url, enrichedTitle, enrichedExcerpt)
+        : dbCategory;
+      return {
+        id: m.id,
+        platform: m.mention_type,
+        finding: enrichedTitle,
+        category: finalCategory,
+        date: m.found_at,
+        lastSeen: m.found_at,
+        status: normalizeStatus(m.status),
+        url: m.url || "#",
+        confidence: m.confidence ?? 90,
+        recommended: "Report to Platform" as const,
+        mediaType: normalizeMediaType(m.media_type, m.mention_type),
+        thumbnailUrl: m.thumbnail_url ?? undefined,
+        audioUrl: m.audio_url ?? undefined,
+        excerpt: enrichedExcerpt || undefined,
+        matchLabel: m.match_label ?? undefined,
+      };
+    });
 
     setFindings(data);
   }, [user]);
@@ -732,9 +793,22 @@ const Monitoring = () => {
                         />
                       </div>
 
-                      {/* Platform icon */}
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <PIcon className="w-4 h-4 text-primary" />
+                      {/* Platform icon (favicon when available) */}
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
+                        {f.url && f.url !== "#" && faviconUrl(f.url) ? (
+                          <img
+                            src={faviconUrl(f.url)}
+                            alt=""
+                            className="w-5 h-5 rounded-sm"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              img.style.display = "none";
+                              const sib = img.nextElementSibling as HTMLElement | null;
+                              if (sib) sib.style.display = "block";
+                            }}
+                          />
+                        ) : null}
+                        <PIcon className="w-4 h-4 text-primary" style={{ display: f.url && f.url !== "#" && faviconUrl(f.url) ? "none" : "block" }} />
                       </div>
 
                       {/* Content */}
@@ -742,8 +816,14 @@ const Monitoring = () => {
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
+                            {f.excerpt && (
+                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
+                            )}
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className="text-xs text-muted-foreground">{f.platform}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5 uppercase tracking-wider">
+                                {f.category}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{extractDomain(f.url) || f.platform}</span>
                               <span className="text-[10px] text-muted-foreground/50">•</span>
                               <span className="text-xs text-muted-foreground font-mono">{new Date(f.date).toLocaleDateString()}</span>
                               {folder && (
