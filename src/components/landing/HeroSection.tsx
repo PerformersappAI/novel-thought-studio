@@ -110,15 +110,15 @@ const HeroSection = () => {
             <div className="flex flex-wrap gap-2 mt-6 justify-center md:justify-start">
               <TrustChip delay={1.0}>
                 <CheckCircle className="w-3.5 h-3.5 text-accent" />
-                Identity Verified
+                Face Mapped
               </TrustChip>
               <TrustChip delay={1.2}>
                 <Shield className="w-3.5 h-3.5 text-primary" />
-                Face Registered
+                Voice Mapped
               </TrustChip>
               <TrustChip delay={1.4}>
                 <Fingerprint className="w-3.5 h-3.5 text-accent" />
-                Legally Protected
+                Scanner Active
               </TrustChip>
             </div>
           </motion.div>
