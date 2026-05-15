@@ -295,10 +295,10 @@ const OnboardingVoice = () => {
             STEP 3 OF 5 — VOICE PRINT
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold mt-3">
-            Register Your Voice
+            Map Your Voice
           </h1>
           <p className="text-muted-foreground max-w-2xl">
-            AI voice cloning is exploding — scammers, deepfake audio, fake voiceovers. Lock in your voice now so we can prove what's really yours. <span className="text-foreground/80">This step is optional but strongly recommended.</span>
+            This adds the voice layer to your identity map. The scanner uses it to detect AI voice clones, fake voiceovers, and unauthorized audio — anywhere on the web. <span className="text-foreground/80">Optional but strongly recommended.</span>
           </p>
         </motion.div>
 
