@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, data: data.data || [] }),
+      JSON.stringify({ success: true, query: exactQuery, data: data.data || [] }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
