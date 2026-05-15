@@ -43,6 +43,56 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
 
+    // Relevance filter: keep results where URL/title/description contains the
+    // performer's name, OR the domain is a known entertainment/casting/social site.
+    // Drop noise from gov, software vendors, dictionaries, generic reference, etc.
+    const ALLOWED_DOMAINS = [
+      "instagram.com","tiktok.com","facebook.com","twitter.com","x.com","youtube.com",
+      "linkedin.com","threads.net","snapchat.com","pinterest.com","reddit.com","tumblr.com",
+      "imdb.com","backstage.com","actorsaccess.com","castingnetworks.com","spotlight.com",
+      "mandy.com","castingcallclub.com","nowcasting.com","castingfrontier.com",
+      "variety.com","hollywoodreporter.com","deadline.com","ew.com","people.com",
+      "tmz.com","etonline.com","vulture.com","indiewire.com","rottentomatoes.com",
+      "metacritic.com","letterboxd.com","tvinsider.com","playbill.com","broadwayworld.com",
+      "sagaftra.org","equityuk.org","spotify.com","soundcloud.com","vimeo.com","twitch.tv",
+      "patreon.com","onlyfans.com","cameo.com","substack.com","medium.com",
+      "shutterstock.com","gettyimages.com","alamy.com","wireimage.com",
+    ];
+    const BLOCKED_TLDS = [".gov",".mil",".edu"];
+    const BLOCKED_DOMAINS = [
+      "microsoft.com","apple.com","google.com","amazon.com","oracle.com","adobe.com",
+      "ibm.com","salesforce.com","github.com","stackoverflow.com","npmjs.com",
+      "merriam-webster.com","dictionary.com","thesaurus.com","britannica.com",
+      "wikipedia.org","wiktionary.org","wikidata.org","quora.com","yelp.com",
+      "tripadvisor.com","booking.com","expedia.com","walmart.com","ebay.com",
+      "etsy.com","aliexpress.com","whitehouse.gov","senate.gov","congress.gov",
+    ];
+    const queryLower = String(query).toLowerCase().trim();
+    const nameTokens = queryLower.split(/\s+/).filter((t) => t.length > 2);
+
+    const isRelevant = (r: any): boolean => {
+      const url: string = (r.url || "").toLowerCase();
+      const title: string = (r.title || "").toLowerCase();
+      const desc: string = (r.description || "").toLowerCase();
+      if (!url) return false;
+      let host = "";
+      try { host = new URL(url).hostname.replace(/^www\./, ""); } catch { return false; }
+      if (BLOCKED_DOMAINS.some((d) => host === d || host.endsWith("." + d))) return false;
+      if (BLOCKED_TLDS.some((t) => host.endsWith(t))) return false;
+      const allowed = ALLOWED_DOMAINS.some((d) => host === d || host.endsWith("." + d));
+      const haystack = `${url} ${title} ${desc}`;
+      const nameMatch =
+        haystack.includes(queryLower) ||
+        (nameTokens.length >= 2 && nameTokens.every((t) => haystack.includes(t)));
+      return allowed || nameMatch;
+    };
+
+    if (Array.isArray(data.data)) {
+      const before = data.data.length;
+      data.data = data.data.filter(isRelevant);
+      console.log(`Relevance filter: ${before} → ${data.data.length}`);
+    }
+
     if (!response.ok) {
       console.error('Firecrawl error:', data);
       return new Response(
