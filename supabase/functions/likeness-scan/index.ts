@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: `"${query}" likeness OR image OR photo OR video OR deepfake OR AI`,
+        query: `"${String(query).trim()}"`,
         limit: 20,
         scrapeOptions: { formats: ['markdown'] },
       }),
