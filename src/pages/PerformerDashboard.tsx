@@ -246,13 +246,13 @@ const PerformerDashboard = () => {
         <header className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="font-display text-3xl md:text-4xl font-bold">
-              Hey {firstName}. {faceCaptured ? "Your face is claimed." : "Let's protect your face."}
+              Hey {firstName}. {faceCaptured ? "Your identity map is live." : "Let's build your identity map."}
             </h1>
-            <p className="text-muted-foreground mt-1">Here's your protection status at a glance.</p>
+            <p className="text-muted-foreground mt-1">Your Identity Map &amp; Scanner — at a glance.</p>
           </div>
           <Button onClick={handleScanSocial} disabled={scanning} className="shrink-0">
             <ScanSearch className={`w-4 h-4 mr-2 ${scanning ? "animate-spin" : ""}`} />
-            {scanning ? "Scanning…" : "Scan Social Media"}
+            {scanning ? "Scanner running…" : "Run Scanner Now"}
           </Button>
         </header>
 
