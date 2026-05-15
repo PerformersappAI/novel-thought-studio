@@ -177,8 +177,15 @@ Deno.serve(async (req) => {
     console.log(`Exact query "${query}" → Instagram:${instagram.length} TikTok:${tiktok.length}`);
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const VPS_SUPABASE_URL = "https://pozwmfmqapizeoctuais.supabase.co";
+    const VPS_SERVICE_KEY = Deno.env.get("VPS_SUPABASE_SERVICE_ROLE_KEY");
+    const VPS_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
+    const vpsSupabase = VPS_SERVICE_KEY ? createClient(VPS_SUPABASE_URL, VPS_SERVICE_KEY) : null;
+
     const seen = new Set<string>();
     let savedCount = 0;
+    let vpsSaved = 0;
     const byPlatform: Record<string, number> = {};
 
     for (const result of allResults) {
