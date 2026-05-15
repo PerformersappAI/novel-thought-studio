@@ -116,6 +116,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           status: 'completed',
+          query: exactQuery,
           results,
           result_count: results.length,
           completed_at: new Date().toISOString(),
