@@ -345,6 +345,12 @@ const Monitoring = () => {
       .eq("user_id", user.id)
       .maybeSingle();
 
+    setNameTokens(buildNameTokens([
+      (prof as any)?.stage_name,
+      (prof as any)?.legal_name,
+      (prof as any)?.full_name,
+    ]));
+
     const dbRows: MentionRow[] = [];
 
     let externalRows: MentionRow[] = [];
