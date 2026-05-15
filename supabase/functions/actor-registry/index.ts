@@ -211,9 +211,22 @@ Deno.serve(async (req) => {
         /wmagazine\.com$/i,
       ];
 
+      // mention_types that should ALWAYS pass through — they are already
+      // high-confidence matches from dedicated scanners (deepfake detector,
+      // voice cloner, face matcher, social scrapers, casting/news pipelines).
+      const ALWAYS_PASS_TYPES = new Set([
+        "deepfake", "voice_clone", "face_match", "casting",
+        "news", "social_tiktok", "social_instagram", "fake_profile",
+      ]);
+
       const filtered = (mentionsList || []).filter((m: any) => {
         const url: string = (m?.url || "").toString();
         const title: string = (m?.title || "").toString();
+        const mentionType: string = (m?.mention_type || "").toString().toLowerCase();
+
+        // Always pass dedicated-scanner types through untouched.
+        if (ALWAYS_PASS_TYPES.has(mentionType)) return true;
+
         if (!url) return false;
         let host = "";
         let path = "";
@@ -225,18 +238,18 @@ Deno.serve(async (req) => {
 
         if (BLOCKED_PATTERNS.some((re) => re.test(host))) return false;
 
+        // Only "web" results need the strict name-match filter to keep junk out.
+        if (mentionType !== "web") return true;
+
         const haystack = (path + " " + title.toLowerCase()).replace(/%20/g, " ");
         const hasNameMatch = nameTokens.size === 0
           ? false
           : [...nameTokens].some((tok) => haystack.includes(tok));
 
+        if (!hasNameMatch) return false;
+
         const rootDomain = host.split(".").slice(-2).join(".");
         const isAllowed = ALLOWED_DOMAINS.has(host) || ALLOWED_DOMAINS.has(rootDomain);
-
-        // Require name match for everything (allowlisted or not) to prevent
-        // junk like facebook.com/wmagazine or youtube.com/watch?v=W
-        if (!hasNameMatch) return false;
-        // Outside allowlist, only keep if there is a name match (already true here).
         return isAllowed || hasNameMatch;
       });
 
