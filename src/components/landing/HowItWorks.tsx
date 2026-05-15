@@ -26,7 +26,7 @@ const HowItWorks = () => {
           className="text-center mb-16"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">How It Works</h2>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto font-body">From registration to certified protection in six simple steps.</p>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto font-body">Map your identity, switch on the scanner, and take action — in six steps.</p>
         </motion.div>
 
         {/* Horizontal step bar */}
