@@ -3,20 +3,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const EXACT_NAME_QUERY = 'Will Roberts';
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { query, scanId } = await req.json();
-
-    if (!query) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Query is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { scanId } = await req.json();
 
     const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!apiKey) {
@@ -26,7 +21,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Running likeness scan for:', query);
+    const exactQuery = `"${EXACT_NAME_QUERY}"`;
+    console.log('Running likeness scan for exact phrase:', exactQuery);
 
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
@@ -35,7 +31,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: `"${String(query).trim()}"`,
+        query: exactQuery,
         limit: 20,
         scrapeOptions: { formats: ['markdown'] },
       }),
@@ -67,8 +63,7 @@ Deno.serve(async (req) => {
       "tripadvisor.com","booking.com","expedia.com","walmart.com","ebay.com",
       "etsy.com","aliexpress.com","whitehouse.gov","senate.gov","congress.gov",
     ];
-    const queryLower = String(query).toLowerCase().trim();
-    const nameTokens = queryLower.split(/\s+/).filter((t) => t.length > 2);
+    const queryLower = EXACT_NAME_QUERY.toLowerCase();
 
     const isRelevant = (r: any): boolean => {
       const url: string = (r.url || "").toLowerCase();
@@ -81,9 +76,7 @@ Deno.serve(async (req) => {
       if (BLOCKED_TLDS.some((t) => host.endsWith(t))) return false;
       const allowed = ALLOWED_DOMAINS.some((d) => host === d || host.endsWith("." + d));
       const haystack = `${url} ${title} ${desc}`;
-      const nameMatch =
-        haystack.includes(queryLower) ||
-        (nameTokens.length >= 2 && nameTokens.every((t) => haystack.includes(t)));
+      const nameMatch = haystack.includes(queryLower);
       return allowed || nameMatch;
     };
 
@@ -123,6 +116,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           status: 'completed',
+          query: exactQuery,
           results,
           result_count: results.length,
           completed_at: new Date().toISOString(),
@@ -131,7 +125,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, data: data.data || [] }),
+      JSON.stringify({ success: true, query: exactQuery, data: data.data || [] }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
