@@ -177,8 +177,15 @@ Deno.serve(async (req) => {
     console.log(`Exact query "${query}" → Instagram:${instagram.length} TikTok:${tiktok.length}`);
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const VPS_SUPABASE_URL = "https://pozwmfmqapizeoctuais.supabase.co";
+    const VPS_SERVICE_KEY = Deno.env.get("VPS_SUPABASE_SERVICE_ROLE_KEY");
+    const VPS_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
+    const vpsSupabase = VPS_SERVICE_KEY ? createClient(VPS_SUPABASE_URL, VPS_SERVICE_KEY) : null;
+
     const seen = new Set<string>();
     let savedCount = 0;
+    let vpsSaved = 0;
     const byPlatform: Record<string, number> = {};
 
     for (const result of allResults) {
@@ -219,6 +226,27 @@ Deno.serve(async (req) => {
         savedCount++;
         byPlatform[result.platform] = (byPlatform[result.platform] || 0) + 1;
       }
+
+      if (vpsSupabase) {
+        const mentionType = result.platform === "Instagram" ? "social_instagram" : "social_tiktok";
+        const { error: vpsErr } = await vpsSupabase.from("mentions").insert({
+          user_id,
+          actor_id: VPS_ACTOR_ID,
+          mention_type: mentionType,
+          title: result.display_name || result.username || result.url,
+          url: result.url,
+          status: "New Alert",
+          confidence: confidence,
+          category: "Social Media",
+          media_type: "profile",
+          thumbnail_url: result.profile_pic_url || null,
+          excerpt: result.bio_snippet || null,
+          match_label: result.match_reason || null,
+          found_at: new Date().toISOString(),
+        });
+        if (vpsErr) console.error("VPS mentions insert error:", vpsErr);
+        else vpsSaved++;
+      }
     }
 
     return new Response(
@@ -226,6 +254,7 @@ Deno.serve(async (req) => {
         success: true,
         total_found: allResults.length,
         saved: savedCount,
+        vps_saved: vpsSaved,
         by_platform: byPlatform,
         query,
         actors_run: ["apify/instagram-scraper", "clockworks/tiktok-scraper"],
