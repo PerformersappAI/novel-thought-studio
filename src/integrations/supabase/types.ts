@@ -906,6 +906,75 @@ export type Database = {
         }
         Relationships: []
       }
+      social_scans: {
+        Row: {
+          actor_id: string
+          bio_snippet: string | null
+          confidence_score: number
+          created_at: string
+          display_name: string | null
+          follower_count: number | null
+          found_at: string
+          id: string
+          match_reason: string | null
+          platform: string
+          profile_pic_url: string | null
+          raw_result: Json
+          risk_level: string
+          search_query: string
+          status: string
+          updated_at: string
+          url: string
+          url_hash: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          actor_id: string
+          bio_snippet?: string | null
+          confidence_score?: number
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          found_at?: string
+          id?: string
+          match_reason?: string | null
+          platform: string
+          profile_pic_url?: string | null
+          raw_result?: Json
+          risk_level?: string
+          search_query: string
+          status?: string
+          updated_at?: string
+          url: string
+          url_hash: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          actor_id?: string
+          bio_snippet?: string | null
+          confidence_score?: number
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          found_at?: string
+          id?: string
+          match_reason?: string | null
+          platform?: string
+          profile_pic_url?: string | null
+          raw_result?: Json
+          risk_level?: string
+          search_query?: string
+          status?: string
+          updated_at?: string
+          url?: string
+          url_hash?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string
