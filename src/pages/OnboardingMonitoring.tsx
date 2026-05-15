@@ -95,11 +95,14 @@ const OnboardingMonitoring = () => {
         >
           <header className="text-center sm:text-left">
             <p className="text-xs uppercase tracking-wider text-primary font-semibold">
-              Step 4 of 4 — Turn On Monitoring
+              Step 4 of 4 — Switch On the Scanner
             </p>
             <h1 className="font-display text-3xl sm:text-4xl font-bold mt-1">
-              The last step. This is where your protection goes live.
+              Your identity is mapped. Now turn on the scanner.
             </h1>
+            <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+              From here we sweep the web and social media for your face, voice, videos, and names — and surface every match in your dashboard.
+            </p>
           </header>
 
           {/* Coverage grid */}
