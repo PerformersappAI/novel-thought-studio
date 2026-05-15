@@ -480,22 +480,38 @@ const Monitoring = () => {
     }
   };
 
-  /* ─── Filtered findings ─── */
-  const filtered = useMemo(() => {
+  /* ─── Section partitioning ─── */
+  const matchesQuery = (f: Finding) => {
+    const q = searchQ.trim().toLowerCase();
+    return !q || f.platform.toLowerCase().includes(q) || f.finding.toLowerCase().includes(q);
+  };
+  const hasNameMatch = (f: Finding) => {
+    if (nameTokens.length === 0) return false;
+    const hay = `${f.url || ""} ${f.finding || ""}`.toLowerCase().replace(/%20/g, " ");
+    return nameTokens.some((t) => hay.includes(t));
+  };
+
+  const identityFindings = useMemo(() => {
     return findings.filter((f) => {
-      const matchesCat = filter === "All" || f.category === filter;
-      const q = searchQ.trim().toLowerCase();
-      const matchesSearch = !q || f.platform.toLowerCase().includes(q) || f.finding.toLowerCase().includes(q);
-      // Folder filter
-      const mention = mentions.find(m => m.id === f.id);
-      const matchesFolder = activeFolder === null
-        ? true
-        : activeFolder === "__unfiled__"
-          ? !mention?.folder_id
-          : mention?.folder_id === activeFolder;
-      return matchesCat && matchesSearch && matchesFolder;
+      const t = (f.platform || "").toLowerCase();
+      if (!IDENTITY_TYPES.has(t)) return false;
+      if (!hasNameMatch(f)) return false;
+      if (identityFilter !== "All" && t !== identityFilter) return false;
+      return matchesQuery(f);
     });
-  }, [findings, filter, searchQ, activeFolder, mentions]);
+  }, [findings, identityFilter, searchQ, nameTokens]);
+
+  const threatFindings = useMemo(() => {
+    return findings.filter((f) => {
+      const t = (f.platform || "").toLowerCase();
+      if (!THREAT_TYPES.has(t)) return false;
+      if (threatFilter !== "All" && t !== threatFilter) return false;
+      return matchesQuery(f);
+    });
+  }, [findings, threatFilter, searchQ]);
+
+  // Legacy `filtered` kept for any remaining references (folders/bulk panel).
+  const filtered = useMemo(() => [...identityFindings, ...threatFindings], [identityFindings, threatFindings]);
 
   /* ─── Selection helpers ─── */
   const allSelected = filtered.length > 0 && filtered.every(f => selectedIds.has(f.id));
