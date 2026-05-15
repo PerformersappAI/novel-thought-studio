@@ -154,15 +154,14 @@ const OnboardingWhy = () => {
             <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center shrink-0">
               <Award className="w-5 h-5 text-amber-400" />
             </div>
-            <h2 className="font-display text-2xl font-bold">In 10 Minutes You Will Have All of This.</h2>
+            <h2 className="font-display text-2xl font-bold">The Scanner: We Watch the Web for You.</h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
-            When you complete registration you will have an official Face Registration Certificate
-            with your unique registry ID and capture date. You will have a verified badge for your
-            website, email signature, and social profiles. You will have 24/7 monitoring scanning
-            TikTok, Instagram, YouTube, casting platforms, ad networks, and deepfake databases for
-            unauthorized use of your face. And you will have the legal foundation to take action
-            the moment someone uses your face without your permission.
+            Once your map is built, our scanner starts working. It searches Instagram, TikTok,
+            YouTube, Facebook, casting platforms, news sites, ad networks, and known AI/deepfake
+            sources — looking for anyone using your face, voice, videos, or names without your
+            permission. Every match lands in your dashboard with the evidence already attached, so
+            you can act in seconds.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             {[
