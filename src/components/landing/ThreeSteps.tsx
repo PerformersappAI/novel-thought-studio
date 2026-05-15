@@ -7,23 +7,23 @@ const steps = [
   {
     n: 1,
     icon: UserSquare,
-    title: "Register Your Face",
-    desc: "Create your profile and capture three photos — front, left profile, right profile. Your face is converted into an encrypted mathematical descriptor and timestamped.",
-    outcome: "You get: A permanent legal timestamp proving this is your face",
+    title: "Build Your Identity Map",
+    desc: "Add your face, voice, videos, and the names you go by — legal name, stage name, AKAs. Each piece is encrypted, hashed, and timestamped as proof it belongs to you.",
+    outcome: "You get: A complete, owned map of your face, voice, work, and names",
   },
   {
     n: 2,
-    icon: ShieldCheck,
-    title: "Get Certified",
-    desc: "Receive your Face Registration Certificate — a downloadable PDF with your registry ID, capture date, and cryptographic proof of ownership. Share your verified badge anywhere.",
-    outcome: "You get: An official certificate and embeddable verified badge",
+    icon: Radar,
+    title: "We Scan the Web & Social Media",
+    desc: "Our scanner runs 24/7 across Instagram, TikTok, YouTube, Facebook, casting platforms, news sites, ad networks, and known AI/deepfake sources — looking for your mapped identity.",
+    outcome: "You get: Continuous matches across the open web and social media",
   },
   {
     n: 3,
-    icon: Radar,
-    title: "We Watch. You're Protected.",
-    desc: "Our monitoring scans TikTok, Instagram, Facebook, YouTube, casting platforms, ad networks, and deepfake databases 24/7. The moment we find something — we alert you and take action.",
-    outcome: "You get: Real-time alerts and one-tap takedown tools",
+    icon: ShieldCheck,
+    title: "You Take Action",
+    desc: "Review every match in your dashboard. Confirm what's yours, dismiss what isn't, and fire off DMCA notices, cease-and-desists, or platform reports in one tap.",
+    outcome: "You get: One-tap takedowns and proof of ownership when you need it",
   },
 ];
 
@@ -39,10 +39,10 @@ const ThreeSteps = () => {
           className="text-center mb-14 max-w-2xl mx-auto"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4 leading-tight">
-            Three Steps. <span className="text-gradient-gold">Total Protection.</span>
+            Map your identity. <span className="text-gradient-gold">We do the watching.</span>
           </h2>
           <p className="text-muted-foreground text-base md:text-lg font-body">
-            From zero to legally protected in under 10 minutes.
+            Three steps to put your face, voice, and name under active defense.
           </p>
         </motion.div>
 
@@ -91,7 +91,7 @@ const ThreeSteps = () => {
           <p className="font-display text-xl font-semibold text-foreground mb-4">Ready?</p>
           <Button asChild size="lg" className="font-body text-base font-semibold px-8 h-13 glow-red">
             <Link to="/signup">
-              Claim My Face — It's Free
+              Start My Identity Map — Free
               <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
           </Button>

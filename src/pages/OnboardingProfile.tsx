@@ -183,10 +183,10 @@ const OnboardingProfile = () => {
           className="glass-card rounded-2xl p-6 sm:p-8 space-y-6"
         >
           <header>
-            <p className="text-xs uppercase tracking-wider text-primary font-semibold">Step 1 of 4 — Build Your Profile</p>
-            <h1 className="font-display text-3xl font-bold mt-1">Tell us who you are.</h1>
+            <p className="text-xs uppercase tracking-wider text-primary font-semibold">Step 1 of 4 — Names & Profile</p>
+            <h1 className="font-display text-3xl font-bold mt-1">Add the names that identify you.</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              This takes about 2 minutes. All fields private unless you opt in to discoverability.
+              Your legal name, stage name, and AKAs become search terms the scanner uses to find unauthorized use of your identity online. Takes about 2 minutes.
             </p>
           </header>
 

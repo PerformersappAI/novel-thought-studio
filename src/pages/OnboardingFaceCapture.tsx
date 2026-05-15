@@ -385,12 +385,12 @@ const OnboardingFaceCapture = () => {
         >
           <header className="text-center sm:text-left">
             <h1 className="font-display text-3xl sm:text-4xl font-bold text-gradient-crimson">
-              Capture Your Real Face
+              Map Your Face
             </h1>
             <p className="text-sm text-muted-foreground mt-2 max-w-xl">
-              Your headshot is retouched. We need the real you — unfiltered, unedited. These three photos
-              become your legal face baseline. Timestamped proof that this is your face, on this date,
-              registered by you.
+              Three real, unfiltered photos — front, left, right. This becomes the face layer
+              of your identity map and powers our scanner that hunts deepfakes, fake profiles,
+              and unauthorized photos of you across the web.
             </p>
           </header>
 

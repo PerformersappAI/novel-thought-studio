@@ -195,7 +195,7 @@ const PerformerDashboard = () => {
     if (!faceCaptured) return { title: "Register Your Face", description: "Capture 3 quick photos to create your timestamped claim.", cta: "Start Face Capture", to: "/register" };
     if (!profileComplete) return { title: "Complete Your Profile", description: "Add your stage name and details.", cta: "Complete Profile", to: "/register" };
     if (!hasCertificate) return { title: "Download Your Certificate", description: "Get your official Face Registration Certificate.", cta: "Get Certificate", to: "/dashboard/certificate" };
-    if (!monitoringActive) return { title: "Activate Monitoring", description: "Turn on 24/7 scanning.", cta: "Activate", to: "/onboarding/monitoring" };
+    if (!monitoringActive) return { title: "Switch On the Scanner", description: "Start watching the web for your mapped identity.", cta: "Activate", to: "/onboarding/monitoring" };
     if (alertCount > 0) return { title: "Review Matches", description: `${alertCount} potential match${alertCount > 1 ? "es" : ""} found.`, cta: "View Results", to: "/dashboard/monitoring" };
     return null;
   };
@@ -246,13 +246,13 @@ const PerformerDashboard = () => {
         <header className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="font-display text-3xl md:text-4xl font-bold">
-              Hey {firstName}. {faceCaptured ? "Your face is claimed." : "Let's protect your face."}
+              Hey {firstName}. {faceCaptured ? "Your identity map is live." : "Let's build your identity map."}
             </h1>
-            <p className="text-muted-foreground mt-1">Here's your protection status at a glance.</p>
+            <p className="text-muted-foreground mt-1">Your Identity Map &amp; Scanner — at a glance.</p>
           </div>
           <Button onClick={handleScanSocial} disabled={scanning} className="shrink-0">
             <ScanSearch className={`w-4 h-4 mr-2 ${scanning ? "animate-spin" : ""}`} />
-            {scanning ? "Scanning…" : "Scan Social Media"}
+            {scanning ? "Scanner running…" : "Run Scanner Now"}
           </Button>
         </header>
 
@@ -269,7 +269,7 @@ const PerformerDashboard = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ScanSearch className="w-5 h-5 text-primary" />
-              <h2 className="font-display text-lg font-semibold">What We Found</h2>
+              <h2 className="font-display text-lg font-semibold">Scanner Activity</h2>
             </div>
             <Button asChild size="sm" variant="outline">
               <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
@@ -287,16 +287,16 @@ const PerformerDashboard = () => {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
               <div>
-                <p className="text-sm font-medium">You're clean</p>
-                <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching 24/7.</p>
+                <p className="text-sm font-medium">Scanner is active</p>
+                <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching the web and social media for your mapped identity 24/7.</p>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border/20">
               <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
               <div>
-                <p className="text-sm font-medium">Monitoring not active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Activate monitoring to scan for unauthorized use.</p>
+                <p className="text-sm font-medium">Scanner not active</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Switch on the scanner to start watching the web for your mapped identity.</p>
               </div>
             </div>
           )}
@@ -308,12 +308,12 @@ const PerformerDashboard = () => {
         >
           <div className="flex items-center gap-2 mb-4">
             <Globe className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold">Identity Footprint</h2>
+            <h2 className="font-display text-lg font-semibold">Web &amp; Social Matches</h2>
           </div>
 
           {mentions.length === 0 ? (
             <div className="py-10 text-center">
-              <p className="text-sm text-muted-foreground">No mentions found yet. We'll notify you when we detect something.</p>
+              <p className="text-sm text-muted-foreground">Scanner is watching. No matches yet for your mapped identity — we'll notify you the moment something appears.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">

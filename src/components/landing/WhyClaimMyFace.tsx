@@ -4,18 +4,18 @@ import { Shield, Eye, Gavel } from "lucide-react";
 const pillars = [
   {
     icon: Shield,
-    title: "You Are the Original",
-    body: "AI can clone your face from 3 photos. ClaimMyFace timestamps your registration so you have proof you came first.",
+    title: "You Own Your Identity",
+    body: "AI can clone your face from 3 photos and your voice from 30 seconds of audio. Map your face, voice, videos, and names here first — so the proof is always yours.",
   },
   {
     icon: Eye,
-    title: "We Watch So You Don't Have To",
-    body: "We monitor 7 platforms and 20+ sources 24/7 for unauthorized use of your face, voice, and name.",
+    title: "The Scanner Works While You Don't",
+    body: "Once your identity map is built, our scanner sweeps Instagram, TikTok, YouTube, Facebook, casting sites, news, and AI/deepfake sources around the clock.",
   },
   {
     icon: Gavel,
-    title: "From Alert to Action in Minutes",
-    body: "When we find unauthorized use we generate your DMCA notice, cease-and-desist, and platform report automatically.",
+    title: "Match Found? You Hit Back",
+    body: "Every match lands in your dashboard with the evidence attached. Generate DMCA notices, cease-and-desists, and platform reports in one tap — no lawyer required.",
   },
 ];
 
@@ -37,7 +37,7 @@ const WhyClaimMyFace = () => {
             Why <span className="text-gradient-gold">ClaimMyFace?</span>
           </h2>
           <p className="text-muted-foreground text-base md:text-lg font-body">
-            Three reasons performers register their face here first.
+            Your face, voice, and name belong to you. We help you map them, defend them, and prove they're yours.
           </p>
         </motion.div>
 

@@ -90,10 +90,10 @@ const OnboardingWhy = () => {
             Before You Begin
           </span>
           <h1 className="font-display text-4xl sm:text-5xl font-bold leading-tight">
-            2 Minutes That Could <span className="text-primary">Save Your Career.</span>
+            Map Your Identity. <span className="text-primary">We'll Watch the Internet for It.</span>
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground">
-            Read this before you register. It matters.
+            We're going to help you map four things — your face, your voice, your work, and your names. Then our scanner watches for them online.
           </p>
         </motion.header>
 
@@ -108,15 +108,14 @@ const OnboardingWhy = () => {
             <div className="w-11 h-11 rounded-xl bg-primary/15 border border-primary/40 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="font-display text-2xl font-bold">Your Face Is Already at Risk.</h2>
+            <h2 className="font-display text-2xl font-bold">Your Face, Voice, and Name Can Be Cloned.</h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
-            AI can clone your face from just 3 photos. Your voice from 60 seconds of audio. Right
-            now — without your knowledge — deepfake versions of performers are being used in ads,
-            scam videos, fake social profiles, and unauthorized commercial content. It happened to
-            Tom Hanks. It happened to Taylor Swift. It is happening to working actors, voice
-            artists, and content creators every single day. You do not have to be famous to be a
-            target. You just have to exist online.
+            AI can clone your face from 3 photos. Your voice from 60 seconds of audio.
+            Right now — without your knowledge — deepfake versions of performers are being used
+            in ads, scam videos, fake social profiles, and unauthorized commercial content. You
+            don't have to be famous to be a target. You just have to exist online. The first
+            move is to claim what's yours: build your identity map here.
           </p>
         </motion.section>
 
@@ -132,16 +131,15 @@ const OnboardingWhy = () => {
               <Shield className="w-5 h-5 text-primary" />
             </div>
             <h2 className="font-display text-2xl font-bold">
-              The Law Protects You — But Only If You Can Prove You Came First.
+              The Identity Map: Face, Voice, Videos, Names.
             </h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
-            The Right of Publicity gives every performer legal control over how their face, voice,
-            and name are used commercially. But to enforce that right — to file a takedown, send a
-            cease and desist, or take legal action — you need proof. Proof that this is your face.
-            Proof of when you registered it. Proof that you came before anyone else claimed it.
-            ClaimMyFace creates that proof. A timestamped, cryptographically secured record that
-            your face is yours — on this date, in this registry, before anyone else.
+            With your help we collect four things: your <strong>face</strong> (photos and capture),
+            your <strong>voice</strong> (a short voiceprint), your <strong>videos</strong> (reels
+            and clips), and your <strong>names</strong> (legal name, stage name, AKAs, press).
+            Each piece is encrypted, hashed, and timestamped — proof that this identity is yours,
+            registered here, on this date, before anyone else claimed it.
           </p>
         </motion.section>
 
@@ -156,21 +154,20 @@ const OnboardingWhy = () => {
             <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center shrink-0">
               <Award className="w-5 h-5 text-amber-400" />
             </div>
-            <h2 className="font-display text-2xl font-bold">In 10 Minutes You Will Have All of This.</h2>
+            <h2 className="font-display text-2xl font-bold">The Scanner: We Watch the Web for You.</h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
-            When you complete registration you will have an official Face Registration Certificate
-            with your unique registry ID and capture date. You will have a verified badge for your
-            website, email signature, and social profiles. You will have 24/7 monitoring scanning
-            TikTok, Instagram, YouTube, casting platforms, ad networks, and deepfake databases for
-            unauthorized use of your face. And you will have the legal foundation to take action
-            the moment someone uses your face without your permission.
+            Once your map is built, our scanner starts working. It searches Instagram, TikTok,
+            YouTube, Facebook, casting platforms, news sites, ad networks, and known AI/deepfake
+            sources — looking for anyone using your face, voice, videos, or names without your
+            permission. Every match lands in your dashboard with the evidence already attached, so
+            you can act in seconds.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             {[
-              { Icon: Lock, label: "Official Certificate" },
+              { Icon: Lock, label: "Identity Map Secured" },
               { Icon: BadgeCheck, label: "Verified Badge" },
-              { Icon: Eye, label: "24/7 Monitoring" },
+              { Icon: Eye, label: "Scanner Active 24/7" },
               { Icon: Zap, label: "One-Tap Takedowns" },
             ].map(({ Icon, label }) => (
               <div
@@ -196,15 +193,15 @@ const OnboardingWhy = () => {
               <Footprints className="w-5 h-5 text-primary" />
             </div>
             <h2 className="font-display text-2xl font-bold">
-              This Is the Most Important Thing You Can Do for Your Career Right Now.
+              You Own Your Identity. Defend It Now.
             </h2>
           </div>
           <p className="text-foreground/85 leading-relaxed">
             You insure your car. You lock your front door. You password-protect your phone. Your
-            face is worth more than all of those things combined — and right now it has zero
-            protection. That ends today. Registration takes 10 minutes. The protection lasts a
-            lifetime. And when the NO FAKES Act passes — performers who registered first will have
-            the strongest legal standing of anyone in the industry.
+            face, voice, and name are worth more than all of those things combined — and right
+            now they have zero protection. That ends today. Building your identity map takes about
+            10 minutes. The scanner runs for life. And when the NO FAKES Act passes, the
+            performers who mapped first will have the strongest legal standing in the industry.
           </p>
         </motion.section>
 
@@ -225,7 +222,7 @@ const OnboardingWhy = () => {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                I'm Ready — Let's Claim My Face <ArrowRight className="w-4 h-4 ml-2" />
+                I'm Ready — Start My Identity Map <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}
           </Button>

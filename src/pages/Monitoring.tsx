@@ -527,10 +527,10 @@ const Monitoring = () => {
         {/* ─── HERO HEADER ─── */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-2">
-            Identity <span className="text-primary">Intelligence</span>
+            The <span className="text-primary">Scanner</span>
           </h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
-            Real-time scanning across social media, search engines, AI databases, and the dark web for unauthorized use of your likeness.
+            What we found across the web and social media for your mapped identity — face, voice, videos, names.
           </p>
         </motion.div>
 
@@ -600,7 +600,7 @@ const Monitoring = () => {
           <div className="px-5 py-4 border-b border-border/20 flex flex-col md:flex-row md:items-center gap-3">
             <div className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-primary" />
-              <h2 className="font-display text-lg font-semibold">Identity Footprint</h2>
+              <h2 className="font-display text-lg font-semibold">Web &amp; Social Matches</h2>
               <Badge variant="outline" className="ml-2 text-xs">{findings.length}</Badge>
             </div>
             <div className="flex-1" />
@@ -751,10 +751,10 @@ const Monitoring = () => {
               <div className="py-16 text-center">
                 <Radar className="w-10 h-10 text-primary/30 mx-auto mb-3" />
                 <p className="font-display text-lg font-semibold text-foreground">
-                  {findings.length === 0 ? "No results yet" : "No results match this filter"}
+                  {findings.length === 0 ? "Scanner is active. No matches yet." : "No results match this filter"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {findings.length === 0 ? 'Hit "Run My Scan" to scan the web for your likeness.' : "Try a different filter or search term."}
+                  {findings.length === 0 ? 'Run the scanner to sweep the web and social media for your mapped identity.' : "Try a different filter or search term."}
                 </p>
               </div>
             ) : (
