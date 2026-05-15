@@ -54,15 +54,19 @@ const HeroSection = () => {
               className="inline-block mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/5"
             >
               <span className="text-xs font-body font-medium text-primary tracking-wider uppercase">
-                The Performer Standard for Face & Likeness Protection
+                Built for actors, performers, and anyone whose face, voice, or name can be cloned by AI
               </span>
             </motion.div>
 
-            <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-5 leading-[1.1]">
+            <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-3 leading-[1.1]">
               <span className="text-foreground">My Face.</span>
               <br />
               <span className="text-gradient-gold">My Claim.</span>
             </h1>
+
+            <p className="font-display text-lg md:text-xl text-foreground/90 mb-5 italic font-body">
+              Map your identity. We'll watch the internet for it.
+            </p>
 
             <motion.p
               initial={{ opacity: 0 }}
@@ -70,9 +74,10 @@ const HeroSection = () => {
               transition={{ delay: 0.5 }}
               className="text-base md:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed font-body"
             >
-              The independent registry that proves you own your face — before
-              someone else profits from it. Built for every performer, not just
-              the famous ones.
+              Upload your face, voice, videos, and the names you go by. Our scanner
+              continuously searches the web and social media — Instagram, TikTok,
+              YouTube, Facebook, casting sites, and AI/deepfake sources — for
+              anyone using your identity without permission.
             </motion.p>
 
             <motion.div
