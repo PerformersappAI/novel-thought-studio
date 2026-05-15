@@ -171,15 +171,22 @@ Deno.serve(async (req) => {
         (profile as any)?.stage_name,
         (profile as any)?.legal_name,
       ].filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+      // Build full-name phrase variants. We require ALL words of the name to
+      // appear together (e.g. "will roberts"), not just one token like "roberts"
+      // — otherwise domains like robertsfurniture.com slip through.
       const nameTokens = new Set<string>();
       for (const n of rawNames) {
-        const lower = n.toLowerCase().trim();
+        const lower = n.toLowerCase().trim().replace(/\s+/g, " ");
         if (lower.length < 4) continue;
-        nameTokens.add(lower);                          // "will roberts"
-        nameTokens.add(lower.replace(/\s+/g, "-"));     // "will-roberts"
-        nameTokens.add(lower.replace(/\s+/g, "_"));     // "will_roberts"
-        nameTokens.add(lower.replace(/\s+/g, ""));      // "willroberts"
-        nameTokens.add(lower.replace(/\s+/g, "+"));     // url-encoded
+        const parts = lower.split(" ").filter(Boolean);
+        if (parts.length < 2) continue; // skip single-word names (too noisy)
+        const joined = parts.join(" ");
+        nameTokens.add(joined);                       // "will roberts"
+        nameTokens.add(parts.join("-"));              // "will-roberts"
+        nameTokens.add(parts.join("_"));              // "will_roberts"
+        nameTokens.add(parts.join(""));               // "willroberts"
+        nameTokens.add(parts.join("+"));              // url-encoded
+        nameTokens.add(parts.join("%20"));            // url-encoded space
       }
 
       const ALLOWED_DOMAINS = new Set([
