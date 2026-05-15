@@ -28,17 +28,16 @@ import {
 import { ShieldAlert } from "lucide-react";
 
 /* ─── Section grouping by mention_type ─── */
-const IDENTITY_TYPES = new Set(["face_match", "news", "casting", "web"]);
+const IDENTITY_TYPES = new Set(["image", "web", "youtube"]);
 const THREAT_TYPES = new Set([
   "deepfake", "voice_clone", "fake_profile", "social_tiktok", "social_instagram",
 ]);
 
 const IDENTITY_TABS: { key: string; label: string }[] = [
   { key: "All", label: "All" },
-  { key: "face_match", label: "Face Matches" },
-  { key: "news", label: "News" },
-  { key: "casting", label: "Casting" },
+  { key: "image", label: "Images" },
   { key: "web", label: "Web" },
+  { key: "youtube", label: "YouTube" },
 ];
 const THREAT_TABS: { key: string; label: string }[] = [
   { key: "All", label: "All" },
@@ -819,7 +818,7 @@ const Monitoring = () => {
                       <ShieldCheck className="w-9 h-9 text-emerald-400/40 mx-auto mb-2" />
                       <p className="font-display text-base font-semibold text-foreground">No verified identity matches yet</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Run a scan to see where your name appears across the web, news, and casting platforms.
+                        Run a scan to see where your name appears across the web, images, and YouTube.
                       </p>
                     </div>
                   ) : (
