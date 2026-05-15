@@ -308,12 +308,12 @@ const PerformerDashboard = () => {
         >
           <div className="flex items-center gap-2 mb-4">
             <Globe className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold">Identity Footprint</h2>
+            <h2 className="font-display text-lg font-semibold">Web &amp; Social Matches</h2>
           </div>
 
           {mentions.length === 0 ? (
             <div className="py-10 text-center">
-              <p className="text-sm text-muted-foreground">No mentions found yet. We'll notify you when we detect something.</p>
+              <p className="text-sm text-muted-foreground">Scanner is watching. No matches yet for your mapped identity — we'll notify you the moment something appears.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
