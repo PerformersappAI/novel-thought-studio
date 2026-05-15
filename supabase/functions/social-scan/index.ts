@@ -41,11 +41,14 @@ function buildQueries(legalName: string, stageName?: string): Array<{ q: string;
 
   if (legalName) {
     push(legalName, "Exact name match");
-    push(`${legalName} actor`, "Name + actor keyword");
     push(`${legalName} official`, "Name + official keyword");
+    push(`${legalName} actor`, "Name + actor keyword");
+    push(`${legalName} booking`, "Name + booking keyword");
+    push(`${legalName} fan`, "Possible fan/impersonation account");
   }
   if (stageName && stageName.toLowerCase() !== legalName.toLowerCase()) {
     push(stageName, "Stage name match");
+    push(`${stageName} official`, "Stage name + official keyword");
     push(`${stageName} actor`, "Stage name + actor keyword");
   }
   return out;
