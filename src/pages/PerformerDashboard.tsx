@@ -269,7 +269,7 @@ const PerformerDashboard = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ScanSearch className="w-5 h-5 text-primary" />
-              <h2 className="font-display text-lg font-semibold">What We Found</h2>
+              <h2 className="font-display text-lg font-semibold">Scanner Activity</h2>
             </div>
             <Button asChild size="sm" variant="outline">
               <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
@@ -287,16 +287,16 @@ const PerformerDashboard = () => {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
               <div>
-                <p className="text-sm font-medium">You're clean</p>
-                <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching 24/7.</p>
+                <p className="text-sm font-medium">Scanner is active</p>
+                <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching the web and social media for your mapped identity 24/7.</p>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border/20">
               <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
               <div>
-                <p className="text-sm font-medium">Monitoring not active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Activate monitoring to scan for unauthorized use.</p>
+                <p className="text-sm font-medium">Scanner not active</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Switch on the scanner to start watching the web for your mapped identity.</p>
               </div>
             </div>
           )}
