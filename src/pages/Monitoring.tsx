@@ -818,7 +818,7 @@ const Monitoring = () => {
                       <ShieldCheck className="w-9 h-9 text-emerald-400/40 mx-auto mb-2" />
                       <p className="font-display text-base font-semibold text-foreground">No verified identity matches yet</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Run a scan to see where your name appears across the web, news, and casting platforms.
+                        Run a scan to see where your name appears across the web, images, and YouTube.
                       </p>
                     </div>
                   ) : (
