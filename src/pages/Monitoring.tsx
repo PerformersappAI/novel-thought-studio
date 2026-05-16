@@ -19,6 +19,7 @@ import {
   Linkedin, Search, Globe, Newspaper, Bot, ExternalLink,
   Copy, Check, Trash2, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag,
   ShieldCheck, RefreshCw, FileText, FolderPlus, Folder, FolderOpen, Plus, X,
+  Image as ImageIcon, Video, Mic, UserX, PenLine,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
