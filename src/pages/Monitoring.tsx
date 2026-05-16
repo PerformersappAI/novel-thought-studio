@@ -60,6 +60,11 @@ const buildNameTokens = (names: (string | null | undefined)[]): string[] => {
       tokens.add(parts.join("-"));
       tokens.add(parts.join("_"));
       tokens.add(parts.join(""));
+      // Also accept individual name parts (≥4 chars) so variants like
+      // "William Roberts" still match a "Will Roberts" identity via "roberts".
+      for (const p of parts) {
+        if (p.length >= 4) tokens.add(p);
+      }
     } else {
       tokens.add(lower);
     }
