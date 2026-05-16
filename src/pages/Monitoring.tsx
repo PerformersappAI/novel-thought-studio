@@ -125,12 +125,28 @@ function deriveTitle(rawTitle: string | null | undefined, url: string | null | u
   const d = extractDomain(url);
   return d || rawTitle || "Untitled result";
 }
-function deriveExcerpt(rawExcerpt: string | null | undefined, url: string | null | undefined): string {
+function deriveExcerpt(
+  rawExcerpt: string | null | undefined,
+  url: string | null | undefined,
+  mentionType?: string | null,
+): string {
   const e = (rawExcerpt || "").trim();
   if (e) return e;
   const d = extractDomain(url);
   const p = extractPath(url);
-  return d ? `${d}${p}` : "";
+  const typeLabel: Record<string, string> = {
+    image: "Image result",
+    web: "Web page",
+    youtube: "YouTube video",
+    deepfake: "Possible deepfake content",
+    voice_clone: "Possible voice clone",
+    fake_profile: "Possible fake profile",
+    social_tiktok: "TikTok profile or post",
+    social_instagram: "Instagram profile or post",
+  };
+  const label = typeLabel[(mentionType || "").toLowerCase()] || "Online mention";
+  if (d) return `${label} found on ${d}${p && p !== "/" ? p : ""}`;
+  return label;
 }
 function faviconUrl(url?: string | null): string {
   const d = extractDomain(url);
