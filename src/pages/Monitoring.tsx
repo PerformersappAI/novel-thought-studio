@@ -910,36 +910,45 @@ const Monitoring = () => {
                 <DialogDescription className="whitespace-normal break-words">{selected.finding}</DialogDescription>
               </DialogHeader>
 
-              {/* Screenshot preview */}
+              {/* Compact source preview */}
               {selected.url && selected.url !== "#" && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Page Preview</p>
-                  <a href={selected.url} target="_blank" rel="noopener noreferrer" className="block w-full rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors relative group">
-                    <div className="aspect-video w-full bg-secondary/30 relative">
+                  {selected.thumbnailUrl ? (
+                    <a
+                      href={selected.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors"
+                    >
                       <img
-                        src={selected.thumbnailUrl || `https://image.thum.io/get/width/600/crop/400/${selected.url}`}
-                        alt={`Preview of ${selected.finding}`}
-                        className="w-full h-full object-cover object-top"
+                        src={selected.thumbnailUrl}
+                        alt={selected.finding}
+                        className="w-full max-h-40 object-contain bg-black/40"
                         loading="lazy"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          target.style.display = "none";
-                          const fallback = target.parentElement?.querySelector(".preview-fallback") as HTMLElement;
-                          if (fallback) fallback.style.display = "flex";
-                        }}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                       />
-                      <div className="preview-fallback absolute inset-0 items-center justify-center bg-secondary/40 hidden">
-                        {(() => { const PIcon = getPlatformIcon(selected.platform); return <PIcon className="w-10 h-10 text-muted-foreground/40" />; })()}
-                      </div>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                          <ExternalLink className="w-3 h-3" /> Open page
-                        </span>
-                      </div>
+                    </a>
+                  ) : null}
+                  <a
+                    href={selected.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-lg border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors p-3"
+                  >
+                    {faviconUrl(selected.url) ? (
+                      <img src={faviconUrl(selected.url)} alt="" className="w-6 h-6 rounded-sm shrink-0" />
+                    ) : (
+                      <Globe className="w-6 h-6 text-primary shrink-0" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{extractDomain(selected.url) || "Source"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{selected.url}</p>
                     </div>
+                    <ExternalLink className="w-4 h-4 text-primary shrink-0" />
                   </a>
                 </div>
               )}
+
 
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
