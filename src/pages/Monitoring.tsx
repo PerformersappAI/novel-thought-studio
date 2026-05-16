@@ -646,7 +646,28 @@ const Monitoring = () => {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const alertCount = findings.filter(f => f.status === "New Alert").length;
+  // Count alerts only among items actually visible in the sections below,
+  // so the hero banner can't disagree with what the user sees.
+  const visibleFindings = useMemo(
+    () => [...identityFindings, ...threatFindings],
+    [identityFindings, threatFindings]
+  );
+  const alertCount = visibleFindings.filter(f => f.status === "New Alert").length;
+
+  // Coverage strip — shows which categories the scanner is actively protecting,
+  // with a live count of results returned for each.
+  const coverageCounts = useMemo(() => {
+    const c = { image: 0, video: 0, voice: 0, deepfake: 0, writing: 0 };
+    for (const f of findings) {
+      const t = (f.platform || "").toLowerCase();
+      if (t === "image" || t === "social_instagram") c.image++;
+      else if (t === "youtube" || t === "social_tiktok") c.video++;
+      else if (t === "voice_clone") c.voice++;
+      else if (t === "deepfake" || t === "fake_profile") c.deepfake++;
+      else if (t === "web") c.writing++;
+    }
+    return c;
+  }, [findings]);
 
   return (
     <DashboardLayout>
