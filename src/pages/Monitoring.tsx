@@ -839,8 +839,8 @@ const Monitoring = () => {
                 <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
                   {IDENTITY_TABS.map((t) => {
                     const count = t.key === "All"
-                      ? findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase()) && hasNameMatch(f)).length
-                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && hasNameMatch(f)).length;
+                      ? findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase()) && (showUnfilteredIdentity || hasNameMatch(f))).length
+                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && (showUnfilteredIdentity || hasNameMatch(f))).length;
                     return (
                       <button
                         key={t.key}
