@@ -846,8 +846,8 @@ const Monitoring = () => {
                 <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
                   {THREAT_TABS.map((t) => {
                     const count = t.key === "All"
-                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase())).length
-                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key).length;
+                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase()) && hasNameMatch(f)).length
+                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && hasNameMatch(f)).length;
                     return (
                       <button
                         key={t.key}
