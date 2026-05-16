@@ -504,10 +504,11 @@ const Monitoring = () => {
     return findings.filter((f) => {
       const t = (f.platform || "").toLowerCase();
       if (!THREAT_TYPES.has(t)) return false;
+      if (!hasNameMatch(f)) return false;
       if (threatFilter !== "All" && t !== threatFilter) return false;
       return matchesQuery(f);
     });
-  }, [findings, threatFilter, searchQ]);
+  }, [findings, threatFilter, searchQ, nameTokens]);
 
   // Legacy `filtered` kept for any remaining references (folders/bulk panel).
   const filtered = useMemo(() => [...identityFindings, ...threatFindings], [identityFindings, threatFindings]);
