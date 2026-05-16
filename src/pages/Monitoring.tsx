@@ -820,6 +820,22 @@ const Monitoring = () => {
                   </div>
                 </div>
 
+                {identityRawCount > 0 && (
+                  <div className="px-5 py-2 border-b border-border/10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>
+                      Scanner returned {identityRawCount} result{identityRawCount === 1 ? "" : "s"}; showing {identityFindings.length} that match your name.
+                    </span>
+                    {identityRawCount > identityFindings.length && (
+                      <button
+                        onClick={() => setShowUnfilteredIdentity((v) => !v)}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {showUnfilteredIdentity ? "Hide unmatched results" : "Show all results"}
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
                   {IDENTITY_TABS.map((t) => {
                     const count = t.key === "All"
