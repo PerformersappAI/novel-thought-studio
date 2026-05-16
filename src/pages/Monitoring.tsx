@@ -60,6 +60,11 @@ const buildNameTokens = (names: (string | null | undefined)[]): string[] => {
       tokens.add(parts.join("-"));
       tokens.add(parts.join("_"));
       tokens.add(parts.join(""));
+      // Also accept individual name parts (≥4 chars) so variants like
+      // "William Roberts" still match a "Will Roberts" identity via "roberts".
+      for (const p of parts) {
+        if (p.length >= 4) tokens.add(p);
+      }
     } else {
       tokens.add(lower);
     }
@@ -301,6 +306,8 @@ const Monitoring = () => {
   const [filter, setFilter] = useState<(typeof FILTER_TABS)[number]>("All");
   const [identityFilter, setIdentityFilter] = useState<string>("All");
   const [threatFilter, setThreatFilter] = useState<string>("All");
+  const [showUnfilteredIdentity, setShowUnfilteredIdentity] = useState(false);
+  const [showUnfilteredThreats, setShowUnfilteredThreats] = useState(false);
   const [nameTokens, setNameTokens] = useState<string[]>([]);
   const [searchQ, setSearchQ] = useState("");
   const [selected, setSelected] = useState<Finding | null>(null);
@@ -506,21 +513,31 @@ const Monitoring = () => {
     return findings.filter((f) => {
       const t = (f.platform || "").toLowerCase();
       if (!IDENTITY_TYPES.has(t)) return false;
-      if (!hasNameMatch(f)) return false;
+      if (!showUnfilteredIdentity && !hasNameMatch(f)) return false;
       if (identityFilter !== "All" && t !== identityFilter) return false;
       return matchesQuery(f);
     });
-  }, [findings, identityFilter, searchQ, nameTokens]);
+  }, [findings, identityFilter, searchQ, nameTokens, showUnfilteredIdentity]);
 
   const threatFindings = useMemo(() => {
     return findings.filter((f) => {
       const t = (f.platform || "").toLowerCase();
       if (!THREAT_TYPES.has(t)) return false;
-      if (!hasNameMatch(f)) return false;
+      if (!showUnfilteredThreats && !hasNameMatch(f)) return false;
       if (threatFilter !== "All" && t !== threatFilter) return false;
       return matchesQuery(f);
     });
-  }, [findings, threatFilter, searchQ, nameTokens]);
+  }, [findings, threatFilter, searchQ, nameTokens, showUnfilteredThreats]);
+
+  // Raw VPS counts per section (independent of name-match filter) for status lines.
+  const identityRawCount = useMemo(
+    () => findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase())).length,
+    [findings]
+  );
+  const threatRawCount = useMemo(
+    () => findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase())).length,
+    [findings]
+  );
 
   // Legacy `filtered` kept for any remaining references (folders/bulk panel).
   const filtered = useMemo(() => [...identityFindings, ...threatFindings], [identityFindings, threatFindings]);
@@ -803,11 +820,27 @@ const Monitoring = () => {
                   </div>
                 </div>
 
+                {identityRawCount > 0 && (
+                  <div className="px-5 py-2 border-b border-border/10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>
+                      Scanner returned {identityRawCount} result{identityRawCount === 1 ? "" : "s"}; showing {identityFindings.length} that match your name.
+                    </span>
+                    {identityRawCount > identityFindings.length && (
+                      <button
+                        onClick={() => setShowUnfilteredIdentity((v) => !v)}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {showUnfilteredIdentity ? "Hide unmatched results" : "Show all results"}
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
                   {IDENTITY_TABS.map((t) => {
                     const count = t.key === "All"
-                      ? findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase()) && hasNameMatch(f)).length
-                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && hasNameMatch(f)).length;
+                      ? findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase()) && (showUnfilteredIdentity || hasNameMatch(f))).length
+                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && (showUnfilteredIdentity || hasNameMatch(f))).length;
                     return (
                       <button
                         key={t.key}
@@ -855,11 +888,27 @@ const Monitoring = () => {
                   </div>
                 </div>
 
+                {threatRawCount > 0 && (
+                  <div className="px-5 py-2 border-b border-border/10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>
+                      Scanner returned {threatRawCount} potential threat{threatRawCount === 1 ? "" : "s"}; showing {threatFindings.length} that mention your name.
+                    </span>
+                    {threatRawCount > threatFindings.length && (
+                      <button
+                        onClick={() => setShowUnfilteredThreats((v) => !v)}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {showUnfilteredThreats ? "Hide unmatched threats" : "Show all threats"}
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
                   {THREAT_TABS.map((t) => {
                     const count = t.key === "All"
-                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase()) && hasNameMatch(f)).length
-                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && hasNameMatch(f)).length;
+                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase()) && (showUnfilteredThreats || hasNameMatch(f))).length
+                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && (showUnfilteredThreats || hasNameMatch(f))).length;
                     return (
                       <button
                         key={t.key}
