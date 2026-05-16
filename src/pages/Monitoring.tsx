@@ -460,6 +460,7 @@ const Monitoring = () => {
     }, 400);
 
     try {
+      const prevCount = findings.length;
       const scanPromise = supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
       await Promise.allSettled([scanPromise, wait(3200)]);
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
@@ -467,7 +468,18 @@ const Monitoring = () => {
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
       await wait(500);
       setScanDone(true);
-      toast({ title: "Scan complete", description: "All results loaded." });
+      // Read latest count from state via functional setState trick
+      setFindings((curr) => {
+        const newCount = curr.length;
+        if (newCount === prevCount) {
+          toast({ title: "Scan complete", description: `No new results since last check (showing ${newCount} existing).` });
+        } else if (newCount > prevCount) {
+          toast({ title: "Scan complete", description: `${newCount - prevCount} new result${newCount - prevCount === 1 ? "" : "s"} found.` });
+        } else {
+          toast({ title: "Scan complete", description: `Showing ${newCount} result${newCount === 1 ? "" : "s"}.` });
+        }
+        return curr;
+      });
     } catch (err: any) {
       if (err.name === "AbortError") { clearInterval(feedInterval); return; }
       setScanDone(true);
@@ -504,10 +516,11 @@ const Monitoring = () => {
     return findings.filter((f) => {
       const t = (f.platform || "").toLowerCase();
       if (!THREAT_TYPES.has(t)) return false;
+      if (!hasNameMatch(f)) return false;
       if (threatFilter !== "All" && t !== threatFilter) return false;
       return matchesQuery(f);
     });
-  }, [findings, threatFilter, searchQ]);
+  }, [findings, threatFilter, searchQ, nameTokens]);
 
   // Legacy `filtered` kept for any remaining references (folders/bulk panel).
   const filtered = useMemo(() => [...identityFindings, ...threatFindings], [identityFindings, threatFindings]);
@@ -845,8 +858,8 @@ const Monitoring = () => {
                 <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
                   {THREAT_TABS.map((t) => {
                     const count = t.key === "All"
-                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase())).length
-                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key).length;
+                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase()) && hasNameMatch(f)).length
+                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && hasNameMatch(f)).length;
                     return (
                       <button
                         key={t.key}
@@ -909,36 +922,45 @@ const Monitoring = () => {
                 <DialogDescription className="whitespace-normal break-words">{selected.finding}</DialogDescription>
               </DialogHeader>
 
-              {/* Screenshot preview */}
+              {/* Compact source preview */}
               {selected.url && selected.url !== "#" && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Page Preview</p>
-                  <a href={selected.url} target="_blank" rel="noopener noreferrer" className="block w-full rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors relative group">
-                    <div className="aspect-video w-full bg-secondary/30 relative">
+                  {selected.thumbnailUrl ? (
+                    <a
+                      href={selected.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors"
+                    >
                       <img
-                        src={selected.thumbnailUrl || `https://image.thum.io/get/width/600/crop/400/${selected.url}`}
-                        alt={`Preview of ${selected.finding}`}
-                        className="w-full h-full object-cover object-top"
+                        src={selected.thumbnailUrl}
+                        alt={selected.finding}
+                        className="w-full max-h-40 object-contain bg-black/40"
                         loading="lazy"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          target.style.display = "none";
-                          const fallback = target.parentElement?.querySelector(".preview-fallback") as HTMLElement;
-                          if (fallback) fallback.style.display = "flex";
-                        }}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                       />
-                      <div className="preview-fallback absolute inset-0 items-center justify-center bg-secondary/40 hidden">
-                        {(() => { const PIcon = getPlatformIcon(selected.platform); return <PIcon className="w-10 h-10 text-muted-foreground/40" />; })()}
-                      </div>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                          <ExternalLink className="w-3 h-3" /> Open page
-                        </span>
-                      </div>
+                    </a>
+                  ) : null}
+                  <a
+                    href={selected.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-lg border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors p-3"
+                  >
+                    {faviconUrl(selected.url) ? (
+                      <img src={faviconUrl(selected.url)} alt="" className="w-6 h-6 rounded-sm shrink-0" />
+                    ) : (
+                      <Globe className="w-6 h-6 text-primary shrink-0" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{extractDomain(selected.url) || "Source"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{selected.url}</p>
                     </div>
+                    <ExternalLink className="w-4 h-4 text-primary shrink-0" />
                   </a>
                 </div>
               )}
+
 
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">

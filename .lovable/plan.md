@@ -1,40 +1,38 @@
-## Problem
+## What's actually happening
 
-The dashboard / Monitoring page show garbage results (microsoft.com, senate.gov, dictionaries, Prince William, single-letter "W" pages, congress.gov, etc.) because mentions are coming from an **external scanner API** (`http://187.77.199.100:8001/mentions/{actor_id}`) proxied by the `actor-registry` edge function. The relevance filter we previously added to `likeness-scan` is irrelevant — that function isn't what feeds the UI.
+From the screenshots and code in `src/pages/Monitoring.tsx`:
 
-## Fix
+1. **"Your Identity Online"** is working — 11 results, all bing.com Image-search URLs for "Will Roberts". The reason they look thin is they're raw Bing search-result URLs (no clean title, no thumbnail), and the filter currently requires the URL/title to contain your name — which it does, so they show.
 
-Add a server-side relevance filter inside `actor-registry`'s `get_mentions` handler. Drop any mention that fails ALL of:
+2. **"Potential Threats"** is showing 3 generic news articles (Florida Phoenix Elon Musk story, Mastercard CFO, ABC News election deepfakes). These come back from the VPS with `mention_type: "deepfake"` but they're general news *about* deepfakes, not deepfakes *of you*. Right now the threats section passes everything through with **no name-match filter**, which is why none of them are about you.
 
-1. URL or title contains the performer's full name (case-insensitive, accepting both "Will Roberts" and "will-roberts" / "will_roberts" / "willroberts")
-2. URL or title matches any AKA / stage name on file
-3. Domain is on an entertainment/casting/social allowlist (youtube.com, instagram.com, tiktok.com, facebook.com, twitter.com, x.com, imdb.com, backstage.com, castingnetworks.com, actorsaccess.com, spotlight.com, mandy.com, linkedin.com, vimeo.com)
+3. **The "View details" preview is the giant white screen.** It uses `https://image.thum.io/get/width/600/crop/400/<url>` to render a screenshot of the source page inside the dialog. For Bing image-search URLs that service returns a blank/white page, and the `<img>` is set to `aspect-video` inside a `max-w-lg` dialog — so you get a big white box. The fallback only triggers on a network error, not on a blank-but-200 response.
 
-Additionally, hard-block a noise denylist regardless of URL match: `microsoft.com`, `go.microsoft.com`, `support.microsoft.com`, `bing.com`, `*.gov`, `*dictionary*`, `wikihow.com`, `wikipedia.org`, `7esl.com`, `whatsapp.com`, `bill.com`, `legilist.com`, `govtrack.us`, `slate.com` (when no name match), royal-family tabloid tags, `wmagazine.com`, `pagesix.com/tag/*`.
+4. **The scan buttons** do call `actor-registry?action=scan` and then re-fetch mentions. The reason "nothing happens visually" is the VPS just re-returns the same 50 mentions you already see — there are no new results to add. Not a bug, just no signal.
 
-Also add a name-shape guard: if the URL path or title contains the full name only as a single-letter substring ("W", "w-", "/w/"), reject.
+## Plan
 
-## Implementation
+All changes are UI-only in `src/pages/Monitoring.tsx` (and a small tweak to the detail dialog). No edge function or schema changes.
 
-Edit only `supabase/functions/actor-registry/index.ts`, inside the `get_mentions` block (lines ~149-178):
+### 1. Apply the name-match filter to threats too
+Currently `identityFindings` requires `hasNameMatch`, but `threatFindings` does not. Add the same `hasNameMatch(f)` requirement to the threats filter so generic deepfake/AI news about other people stops appearing. The threats count badge and per-tab counts get the same treatment.
 
-1. After fetching the actor's profile, also select `full_name, stage_name, legal_name` from `profiles`.
-2. Build `nameTokens` = lowercased variants of full name (with spaces, hyphens, underscores, no-spaces) plus stage/legal name when set, filtering out tokens shorter than 4 chars.
-3. Define `ALLOWED_DOMAINS` set and `BLOCKED_DOMAINS` regex list.
-4. Filter `mentionsList`:
-   - Reject if hostname matches blocked list.
-   - Accept if hostname in allowed set AND (URL path or title contains any nameToken) — for social media we still want a name match to avoid noise like `facebook.com/wmagazine`.
-   - For other domains: accept only if URL path or title contains a nameToken.
-5. Return filtered list in same shape (`{ mentions: [...] }`).
-6. Add a log line: `console.log("Filtered N→M mentions for tokens", nameTokens)` for debugging.
+If a user has zero threat matches (the likely case here), the empty state already reads "No threats detected" — that's the correct message.
 
-## Out of scope
+### 2. Replace the giant white preview with a compact, in-app source preview
+In the detail dialog (lines ~912–941):
+- Drop the big `aspect-video` thum.io screenshot.
+- Replace with a compact preview card: favicon + page title + clean domain + short URL, plus the `Source ↗` button that opens in a new tab (kept since cross-origin iframes from Bing/Google/news sites won't render anyway).
+- For results that **do** have a `thumbnailUrl` from the VPS (image results), show that thumbnail at a small fixed height (~160px, `object-contain`) instead of a full-width screenshot — this keeps it inside the dialog and shows the actual image when one is available.
+- Add a clear "Is this you?" action row at the bottom of the dialog with the same 👍 / 👎 buttons that exist in the list, so the user can confirm/deny right from the preview without going back.
 
-- No DB schema changes.
-- No frontend changes.
-- Not touching `likeness-scan` / `social-scan` (already done in earlier turns).
-- Not touching the external API itself (we don't control it).
+### 3. Make scan buttons give honest feedback
+When `runScan` finishes and the new mention count equals the previous count, change the toast from "Scan complete — all results loaded" to something like "Scan complete — no new results since last check (showing N existing)". This is a 5-line change in `runScan` after `loadMentions()`.
 
-## Files
+### Out of scope (not changing)
+- The actor-registry edge function — it already passes through unchanged per your last instruction.
+- Colors/branding.
+- The Bing image-result quality itself — that's what the VPS returns; cleaning those titles would be a separate task.
 
-- `supabase/functions/actor-registry/index.ts` (single edit + redeploy)
+### Files touched
+- `src/pages/Monitoring.tsx` (threat filter + detail dialog preview + scan toast)
