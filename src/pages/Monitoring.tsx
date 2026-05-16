@@ -743,6 +743,44 @@ const Monitoring = () => {
           )}
         </AnimatePresence>
 
+        {/* ─── COVERAGE STRIP ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="mb-6 rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              What we protect &amp; scan for
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { key: "image", label: "Image", Icon: ImageIcon, count: coverageCounts.image },
+              { key: "video", label: "Video", Icon: Video, count: coverageCounts.video },
+              { key: "voice", label: "Voice", Icon: Mic, count: coverageCounts.voice },
+              { key: "deepfake", label: "Deepfake", Icon: UserX, count: coverageCounts.deepfake },
+              { key: "writing", label: "Writing", Icon: PenLine, count: coverageCounts.writing },
+            ].map(({ key, label, Icon, count }) => (
+              <div
+                key={key}
+                className="flex flex-col items-center gap-1 rounded-xl border border-border/30 bg-background/30 p-3 hover:border-primary/40 transition-colors"
+              >
+                <Icon className="w-4 h-4 text-primary" />
+                <p className="text-[11px] font-semibold text-foreground">{label}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {count} found
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground/70 mt-3 text-center">
+            Coverage is active across all categories — counts update with each scan.
+          </p>
+        </motion.div>
+
         {/* ─── SHARED SEARCH ─── */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-4 flex items-center gap-2">
           <Search className="w-4 h-4 text-muted-foreground" />
