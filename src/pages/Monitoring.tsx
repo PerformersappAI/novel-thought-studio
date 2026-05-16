@@ -460,6 +460,7 @@ const Monitoring = () => {
     }, 400);
 
     try {
+      const prevCount = findings.length;
       const scanPromise = supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
       await Promise.allSettled([scanPromise, wait(3200)]);
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
@@ -467,7 +468,18 @@ const Monitoring = () => {
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
       await wait(500);
       setScanDone(true);
-      toast({ title: "Scan complete", description: "All results loaded." });
+      // Read latest count from state via functional setState trick
+      setFindings((curr) => {
+        const newCount = curr.length;
+        if (newCount === prevCount) {
+          toast({ title: "Scan complete", description: `No new results since last check (showing ${newCount} existing).` });
+        } else if (newCount > prevCount) {
+          toast({ title: "Scan complete", description: `${newCount - prevCount} new result${newCount - prevCount === 1 ? "" : "s"} found.` });
+        } else {
+          toast({ title: "Scan complete", description: `Showing ${newCount} result${newCount === 1 ? "" : "s"}.` });
+        }
+        return curr;
+      });
     } catch (err: any) {
       if (err.name === "AbortError") { clearInterval(feedInterval); return; }
       setScanDone(true);
