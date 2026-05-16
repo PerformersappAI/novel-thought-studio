@@ -888,6 +888,22 @@ const Monitoring = () => {
                   </div>
                 </div>
 
+                {threatRawCount > 0 && (
+                  <div className="px-5 py-2 border-b border-border/10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>
+                      Scanner returned {threatRawCount} potential threat{threatRawCount === 1 ? "" : "s"}; showing {threatFindings.length} that mention your name.
+                    </span>
+                    {threatRawCount > threatFindings.length && (
+                      <button
+                        onClick={() => setShowUnfilteredThreats((v) => !v)}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {showUnfilteredThreats ? "Hide unmatched threats" : "Show all threats"}
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
                   {THREAT_TABS.map((t) => {
                     const count = t.key === "All"
