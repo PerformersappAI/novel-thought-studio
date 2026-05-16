@@ -1,38 +1,40 @@
-## What's actually happening
+# Why the page looks the way it does
 
-From the screenshots and code in `src/pages/Monitoring.tsx`:
+I checked the VPS scanner directly. It currently returns **50 mentions** for your actor: 31 `image`, 16 `web`, 3 `deepfake`. That's the entire universe of what the scanner found — no Instagram, no Google, no TikTok, no YouTube. So three different things are going on:
 
-1. **"Your Identity Online"** is working — 11 results, all bing.com Image-search URLs for "Will Roberts". The reason they look thin is they're raw Bing search-result URLs (no clean title, no thumbnail), and the filter currently requires the URL/title to contain your name — which it does, so they show.
+1. **Identity Online only shows Bing** — All 31 `image` results from the VPS are bing.com image-search URLs. The scanner isn't currently returning Google or Instagram results at all. This is a backend/scanner limitation, not a UI bug.
+2. **Web tab shows 0** — The VPS returned 16 web results, but their titles say "Web result for **William** Roberts". Our name filter only accepts the full joined name (`will roberts`, `will-roberts`, etc.) and rejects last-name-only matches, so "William Roberts" gets filtered out as "not you".
+3. **No threats** — The 3 deepfake items the VPS returned are generic AI news (Elon Musk, Mastercard, ABC News) with no mention of you. The filter correctly hides them.
+4. **Social Scan returns nothing** — The button calls the `social-scan` edge function (Apify-based, separate from the VPS scanner). It searches Instagram/TikTok/LinkedIn but only reports a count toast. If `APIFY_TOKEN` is missing or the actors return empty, the user just sees "Found 0 profiles" with no explanation.
 
-2. **"Potential Threats"** is showing 3 generic news articles (Florida Phoenix Elon Musk story, Mastercard CFO, ABC News election deepfakes). These come back from the VPS with `mention_type: "deepfake"` but they're general news *about* deepfakes, not deepfakes *of you*. Right now the threats section passes everything through with **no name-match filter**, which is why none of them are about you.
+# What I'll change (frontend only)
 
-3. **The "View details" preview is the giant white screen.** It uses `https://image.thum.io/get/width/600/crop/400/<url>` to render a screenshot of the source page inside the dialog. For Bing image-search URLs that service returns a blank/white page, and the `<img>` is set to `aspect-video` inside a `max-w-lg` dialog — so you get a big white box. The fallback only triggers on a network error, not on a blank-but-200 response.
+### 1. Relax name matching so name variants surface
+In `src/pages/Monitoring.tsx`, update `buildNameTokens` so multi-word names also emit each part ≥4 chars as a standalone token (so `roberts` is accepted). That immediately makes the 16 "William Roberts" web results appear under "Web" instead of being hidden.
 
-4. **The scan buttons** do call `actor-registry?action=scan` and then re-fetch mentions. The reason "nothing happens visually" is the VPS just re-returns the same 50 mentions you already see — there are no new results to add. Not a bug, just no signal.
+### 2. Make the Web tab honest when nothing matches you
+When `identityFindings` for Web is 0 but there are unfiltered VPS web results, show a small note: "N web results returned but none clearly matched your name — [show all]" with a toggle to bypass the name filter.
 
-## Plan
+### 3. Surface why Social Scan came back empty
+In `src/components/monitoring/ImpersonatorDetection.tsx`, expand the completion toast:
+- If `data?.saved === 0` and `data?.searched > 0`: "Searched Instagram, TikTok, LinkedIn — no profiles using your name found."
+- If the edge function errors with a missing-credential message: "Social scanner isn't configured yet — contact support to enable Instagram/TikTok scanning."
+Also log the raw response so we can diagnose.
 
-All changes are UI-only in `src/pages/Monitoring.tsx` (and a small tweak to the detail dialog). No edge function or schema changes.
+### 4. Add a one-line scanner status under each section
+- Identity Online: "Last scan returned 31 image, 16 web, 0 video results from the public web."
+- Potential Threats: "Last scan checked deepfake databases and AI news feeds — 0 matched your name."
 
-### 1. Apply the name-match filter to threats too
-Currently `identityFindings` requires `hasNameMatch`, but `threatFindings` does not. Add the same `hasNameMatch(f)` requirement to the threats filter so generic deepfake/AI news about other people stops appearing. The threats count badge and per-tab counts get the same treatment.
+This makes it obvious the scanner ran and explains the zeros, instead of an empty box.
 
-If a user has zero threat matches (the likely case here), the empty state already reads "No threats detected" — that's the correct message.
+# What this won't fix (and why)
 
-### 2. Replace the giant white preview with a compact, in-app source preview
-In the detail dialog (lines ~912–941):
-- Drop the big `aspect-video` thum.io screenshot.
-- Replace with a compact preview card: favicon + page title + clean domain + short URL, plus the `Source ↗` button that opens in a new tab (kept since cross-origin iframes from Bing/Google/news sites won't render anyway).
-- For results that **do** have a `thumbnailUrl` from the VPS (image results), show that thumbnail at a small fixed height (~160px, `object-contain`) instead of a full-width screenshot — this keeps it inside the dialog and shows the actual image when one is available.
-- Add a clear "Is this you?" action row at the bottom of the dialog with the same 👍 / 👎 buttons that exist in the list, so the user can confirm/deny right from the preview without going back.
+- **Getting Instagram/Google results into "Your Identity Online"** requires the VPS scanner at `187.77.199.100:8001` to actually return `social_instagram` / Google-sourced results. Right now it doesn't. That's a scanner-side change, not something I can fix in the app.
+- **Better deepfake matching** also requires the VPS scanner to return items actually about you, not generic AI news.
 
-### 3. Make scan buttons give honest feedback
-When `runScan` finishes and the new mention count equals the previous count, change the toast from "Scan complete — all results loaded" to something like "Scan complete — no new results since last check (showing N existing)". This is a 5-line change in `runScan` after `loadMentions()`.
+Want me to also draft a short note describing what to ask the VPS scanner team to add (Google web, Instagram, YouTube), so you can forward it?
 
-### Out of scope (not changing)
-- The actor-registry edge function — it already passes through unchanged per your last instruction.
-- Colors/branding.
-- The Bing image-result quality itself — that's what the VPS returns; cleaning those titles would be a separate task.
+# Files touched
 
-### Files touched
-- `src/pages/Monitoring.tsx` (threat filter + detail dialog preview + scan toast)
+- `src/pages/Monitoring.tsx` — relax name tokens, add "show unfiltered" toggle, section status line
+- `src/components/monitoring/ImpersonatorDetection.tsx` — better social-scan result messaging
