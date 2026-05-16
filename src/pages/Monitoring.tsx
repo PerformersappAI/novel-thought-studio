@@ -306,6 +306,8 @@ const Monitoring = () => {
   const [filter, setFilter] = useState<(typeof FILTER_TABS)[number]>("All");
   const [identityFilter, setIdentityFilter] = useState<string>("All");
   const [threatFilter, setThreatFilter] = useState<string>("All");
+  const [showUnfilteredIdentity, setShowUnfilteredIdentity] = useState(false);
+  const [showUnfilteredThreats, setShowUnfilteredThreats] = useState(false);
   const [nameTokens, setNameTokens] = useState<string[]>([]);
   const [searchQ, setSearchQ] = useState("");
   const [selected, setSelected] = useState<Finding | null>(null);
