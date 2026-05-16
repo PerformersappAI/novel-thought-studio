@@ -142,12 +142,40 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
         body: { user_id: user.id, legal_name: legalName, stage_name: stageName },
       });
 
-      if (error) throw error;
+      console.log("[social-scan] response:", { data, error });
 
-      toast({
-        title: "Social scan complete",
-        description: `Found ${data?.saved || 0} profiles matching your name across Instagram, TikTok, and LinkedIn.`,
-      });
+      if (error) {
+        const msg = (error.message || "").toLowerCase();
+        if (msg.includes("apify") || msg.includes("token") || msg.includes("credential")) {
+          toast({
+            title: "Social scanner not configured",
+            description: "Instagram/TikTok scanning isn't enabled yet. Contact support to turn it on.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        const saved = data?.saved ?? 0;
+        const searched = data?.searched ?? data?.checked ?? 0;
+        if (saved > 0) {
+          toast({
+            title: "Social scan complete",
+            description: `Found ${saved} profile${saved === 1 ? "" : "s"} matching your name across Instagram, TikTok, and LinkedIn.`,
+          });
+        } else if (searched > 0) {
+          toast({
+            title: "Social scan complete",
+            description: `Checked ${searched} profile${searched === 1 ? "" : "s"} on Instagram, TikTok, and LinkedIn — none matched your name.`,
+          });
+        } else {
+          toast({
+            title: "Social scan returned no results",
+            description: "The scanner couldn't reach Instagram/TikTok/LinkedIn this run. Try again in a moment, or contact support if this keeps happening.",
+            variant: "destructive",
+          });
+        }
+      }
 
       await fetchResults();
     } catch (err: any) {
