@@ -416,7 +416,7 @@ const Monitoring = () => {
 
     const data: Finding[] = merged.map((m) => {
       const enrichedTitle = deriveTitle(m.title, m.url);
-      const enrichedExcerpt = deriveExcerpt(m.excerpt, m.url);
+      const enrichedExcerpt = deriveExcerpt(m.excerpt, m.url, m.mention_type);
       const dbCategory = normalizeCategory(m.mention_type, m.category);
       const isGeneric = isGenericTitle(m.title);
       const finalCategory = isGeneric || dbCategory === "News & Articles"
