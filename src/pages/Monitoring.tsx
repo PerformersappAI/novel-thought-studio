@@ -19,6 +19,7 @@ import {
   Linkedin, Search, Globe, Newspaper, Bot, ExternalLink,
   Copy, Check, Trash2, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag,
   ShieldCheck, RefreshCw, FileText, FolderPlus, Folder, FolderOpen, Plus, X,
+  Image as ImageIcon, Video, Mic, UserX, PenLine,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,12 +126,28 @@ function deriveTitle(rawTitle: string | null | undefined, url: string | null | u
   const d = extractDomain(url);
   return d || rawTitle || "Untitled result";
 }
-function deriveExcerpt(rawExcerpt: string | null | undefined, url: string | null | undefined): string {
+function deriveExcerpt(
+  rawExcerpt: string | null | undefined,
+  url: string | null | undefined,
+  mentionType?: string | null,
+): string {
   const e = (rawExcerpt || "").trim();
   if (e) return e;
   const d = extractDomain(url);
   const p = extractPath(url);
-  return d ? `${d}${p}` : "";
+  const typeLabel: Record<string, string> = {
+    image: "Image result",
+    web: "Web page",
+    youtube: "YouTube video",
+    deepfake: "Possible deepfake content",
+    voice_clone: "Possible voice clone",
+    fake_profile: "Possible fake profile",
+    social_tiktok: "TikTok profile or post",
+    social_instagram: "Instagram profile or post",
+  };
+  const label = typeLabel[(mentionType || "").toLowerCase()] || "Online mention";
+  if (d) return `${label} found on ${d}${p && p !== "/" ? p : ""}`;
+  return label;
 }
 function faviconUrl(url?: string | null): string {
   const d = extractDomain(url);
@@ -400,7 +417,7 @@ const Monitoring = () => {
 
     const data: Finding[] = merged.map((m) => {
       const enrichedTitle = deriveTitle(m.title, m.url);
-      const enrichedExcerpt = deriveExcerpt(m.excerpt, m.url);
+      const enrichedExcerpt = deriveExcerpt(m.excerpt, m.url, m.mention_type);
       const dbCategory = normalizeCategory(m.mention_type, m.category);
       const isGeneric = isGenericTitle(m.title);
       const finalCategory = isGeneric || dbCategory === "News & Articles"
@@ -630,7 +647,28 @@ const Monitoring = () => {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const alertCount = findings.filter(f => f.status === "New Alert").length;
+  // Count alerts only among items actually visible in the sections below,
+  // so the hero banner can't disagree with what the user sees.
+  const visibleFindings = useMemo(
+    () => [...identityFindings, ...threatFindings],
+    [identityFindings, threatFindings]
+  );
+  const alertCount = visibleFindings.filter(f => f.status === "New Alert").length;
+
+  // Coverage strip — shows which categories the scanner is actively protecting,
+  // with a live count of results returned for each.
+  const coverageCounts = useMemo(() => {
+    const c = { image: 0, video: 0, voice: 0, deepfake: 0, writing: 0 };
+    for (const f of findings) {
+      const t = (f.platform || "").toLowerCase();
+      if (t === "image" || t === "social_instagram") c.image++;
+      else if (t === "youtube" || t === "social_tiktok") c.video++;
+      else if (t === "voice_clone") c.voice++;
+      else if (t === "deepfake" || t === "fake_profile") c.deepfake++;
+      else if (t === "web") c.writing++;
+    }
+    return c;
+  }, [findings]);
 
   return (
     <DashboardLayout>
@@ -704,6 +742,44 @@ const Monitoring = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ─── COVERAGE STRIP ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="mb-6 rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              What we protect &amp; scan for
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { key: "image", label: "Image", Icon: ImageIcon, count: coverageCounts.image },
+              { key: "video", label: "Video", Icon: Video, count: coverageCounts.video },
+              { key: "voice", label: "Voice", Icon: Mic, count: coverageCounts.voice },
+              { key: "deepfake", label: "Deepfake", Icon: UserX, count: coverageCounts.deepfake },
+              { key: "writing", label: "Writing", Icon: PenLine, count: coverageCounts.writing },
+            ].map(({ key, label, Icon, count }) => (
+              <div
+                key={key}
+                className="flex flex-col items-center gap-1 rounded-xl border border-border/30 bg-background/30 p-3 hover:border-primary/40 transition-colors"
+              >
+                <Icon className="w-4 h-4 text-primary" />
+                <p className="text-[11px] font-semibold text-foreground">{label}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {count} found
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground/70 mt-3 text-center">
+            Coverage is active across all categories — counts update with each scan.
+          </p>
+        </motion.div>
 
         {/* ─── SHARED SEARCH ─── */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-4 flex items-center gap-2">
