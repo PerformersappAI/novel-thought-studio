@@ -511,21 +511,31 @@ const Monitoring = () => {
     return findings.filter((f) => {
       const t = (f.platform || "").toLowerCase();
       if (!IDENTITY_TYPES.has(t)) return false;
-      if (!hasNameMatch(f)) return false;
+      if (!showUnfilteredIdentity && !hasNameMatch(f)) return false;
       if (identityFilter !== "All" && t !== identityFilter) return false;
       return matchesQuery(f);
     });
-  }, [findings, identityFilter, searchQ, nameTokens]);
+  }, [findings, identityFilter, searchQ, nameTokens, showUnfilteredIdentity]);
 
   const threatFindings = useMemo(() => {
     return findings.filter((f) => {
       const t = (f.platform || "").toLowerCase();
       if (!THREAT_TYPES.has(t)) return false;
-      if (!hasNameMatch(f)) return false;
+      if (!showUnfilteredThreats && !hasNameMatch(f)) return false;
       if (threatFilter !== "All" && t !== threatFilter) return false;
       return matchesQuery(f);
     });
-  }, [findings, threatFilter, searchQ, nameTokens]);
+  }, [findings, threatFilter, searchQ, nameTokens, showUnfilteredThreats]);
+
+  // Raw VPS counts per section (independent of name-match filter) for status lines.
+  const identityRawCount = useMemo(
+    () => findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase())).length,
+    [findings]
+  );
+  const threatRawCount = useMemo(
+    () => findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase())).length,
+    [findings]
+  );
 
   // Legacy `filtered` kept for any remaining references (folders/bulk panel).
   const filtered = useMemo(() => [...identityFindings, ...threatFindings], [identityFindings, threatFindings]);
