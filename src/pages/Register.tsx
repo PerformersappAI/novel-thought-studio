@@ -584,6 +584,10 @@ const Register = () => {
         legal_name: legalName.trim(),
         full_name: legalName.trim(),
         stage_name: stageName.trim() || null,
+        aka_names: akaNames.trim()
+          ? akaNames.split(",").map(s => s.trim()).filter(Boolean)
+          : null,
+        writing_sample: writingSample.trim() || null,
       };
       
       if (headshot_url) payload.headshot_url = headshot_url;
