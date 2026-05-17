@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
+import DetectionPanels from "@/components/dashboard/DetectionPanels";
 import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
 import FacePanel from "@/components/dashboard/FacePanel";
 import VaultCompletionScore from "@/components/dashboard/VaultCompletionScore";
