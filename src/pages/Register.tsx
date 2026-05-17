@@ -155,6 +155,8 @@ const Register = () => {
   /* ─── Info fields ─── */
   const [legalName, setLegalName] = useState("");
   const [stageName, setStageName] = useState("");
+  const [akaNames, setAkaNames] = useState("");
+  const [writingSample, setWritingSample] = useState("");
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -228,7 +230,7 @@ const Register = () => {
       setAccountCreated(true);
       setEmail(user.email ?? "");
       (async () => {
-        const { data } = await supabase.from("profiles").select("legal_name, stage_name, headshot_url, face_registered_at, voice_registered_at").eq("user_id", user.id).maybeSingle();
+        const { data } = await supabase.from("profiles").select("legal_name, stage_name, headshot_url, face_registered_at, voice_registered_at, aka_names, writing_sample").eq("user_id", user.id).maybeSingle();
         if (data) {
           // If profile is already complete (has name + face), redirect to dashboard
           if (data.legal_name && data.face_registered_at) {
@@ -239,6 +241,8 @@ const Register = () => {
           if (data.stage_name) setStageName(data.stage_name);
           if (data.headshot_url) setHeadshotPreview(data.headshot_url);
           if (data.face_registered_at) setPhotosCompleted(true);
+          if (Array.isArray((data as any).aka_names)) setAkaNames((data as any).aka_names.join(", "));
+          if ((data as any).writing_sample) setWritingSample((data as any).writing_sample);
         }
         setProfileLoaded(true);
       })();
@@ -582,6 +586,10 @@ const Register = () => {
         legal_name: legalName.trim(),
         full_name: legalName.trim(),
         stage_name: stageName.trim() || null,
+        aka_names: akaNames.trim()
+          ? akaNames.split(",").map(s => s.trim()).filter(Boolean)
+          : null,
+        writing_sample: writingSample.trim() || null,
       };
       
       if (headshot_url) payload.headshot_url = headshot_url;
@@ -728,6 +736,24 @@ const Register = () => {
                     </div>
                   </>
                 )}
+              </div>
+
+              {/* AKA names */}
+              <div className="space-y-2">
+                <Label>AKA Names <span className="text-muted-foreground font-normal">(optional, comma-separated)</span></Label>
+                <Input value={akaNames} onChange={e => setAkaNames(e.target.value)} placeholder="e.g. Bill Roberts, W.R. Roberts" />
+              </div>
+
+              {/* Writing sample */}
+              <div className="space-y-2">
+                <Label>Writing Sample <span className="text-muted-foreground font-normal">(optional — for screenwriters & authors)</span></Label>
+                <textarea
+                  value={writingSample}
+                  onChange={e => setWritingSample(e.target.value)}
+                  placeholder="Paste a representative passage from your script, article, or book so our scanner can detect copied or AI-rephrased versions."
+                  rows={4}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y"
+                />
               </div>
 
               {/* Headshot */}
