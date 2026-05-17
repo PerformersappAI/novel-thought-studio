@@ -30,6 +30,7 @@ import MediaKitBuilder from "./pages/MediaKitBuilder";
 import AvatarCreator from "./pages/AvatarCreator";
 import LikenessMonitor from "./pages/LikenessMonitor";
 import Monitoring from "./pages/Monitoring";
+import ProtectionReport from "./pages/ProtectionReport";
 import FaceClaimWizard from "./pages/FaceClaimWizard";
 import ContractChecker from "./pages/ContractChecker";
 import TrademarkKit from "./pages/TrademarkKit";
