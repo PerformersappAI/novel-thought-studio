@@ -67,7 +67,7 @@ const Index = () => {
             className="inline-block mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/5"
           >
             <span className="text-xs font-body font-medium text-primary tracking-wider uppercase">
-              AI is coming for your face. Claim it first.
+              Prevention is cheaper than control.
             </span>
           </motion.div>
 
@@ -77,8 +77,8 @@ const Index = () => {
             transition={{ delay: 0.4 }}
             className="font-display text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]"
           >
-            <span className="text-foreground">My Face.</span>{" "}
-            <span className="text-gradient-gold">My Claim.</span>
+            <span className="text-foreground">Your Identity.</span>{" "}
+            <span className="text-gradient-gold">Protected.</span>
           </motion.h1>
 
           <motion.p
@@ -87,8 +87,7 @@ const Index = () => {
             transition={{ delay: 0.5 }}
             className="text-lg md:text-xl text-muted-foreground max-w-xl mb-10 leading-relaxed font-body"
           >
-            The independent registry that proves you own your face — before
-            someone else profits from it.
+            AI-powered detection of unauthorized use of your face, voice, and writing.
           </motion.p>
 
           <motion.div
@@ -103,7 +102,7 @@ const Index = () => {
             >
               <Link to="/register">
                 <Shield className="w-5 h-5 mr-2" />
-                Protect My Identity
+                Register Your Identity — $29.99 one-time
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
@@ -115,8 +114,31 @@ const Index = () => {
             transition={{ delay: 1 }}
             className="text-xs text-muted-foreground mt-6 font-body"
           >
-            Free. Takes 5 minutes. No credit card required.
+            One-time registration. Lifetime monitoring across the web.
           </motion.p>
+
+          {/* 4 core protections strip */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1 }}
+            className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-3xl"
+          >
+            {[
+              { icon: "📷", label: "Photo Detection" },
+              { icon: "🎙️", label: "Voice Detection" },
+              { icon: "✍️", label: "Writing Protection" },
+              { icon: "⚠️", label: "Risk Score" },
+            ].map((p) => (
+              <div
+                key={p.label}
+                className="glass-card rounded-xl border border-border/30 px-4 py-3 flex items-center gap-2 justify-center"
+              >
+                <span className="text-xl" aria-hidden>{p.icon}</span>
+                <span className="font-body text-sm font-medium text-foreground">{p.label}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
