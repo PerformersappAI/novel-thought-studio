@@ -259,6 +259,8 @@ const PerformerDashboard = () => {
 
         <ProtectionScoreCard score={score} />
 
+        <DetectionPanels mentions={mentions} />
+
         <VaultCompletionScore items={vaultItems} />
 
         <FacePanel thumbs={thumbs} registryId={registryId} registeredAt={profile?.face_registered_at} />
