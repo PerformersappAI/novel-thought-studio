@@ -230,7 +230,7 @@ const Register = () => {
       setAccountCreated(true);
       setEmail(user.email ?? "");
       (async () => {
-        const { data } = await supabase.from("profiles").select("legal_name, stage_name, headshot_url, face_registered_at, voice_registered_at").eq("user_id", user.id).maybeSingle();
+        const { data } = await supabase.from("profiles").select("legal_name, stage_name, headshot_url, face_registered_at, voice_registered_at, aka_names, writing_sample").eq("user_id", user.id).maybeSingle();
         if (data) {
           // If profile is already complete (has name + face), redirect to dashboard
           if (data.legal_name && data.face_registered_at) {
@@ -241,6 +241,8 @@ const Register = () => {
           if (data.stage_name) setStageName(data.stage_name);
           if (data.headshot_url) setHeadshotPreview(data.headshot_url);
           if (data.face_registered_at) setPhotosCompleted(true);
+          if (Array.isArray((data as any).aka_names)) setAkaNames((data as any).aka_names.join(", "));
+          if ((data as any).writing_sample) setWritingSample((data as any).writing_sample);
         }
         setProfileLoaded(true);
       })();
