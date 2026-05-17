@@ -736,6 +736,24 @@ const Register = () => {
                 )}
               </div>
 
+              {/* AKA names */}
+              <div className="space-y-2">
+                <Label>AKA Names <span className="text-muted-foreground font-normal">(optional, comma-separated)</span></Label>
+                <Input value={akaNames} onChange={e => setAkaNames(e.target.value)} placeholder="e.g. Bill Roberts, W.R. Roberts" />
+              </div>
+
+              {/* Writing sample */}
+              <div className="space-y-2">
+                <Label>Writing Sample <span className="text-muted-foreground font-normal">(optional — for screenwriters & authors)</span></Label>
+                <textarea
+                  value={writingSample}
+                  onChange={e => setWritingSample(e.target.value)}
+                  placeholder="Paste a representative passage from your script, article, or book so our scanner can detect copied or AI-rephrased versions."
+                  rows={4}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y"
+                />
+              </div>
+
               {/* Headshot */}
               <div className="space-y-2">
                 <Label>Headshot (optional)</Label>
