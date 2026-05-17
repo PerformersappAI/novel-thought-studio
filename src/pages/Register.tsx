@@ -155,6 +155,8 @@ const Register = () => {
   /* ─── Info fields ─── */
   const [legalName, setLegalName] = useState("");
   const [stageName, setStageName] = useState("");
+  const [akaNames, setAkaNames] = useState("");
+  const [writingSample, setWritingSample] = useState("");
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
