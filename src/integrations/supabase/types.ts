@@ -665,6 +665,7 @@ export type Database = {
           account_type: string | null
           admin_notes: string | null
           agency_name: string | null
+          aka_names: string[] | null
           avatar_url: string | null
           bio: string | null
           company_name: string | null
@@ -708,6 +709,7 @@ export type Database = {
           voice_print_hash: string | null
           voice_print_url: string | null
           voice_registered_at: string | null
+          writing_sample: string | null
           years_performing: string | null
           youtube_handle: string | null
         }
@@ -715,6 +717,7 @@ export type Database = {
           account_type?: string | null
           admin_notes?: string | null
           agency_name?: string | null
+          aka_names?: string[] | null
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
@@ -758,6 +761,7 @@ export type Database = {
           voice_print_hash?: string | null
           voice_print_url?: string | null
           voice_registered_at?: string | null
+          writing_sample?: string | null
           years_performing?: string | null
           youtube_handle?: string | null
         }
@@ -765,6 +769,7 @@ export type Database = {
           account_type?: string | null
           admin_notes?: string | null
           agency_name?: string | null
+          aka_names?: string[] | null
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
@@ -808,6 +813,7 @@ export type Database = {
           voice_print_hash?: string | null
           voice_print_url?: string | null
           voice_registered_at?: string | null
+          writing_sample?: string | null
           years_performing?: string | null
           youtube_handle?: string | null
         }
