@@ -56,15 +56,30 @@ const ScanStatusCards = ({ actorId: _actorId }: Props) => {
     (async () => {
       const latest: Record<string, ScanRun | null> = {};
       try {
-        const { data, error } = await supabase.functions.invoke("actor-registry?action=get_scan_runs", {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.warn("[ScanStatusCards] No session; skipping fetch");
+          if (!cancelled) { setRuns({}); setLoading(false); }
+          return;
+        }
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?action=get_scan_runs&_=${Date.now()}`;
+        const res = await fetch(url, {
           method: "GET",
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            "Cache-Control": "no-cache",
+          },
         });
-        if (error) console.warn("Failed to fetch scan runs:", error);
-        for (const row of ((data as any)?.scan_runs || []) as ScanRun[]) {
-          if (!latest[row.scanner_name]) latest[row.scanner_name] = row;
+        const json = await res.json();
+        console.log("[ScanStatusCards] scan_runs response:", json);
+        const rows = (json?.scan_runs || []) as ScanRun[];
+        for (const row of rows) {
+          const key = (row.scanner_name || "").trim().toLowerCase();
+          if (!latest[key]) latest[key] = row;
         }
       } catch (error) {
-        console.warn("Failed to fetch scan runs:", error);
+        console.warn("[ScanStatusCards] Failed to fetch scan runs:", error);
       }
       if (!cancelled) {
         setRuns(latest);
