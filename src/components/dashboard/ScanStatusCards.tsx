@@ -47,29 +47,32 @@ interface Props {
   actorId: string | null;
 }
 
-const ScanStatusCards = ({ actorId }: Props) => {
+const ScanStatusCards = ({ actorId: _actorId }: Props) => {
   const [runs, setRuns] = useState<Record<string, ScanRun | null>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!actorId) {
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("scan_runs" as any)
-        .select("*")
-        .eq("actor_id", actorId)
-        .order("started_at", { ascending: false });
       const latest: Record<string, ScanRun | null> = {};
-      for (const row of (data as any as ScanRun[]) || []) {
-        if (!latest[row.scanner_name]) latest[row.scanner_name] = row;
+      try {
+        const { data, error } = await supabase.functions.invoke("actor-registry?action=get_scan_runs", {
+          method: "GET",
+        });
+        if (error) console.warn("Failed to fetch scan runs:", error);
+        for (const row of ((data as any)?.scan_runs || []) as ScanRun[]) {
+          if (!latest[row.scanner_name]) latest[row.scanner_name] = row;
+        }
+      } catch (error) {
+        console.warn("Failed to fetch scan runs:", error);
       }
-      setRuns(latest);
-      setLoading(false);
+      if (!cancelled) {
+        setRuns(latest);
+        setLoading(false);
+      }
     })();
-  }, [actorId]);
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <motion.div
@@ -140,7 +143,7 @@ const ScanStatusCards = ({ actorId }: Props) => {
                   </span>
                 )}
               </div>
-              {loading && !actorId ? (
+              {loading ? (
                 <p className="text-sm text-muted-foreground">Loading…</p>
               ) : (
                 body
