@@ -5,6 +5,7 @@ import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, Ex
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
+import ScanStatusCards from "@/components/dashboard/ScanStatusCards";
 import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
 import FacePanel from "@/components/dashboard/FacePanel";
 import VaultCompletionScore from "@/components/dashboard/VaultCompletionScore";
@@ -258,6 +259,8 @@ const PerformerDashboard = () => {
         </header>
 
         <ProtectionScoreCard score={score} />
+
+        <ScanStatusCards actorId={(profile as any)?.external_actor_id ?? null} />
 
         <DetectionPanels mentions={mentions} />
 
