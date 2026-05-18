@@ -47,7 +47,7 @@ interface Props {
   actorId: string | null;
 }
 
-const ScanStatusCards = ({ actorId: _actorId }: Props) => {
+const ScanStatusCards = ({ actorId }: Props) => {
   const [runs, setRuns] = useState<Record<string, ScanRun | null>>({});
   const [loading, setLoading] = useState(true);
 
@@ -62,13 +62,15 @@ const ScanStatusCards = ({ actorId: _actorId }: Props) => {
           if (!cancelled) { setRuns({}); setLoading(false); }
           return;
         }
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?action=get_scan_runs&_=${Date.now()}`;
+        const params = new URLSearchParams({ action: "get_scan_runs", _: Date.now().toString() });
+        if (actorId) params.set("actor_id", actorId);
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?${params.toString()}`;
         const res = await fetch(url, {
           method: "GET",
+          cache: "no-store",
           headers: {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${session.access_token}`,
-            "Cache-Control": "no-cache",
           },
         });
         const json = await res.json();
@@ -87,7 +89,7 @@ const ScanStatusCards = ({ actorId: _actorId }: Props) => {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [actorId]);
 
   return (
     <motion.div
