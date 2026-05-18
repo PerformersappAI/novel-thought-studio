@@ -327,7 +327,9 @@ const EvidencePacketPage = () => {
       } else {
         faceMatches.forEach((fm) => {
           checkPage(8);
-          const line = `• ${fm.title.substring(0, 60)}${fm.title.length > 60 ? "…" : ""} — ${fm.url || "No URL"}`;
+          const sim = getSimilarity(fm).toFixed(1);
+          const domain = getDomain(fm);
+          const line = `- ${domain} (${sim}%) - ${fm.url || "No URL"}`;
           doc.text(line, 18, fy, { maxWidth: pw - 36 });
           fy += 7;
         });
