@@ -912,6 +912,51 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_runs: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          finished_at: string | null
+          id: string
+          items_scanned: number
+          legitimate_found: number
+          notes: string | null
+          review_found: number
+          scanner_name: string
+          started_at: string
+          status: string
+          threats_found: number
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          items_scanned?: number
+          legitimate_found?: number
+          notes?: string | null
+          review_found?: number
+          scanner_name: string
+          started_at?: string
+          status?: string
+          threats_found?: number
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          items_scanned?: number
+          legitimate_found?: number
+          notes?: string | null
+          review_found?: number
+          scanner_name?: string
+          started_at?: string
+          status?: string
+          threats_found?: number
+        }
+        Relationships: []
+      }
       social_scans: {
         Row: {
           actor_id: string
