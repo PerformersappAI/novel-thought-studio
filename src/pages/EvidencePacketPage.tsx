@@ -458,28 +458,38 @@ const EvidencePacketPage = () => {
         <Card className="border-border/40 bg-card/60 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-400" /> Face Match Results (100% Confidence)
+              <AlertTriangle className="w-5 h-5 text-red-400" /> Strong Face Matches (≥99% Confidence)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {faceMatches.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No 100% confidence face matches detected.</p>
+              <p className="text-sm text-muted-foreground">No strong face matches detected.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {faceMatches.map((fm) => {
                   const domain = getDomain(fm);
                   const sim = getSimilarity(fm);
+                  const displayUrl = fm.url
+                    ? (fm.url.length > 60 ? fm.url.slice(0, 57) + "..." : fm.url)
+                    : null;
                   return (
                     <div key={fm.id} className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                       <Badge className="bg-red-600 text-white text-xs shrink-0">FACE MATCH</Badge>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="text-sm">
                           <span className="font-semibold">{domain}</span>
-                          <span className="ml-2 text-red-300">{sim.toFixed(1)}%</span>
+                          <span className="mx-2 text-muted-foreground">—</span>
+                          <span className="text-red-300 font-medium">{sim.toFixed(1)}%</span>
                         </p>
                         {fm.url && (
-                          <a href={fm.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                            Source: {fm.url.substring(0, 70)}{fm.url.length > 70 ? "…" : ""}
+                          <a
+                            href={fm.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={fm.url}
+                            className="block text-xs text-primary hover:underline truncate"
+                          >
+                            View Source: {displayUrl}
                           </a>
                         )}
                       </div>
