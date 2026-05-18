@@ -54,13 +54,17 @@ const ScanStatusCards = ({ actorId: _actorId }: Props) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase.functions.invoke("actor-registry?action=get_scan_runs", {
-        method: "GET",
-      });
       const latest: Record<string, ScanRun | null> = {};
-      if (error) console.warn("Failed to fetch scan runs:", error);
-      for (const row of ((data as any)?.scan_runs || []) as ScanRun[]) {
-        if (!latest[row.scanner_name]) latest[row.scanner_name] = row;
+      try {
+        const { data, error } = await supabase.functions.invoke("actor-registry?action=get_scan_runs", {
+          method: "GET",
+        });
+        if (error) console.warn("Failed to fetch scan runs:", error);
+        for (const row of ((data as any)?.scan_runs || []) as ScanRun[]) {
+          if (!latest[row.scanner_name]) latest[row.scanner_name] = row;
+        }
+      } catch (error) {
+        console.warn("Failed to fetch scan runs:", error);
       }
       if (!cancelled) {
         setRuns(latest);
