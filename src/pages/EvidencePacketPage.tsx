@@ -307,34 +307,52 @@ const EvidencePacketPage = () => {
       doc.text(`Total: ${mentions.length}`, pw - 15, y + 8, { align: "right" });
       y += catBlockH + 8;
 
-      // Face matches
+      // Strong face matches (>=99%)
+      const ROW_H = 14; // mm per entry (domain line + url line + spacing)
       checkPage(20);
+      const fmBlockH = 16 + Math.max(faceMatches.length, 1) * ROW_H + 4;
       doc.setFillColor(20, 30, 50);
-      const fmBlockH = 14 + Math.max(faceMatches.length, 1) * 7;
       doc.roundedRect(12, y, pw - 24, Math.min(fmBlockH, ph - y - 30), 3, 3, "F");
       doc.setTextColor(212, 168, 67);
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text("FACE MATCH RESULTS (100% CONFIDENCE)", 18, y + 8);
+      doc.text("STRONG FACE MATCHES (>=99% CONFIDENCE)", 18, y + 8);
       doc.setTextColor(220, 50, 50);
       doc.text(`${faceMatches.length}`, pw - 15, y + 8, { align: "right" });
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(255, 255, 255);
-      let fy = y + 15;
+      let fy = y + 16;
       if (faceMatches.length === 0) {
-        doc.text("No 100% face matches detected.", 18, fy);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(255, 255, 255);
+        doc.text("No strong face matches detected.", 18, fy);
+        y = fy + 10;
       } else {
         faceMatches.forEach((fm) => {
-          checkPage(8);
+          checkPage(ROW_H);
           const sim = getSimilarity(fm).toFixed(1);
           const domain = getDomain(fm);
-          const line = `- ${domain} (${sim}%) - ${fm.url || "No URL"}`;
-          doc.text(line, 18, fy, { maxWidth: pw - 36 });
-          fy += 7;
+          const url = fm.url || "No URL";
+          const displayUrl = url.length > 60 ? url.slice(0, 57) + "..." : url;
+
+          // Line 1: bullet + domain + similarity
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(255, 255, 255);
+          doc.text(`- ${domain}  -  ${sim}%`, 18, fy);
+
+          // Line 2: smaller, muted url with clickable link
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(120, 170, 230);
+          if (fm.url) {
+            doc.textWithLink(displayUrl, 22, fy + 5, { url: fm.url });
+          } else {
+            doc.text(displayUrl, 22, fy + 5);
+          }
+          fy += ROW_H;
         });
+        y = fy + 4;
       }
-      y = fy + 10;
 
       // Disclaimer
       checkPage(35);
@@ -440,28 +458,38 @@ const EvidencePacketPage = () => {
         <Card className="border-border/40 bg-card/60 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-400" /> Face Match Results (100% Confidence)
+              <AlertTriangle className="w-5 h-5 text-red-400" /> Strong Face Matches (≥99% Confidence)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {faceMatches.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No 100% confidence face matches detected.</p>
+              <p className="text-sm text-muted-foreground">No strong face matches detected.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {faceMatches.map((fm) => {
                   const domain = getDomain(fm);
                   const sim = getSimilarity(fm);
+                  const displayUrl = fm.url
+                    ? (fm.url.length > 60 ? fm.url.slice(0, 57) + "..." : fm.url)
+                    : null;
                   return (
                     <div key={fm.id} className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                       <Badge className="bg-red-600 text-white text-xs shrink-0">FACE MATCH</Badge>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="text-sm">
                           <span className="font-semibold">{domain}</span>
-                          <span className="ml-2 text-red-300">{sim.toFixed(1)}%</span>
+                          <span className="mx-2 text-muted-foreground">—</span>
+                          <span className="text-red-300 font-medium">{sim.toFixed(1)}%</span>
                         </p>
                         {fm.url && (
-                          <a href={fm.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                            Source: {fm.url.substring(0, 70)}{fm.url.length > 70 ? "…" : ""}
+                          <a
+                            href={fm.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={fm.url}
+                            className="block text-xs text-primary hover:underline truncate"
+                          >
+                            View Source: {displayUrl}
                           </a>
                         )}
                       </div>
