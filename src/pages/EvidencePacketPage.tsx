@@ -142,10 +142,27 @@ const EvidencePacketPage = () => {
   const reviewCount = grouped["Needs Review"] || 0;
   const threatCount = grouped["Threats"] || 0;
 
+  const parseSimilarityFromTitle = (title: string): number | null => {
+    const match = title?.match(/(\d+(?:\.\d+)?)\s*%/);
+    return match ? parseFloat(match[1]) : null;
+  };
+  const parseDomainFromTitle = (title: string): string | null => {
+    const match = title?.match(/%\s*-\s*([^\]]+)\]/);
+    return match ? match[1].trim() : null;
+  };
+  const getDomain = (m: MentionRow): string => {
+    const fromTitle = parseDomainFromTitle(m.title || "");
+    if (fromTitle) return fromTitle;
+    try { return m.url ? new URL(m.url).hostname.replace(/^www\./, "") : "—"; } catch { return m.url || "—"; }
+  };
+  const getSimilarity = (m: MentionRow): number => {
+    const explicit = (m.similarity ?? m.confidence) as number | null | undefined;
+    if (explicit != null && explicit > 0) return explicit > 1 ? explicit : explicit * 100;
+    return parseSimilarityFromTitle(m.title || "") ?? 0;
+  };
   const faceMatches = mentions.filter((m) => {
     const s = (m.status || "").toLowerCase();
-    const score = (m.similarity ?? m.confidence ?? 0) as number;
-    return s.includes("legitimate") && score >= 99;
+    return s.includes("legitimate") && getSimilarity(m) >= 99;
   });
 
   const profileComplete = !!(profile?.legal_name && profile?.stage_name);
@@ -242,7 +259,7 @@ const EvidencePacketPage = () => {
       let vx = 18;
       vaultSteps.forEach((s) => {
         doc.setTextColor(s.done ? 16 : 150, s.done ? 185 : 150, s.done ? 129 : 150);
-        const label = `${s.done ? "✓" : "✗"} ${s.label}`;
+        const label = `${s.done ? "[x]" : "[ ]"}  ${s.label}`;
         doc.text(label, vx, y + 18);
         vx += doc.getTextWidth(label) + 8;
         if (vx > pw - 30) { vx = 18; y += 7; }
@@ -310,7 +327,9 @@ const EvidencePacketPage = () => {
       } else {
         faceMatches.forEach((fm) => {
           checkPage(8);
-          const line = `• ${fm.title.substring(0, 60)}${fm.title.length > 60 ? "…" : ""} — ${fm.url || "No URL"}`;
+          const sim = getSimilarity(fm).toFixed(1);
+          const domain = getDomain(fm);
+          const line = `- ${domain} (${sim}%) - ${fm.url || "No URL"}`;
           doc.text(line, 18, fy, { maxWidth: pw - 36 });
           fy += 7;
         });
@@ -429,19 +448,26 @@ const EvidencePacketPage = () => {
               <p className="text-sm text-muted-foreground">No 100% confidence face matches detected.</p>
             ) : (
               <div className="space-y-2">
-                {faceMatches.map((fm) => (
-                  <div key={fm.id} className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                    <Badge className="bg-red-600 text-white text-xs shrink-0">FACE MATCH</Badge>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{fm.title}</p>
-                      {fm.url && (
-                        <a href={fm.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                          {fm.url.substring(0, 60)}{fm.url.length > 60 ? "…" : ""}
-                        </a>
-                      )}
+                {faceMatches.map((fm) => {
+                  const domain = getDomain(fm);
+                  const sim = getSimilarity(fm);
+                  return (
+                    <div key={fm.id} className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                      <Badge className="bg-red-600 text-white text-xs shrink-0">FACE MATCH</Badge>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">
+                          <span className="font-semibold">{domain}</span>
+                          <span className="ml-2 text-red-300">{sim.toFixed(1)}%</span>
+                        </p>
+                        {fm.url && (
+                          <a href={fm.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                            Source: {fm.url.substring(0, 70)}{fm.url.length > 70 ? "…" : ""}
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
