@@ -192,8 +192,33 @@ Deno.serve(async (req) => {
       });
     }
 
+    // GET scan runs for the current performer, including unassigned rows written by service jobs
+    if (action === "get_scan_runs" && req.method === "GET") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("external_actor_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const actorId = (profile as any)?.external_actor_id ?? null;
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const vpsServiceKey = Deno.env.get("VPS_SUPABASE_SERVICE_ROLE_KEY") || serviceKey;
+
+      const [localRuns, vpsRuns] = await Promise.all([
+        fetchScanRunsFromRest(Deno.env.get("SUPABASE_URL")!, serviceKey, actorId),
+        fetchScanRunsFromRest(VPS_SUPABASE_URL, vpsServiceKey, actorId),
+      ]);
+
+      const runs = [...localRuns, ...vpsRuns].sort(
+        (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
+      );
+
+      return new Response(JSON.stringify({ actor_id: actorId, scan_runs: runs }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(
-      JSON.stringify({ error: "Invalid action. Use ?action=register, ?action=get_actor, ?action=scan, or ?action=get_mentions" }),
+      JSON.stringify({ error: "Invalid action. Use ?action=register, ?action=get_actor, ?action=scan, ?action=get_mentions, or ?action=get_scan_runs" }),
       {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
