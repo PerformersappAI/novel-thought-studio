@@ -307,34 +307,52 @@ const EvidencePacketPage = () => {
       doc.text(`Total: ${mentions.length}`, pw - 15, y + 8, { align: "right" });
       y += catBlockH + 8;
 
-      // Face matches
+      // Strong face matches (>=99%)
+      const ROW_H = 14; // mm per entry (domain line + url line + spacing)
       checkPage(20);
+      const fmBlockH = 16 + Math.max(faceMatches.length, 1) * ROW_H + 4;
       doc.setFillColor(20, 30, 50);
-      const fmBlockH = 14 + Math.max(faceMatches.length, 1) * 7;
       doc.roundedRect(12, y, pw - 24, Math.min(fmBlockH, ph - y - 30), 3, 3, "F");
       doc.setTextColor(212, 168, 67);
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text("FACE MATCH RESULTS (100% CONFIDENCE)", 18, y + 8);
+      doc.text("STRONG FACE MATCHES (>=99% CONFIDENCE)", 18, y + 8);
       doc.setTextColor(220, 50, 50);
       doc.text(`${faceMatches.length}`, pw - 15, y + 8, { align: "right" });
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(255, 255, 255);
-      let fy = y + 15;
+      let fy = y + 16;
       if (faceMatches.length === 0) {
-        doc.text("No 100% face matches detected.", 18, fy);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(255, 255, 255);
+        doc.text("No strong face matches detected.", 18, fy);
+        y = fy + 10;
       } else {
         faceMatches.forEach((fm) => {
-          checkPage(8);
+          checkPage(ROW_H);
           const sim = getSimilarity(fm).toFixed(1);
           const domain = getDomain(fm);
-          const line = `- ${domain} (${sim}%) - ${fm.url || "No URL"}`;
-          doc.text(line, 18, fy, { maxWidth: pw - 36 });
-          fy += 7;
+          const url = fm.url || "No URL";
+          const displayUrl = url.length > 60 ? url.slice(0, 57) + "..." : url;
+
+          // Line 1: bullet + domain + similarity
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(255, 255, 255);
+          doc.text(`- ${domain}  -  ${sim}%`, 18, fy);
+
+          // Line 2: smaller, muted url with clickable link
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(120, 170, 230);
+          if (fm.url) {
+            doc.textWithLink(displayUrl, 22, fy + 5, { url: fm.url });
+          } else {
+            doc.text(displayUrl, 22, fy + 5);
+          }
+          fy += ROW_H;
         });
+        y = fy + 4;
       }
-      y = fy + 10;
 
       // Disclaimer
       checkPage(35);
