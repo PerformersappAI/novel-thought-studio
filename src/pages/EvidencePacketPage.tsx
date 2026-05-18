@@ -29,6 +29,7 @@ interface MentionRow {
   title: string;
   url: string | null;
   confidence: number | null;
+  similarity?: number | null;
   status: string;
   found_at: string;
 }
