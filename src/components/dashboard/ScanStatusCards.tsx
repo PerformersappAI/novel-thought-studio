@@ -65,10 +65,10 @@ const ScanStatusCards = ({ actorId: _actorId }: Props) => {
         const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?action=get_scan_runs&_=${Date.now()}`;
         const res = await fetch(url, {
           method: "GET",
+          cache: "no-store",
           headers: {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${session.access_token}`,
-            "Cache-Control": "no-cache",
           },
         });
         const json = await res.json();
