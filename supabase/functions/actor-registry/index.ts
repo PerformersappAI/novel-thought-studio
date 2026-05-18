@@ -7,6 +7,29 @@ const corsHeaders = {
 };
 
 const EXTERNAL_API = "http://187.77.199.100:8001";
+const VPS_SUPABASE_URL = "https://pozwmfmqapizeoctuais.supabase.co";
+
+async function fetchScanRunsFromRest(baseUrl: string, serviceKey: string, actorId: string | null) {
+  const params = new URLSearchParams();
+  params.set("select", "id,scanner_name,actor_id,started_at,finished_at,items_scanned,threats_found,legitimate_found,review_found,status,notes");
+  params.set("order", "started_at.desc");
+  params.set("limit", "50");
+  if (actorId) params.set("or", `(actor_id.is.null,actor_id.eq.${actorId})`);
+  else params.set("actor_id", "is.null");
+
+  const res = await fetch(`${baseUrl}/rest/v1/scan_runs?${params.toString()}`, {
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+    },
+  });
+
+  if (!res.ok) {
+    console.error("scan_runs fetch failed", baseUrl, res.status, await res.text());
+    return [];
+  }
+  return await res.json();
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
