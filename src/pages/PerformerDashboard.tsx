@@ -260,6 +260,8 @@ const PerformerDashboard = () => {
 
         <ProtectionScoreCard score={score} />
 
+        <ScanStatusCards actorId={(profile as any)?.external_actor_id ?? null} />
+
         <DetectionPanels mentions={mentions} />
 
         <VaultCompletionScore items={vaultItems} />
