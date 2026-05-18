@@ -199,9 +199,12 @@ Deno.serve(async (req) => {
         .select("external_actor_id")
         .eq("user_id", user.id)
         .maybeSingle();
-      const actorId = (profile as any)?.external_actor_id ?? null;
+      const profileActorId = (profile as any)?.external_actor_id ?? null;
+      const requestedActorId = url.searchParams.get("actor_id");
+      const actorId = requestedActorId && requestedActorId === profileActorId ? requestedActorId : profileActorId;
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const vpsServiceKey = Deno.env.get("VPS_SUPABASE_SERVICE_ROLE_KEY") || serviceKey;
+      console.log(`get_scan_runs user=${user.id} actor_id=${actorId ?? "none"}`);
 
       const [localRuns, vpsRuns] = await Promise.all([
         fetchScanRunsFromRest(Deno.env.get("SUPABASE_URL")!, serviceKey, actorId),
@@ -211,6 +214,8 @@ Deno.serve(async (req) => {
       const runs = [...localRuns, ...vpsRuns].sort(
         (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
       );
+
+      console.log(`get_scan_runs local=${localRuns.length} vps=${vpsRuns.length} total=${runs.length}`);
 
       return new Response(JSON.stringify({ actor_id: actorId, scan_runs: runs }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
