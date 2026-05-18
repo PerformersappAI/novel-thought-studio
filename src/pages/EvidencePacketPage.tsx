@@ -259,7 +259,7 @@ const EvidencePacketPage = () => {
       let vx = 18;
       vaultSteps.forEach((s) => {
         doc.setTextColor(s.done ? 16 : 150, s.done ? 185 : 150, s.done ? 129 : 150);
-        const label = `${s.done ? "✓" : "✗"} ${s.label}`;
+        const label = `${s.done ? "[x]" : "[ ]"}  ${s.label}`;
         doc.text(label, vx, y + 18);
         vx += doc.getTextWidth(label) + 8;
         if (vx > pw - 30) { vx = 18; y += 7; }
