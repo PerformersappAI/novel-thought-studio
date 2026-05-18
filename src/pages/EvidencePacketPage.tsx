@@ -82,7 +82,37 @@ const EvidencePacketPage = () => {
       setRegistryId(certs?.[0]?.registry_id ?? assets?.[0]?.registry_id ?? null);
       setHasCert((certs && certs.length > 0) || false);
       setHasMonitoring(!!sub || localStorage.getItem("cmf_monitoring_basic") === "1");
-      setMentions((mentionsData ?? []) as MentionRow[]);
+
+      // Fetch external mentions from actor-registry (the real data source)
+      let externalRows: MentionRow[] = [];
+      const externalActorId = (prof as any)?.external_actor_id;
+      if (externalActorId) {
+        try {
+          const { data: extData } = await supabase.functions.invoke(
+            `actor-registry?action=get_mentions&actor_id=${externalActorId}&_=${Date.now()}`,
+            { method: "GET" }
+          );
+          const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || extData || [];
+          if (Array.isArray(extMentions)) {
+            externalRows = extMentions.map((m: any, i: number) => ({
+              id: m.id || `ext-${i}`,
+              mention_type: m.mention_type || m.platform || "Web",
+              title: m.title || m.finding || "",
+              url: m.url || null,
+              confidence: m.confidence ?? null,
+              similarity: m.similarity ?? null,
+              status: m.status || "New Alert",
+              found_at: m.found_at || m.date || new Date().toISOString(),
+            }));
+          }
+        } catch (err) {
+          console.warn("[EvidencePacket] external mentions fetch failed:", err);
+        }
+      }
+
+      const dbRows = (mentionsData ?? []) as MentionRow[];
+      const dbUrls = new Set(dbRows.map((r) => r.url).filter(Boolean));
+      setMentions([...dbRows, ...externalRows.filter((r) => !r.url || !dbUrls.has(r.url))]);
 
       if ((prof as any)?.external_risk_score != null) {
         setExternalRiskScore((prof as any).external_risk_score);
@@ -92,21 +122,32 @@ const EvidencePacketPage = () => {
     })();
   }, [user]);
 
-  // Grouped counts
+  // Grouped counts by status (face_legitimate / face_review / face_threat / other)
+  const STATUS_BUCKETS = [
+    { key: "face_legitimate", label: "Legitimate (Face Match)" },
+    { key: "face_review", label: "Needs Review" },
+    { key: "face_threat", label: "Threats" },
+  ];
   const grouped = mentions.reduce<Record<string, number>>((acc, m) => {
-    const cat = bucketType(m.mention_type);
-    acc[cat] = (acc[cat] || 0) + 1;
+    const s = (m.status || "").toLowerCase();
+    let key = "Other";
+    if (s.includes("legitimate")) key = "Legitimate (Face Match)";
+    else if (s.includes("review")) key = "Needs Review";
+    else if (s.includes("threat")) key = "Threats";
+    acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
 
-  const faceMatches = mentions.filter(
-    (m) => m.confidence === 100 || (m as any).match_type === "face_match"
-  );
+  const legitimateCount = grouped["Legitimate (Face Match)"] || 0;
+  const reviewCount = grouped["Needs Review"] || 0;
+  const threatCount = grouped["Threats"] || 0;
 
-  // Risk score calculation (mirrors RiskScoreCard)
-  const profileComplete = !!(profile?.legal_name && profile?.stage_name);
-  const faceCaptured = !!profile?.face_registered_at;
-  const voiceRegistered = !!profile?.voice_registered_at;
+  const faceMatches = mentions.filter((m) => {
+    const s = (m.status || "").toLowerCase();
+    const score = (m.similarity ?? m.confidence ?? 0) as number;
+    return s.includes("legitimate") && score >= 99;
+  });
+
 
   let riskScore: number;
   if (externalRiskScore != null) {
