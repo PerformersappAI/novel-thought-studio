@@ -98,7 +98,7 @@ const ScanStatusCards = ({ actorId: _actorId }: Props) => {
       <h2 className="font-display text-lg font-semibold mb-4">Scan Status</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {CATEGORIES.map((cat) => {
-          const run = runs[cat.key];
+          const run = runs[cat.key.toLowerCase()];
           const inactive = cat.planned && !run;
           const noRun = !run;
 
