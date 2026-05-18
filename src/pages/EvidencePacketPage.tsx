@@ -446,19 +446,26 @@ const EvidencePacketPage = () => {
               <p className="text-sm text-muted-foreground">No 100% confidence face matches detected.</p>
             ) : (
               <div className="space-y-2">
-                {faceMatches.map((fm) => (
-                  <div key={fm.id} className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                    <Badge className="bg-red-600 text-white text-xs shrink-0">FACE MATCH</Badge>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{fm.title}</p>
-                      {fm.url && (
-                        <a href={fm.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                          {fm.url.substring(0, 60)}{fm.url.length > 60 ? "…" : ""}
-                        </a>
-                      )}
+                {faceMatches.map((fm) => {
+                  const domain = getDomain(fm);
+                  const sim = getSimilarity(fm);
+                  return (
+                    <div key={fm.id} className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                      <Badge className="bg-red-600 text-white text-xs shrink-0">FACE MATCH</Badge>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">
+                          <span className="font-semibold">{domain}</span>
+                          <span className="ml-2 text-red-300">{sim.toFixed(1)}%</span>
+                        </p>
+                        {fm.url && (
+                          <a href={fm.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                            Source: {fm.url.substring(0, 70)}{fm.url.length > 70 ? "…" : ""}
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
