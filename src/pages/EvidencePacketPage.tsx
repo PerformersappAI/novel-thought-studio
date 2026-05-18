@@ -148,18 +148,19 @@ const EvidencePacketPage = () => {
     return s.includes("legitimate") && score >= 99;
   });
 
+  const profileComplete = !!(profile?.legal_name && profile?.stage_name);
+  const faceCaptured = !!profile?.face_registered_at;
+  const voiceRegistered = !!profile?.voice_registered_at;
 
+  // Risk score: prefer external score, otherwise derive from real mention data
   let riskScore: number;
   if (externalRiskScore != null) {
     riskScore = Math.max(0, Math.min(100, externalRiskScore));
   } else {
-    riskScore = 0;
-    if (!hasMonitoring) riskScore += 35;
-    if (!hasCert) riskScore += 20;
-    if (!faceCaptured) riskScore += 25;
-    if (!profileComplete) riskScore += 12;
-    if (!voiceRegistered) riskScore += 8;
+    // Formula: threats heavily weighted, reviews moderate, legitimate matches neutral
+    riskScore = Math.min(100, threatCount * 15 + reviewCount * 5);
   }
+
 
   const riskLevel = riskScore >= 70 ? "HIGH" : riskScore >= 40 ? "MEDIUM" : "LOW";
   const riskColor = riskLevel === "HIGH" ? "text-red-400" : riskLevel === "MEDIUM" ? "text-yellow-400" : "text-emerald-400";
