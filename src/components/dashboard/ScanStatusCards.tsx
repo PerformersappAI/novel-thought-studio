@@ -123,7 +123,10 @@ const ScanStatusCards = ({ actorId }: Props) => {
         });
 
         if (rows.length > 0) {
-          if (!cancelled) setRuns(indexRuns(rows));
+          if (!cancelled) {
+            setRuns(indexRuns(rows));
+            setLoading(false);
+          }
           return;
         }
 
