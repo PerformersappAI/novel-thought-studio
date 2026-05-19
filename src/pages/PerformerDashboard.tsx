@@ -32,6 +32,21 @@ function getPlatformIcon(type: string) {
   return Globe;
 }
 
+function normalizeMentionType(raw: string | undefined): string {
+  const map: Record<string, string> = {
+    image: "Photo Match",
+    image_yandex: "Photo Match",
+    web: "Web Mention",
+    youtube: "YouTube",
+    deepfake: "Deepfake Alert",
+    voice_clone: "Voice Clone",
+    fake_profile: "Fake Profile",
+    social_tiktok: "TikTok",
+    social_instagram: "Instagram",
+  };
+  return map[(raw || "").trim().toLowerCase()] || (raw || "");
+}
+
 /* ─── Status badge styling ─── */
 function statusBadge(status: string) {
   switch (status) {
@@ -115,7 +130,7 @@ const PerformerDashboard = () => {
           if (Array.isArray(extMentions)) {
             externalRows = extMentions.map((m: any, i: number) => ({
               id: m.id || `ext-${i}`,
-              mention_type: m.mention_type || m.platform || "Web",
+              mention_type: normalizeMentionType(m.mention_type) || m.platform || "Web",
               title: m.title || m.finding || "",
               url: m.url || null,
               found_at: m.found_at || m.date || new Date().toISOString(),
