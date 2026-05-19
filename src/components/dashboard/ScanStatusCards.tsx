@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ScanRun {
   id: string;
   scanner_name: string;
+  actor_id: string | null;
   started_at: string;
   finished_at: string | null;
   items_scanned: number;
@@ -32,6 +34,36 @@ const CATEGORIES: Category[] = [
   { key: "social", label: "Social Impersonators", emoji: "👥", itemsLabel: "profiles", planned: true },
 ];
 
+const SCANNER_ALIASES: Record<string, string> = {
+  face_match: "face_match",
+  photo: "face_match",
+  photos: "face_match",
+  image: "face_match",
+  images: "face_match",
+  elevenlabs_voice: "elevenlabs_voice",
+  voice: "elevenlabs_voice",
+  voice_clone: "elevenlabs_voice",
+  voice_clones: "elevenlabs_voice",
+  writing: "writing",
+  plagiarism: "writing",
+  deepfake: "deepfake",
+  social: "social",
+};
+
+function normalizeScannerName(value: string | null | undefined): string {
+  const key = (value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return SCANNER_ALIASES[key] ?? key;
+}
+
+function indexRuns(rows: ScanRun[]): Record<string, ScanRun | null> {
+  const latest: Record<string, ScanRun | null> = {};
+  for (const row of rows) {
+    const key = normalizeScannerName(row.scanner_name);
+    if (!latest[key]) latest[key] = row;
+  }
+  return latest;
+}
+
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -48,48 +80,88 @@ interface Props {
 }
 
 const ScanStatusCards = ({ actorId }: Props) => {
+  const { session, user, loading: authLoading } = useAuth();
   const [runs, setRuns] = useState<Record<string, ScanRun | null>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const latest: Record<string, ScanRun | null> = {};
+      if (authLoading) return;
+
       try {
-        const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          console.warn("[ScanStatusCards] No session; skipping fetch");
+          console.warn("[ScanStatusCards] No authenticated session; skipping scan_runs fetch");
           if (!cancelled) { setRuns({}); setLoading(false); }
           return;
         }
-        const params = new URLSearchParams({ action: "get_scan_runs", _: Date.now().toString() });
-        if (actorId) params.set("actor_id", actorId);
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?${params.toString()}`;
+
+        const params = new URLSearchParams({
+          select: "id,scanner_name,actor_id,started_at,finished_at,items_scanned,threats_found,legitimate_found,review_found,status,notes",
+          order: "started_at.desc",
+          limit: "50",
+          _: Date.now().toString(),
+        });
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/scan_runs?${params.toString()}`;
         const res = await fetch(url, {
           method: "GET",
           cache: "no-store",
           headers: {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${session.access_token}`,
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
           },
         });
-        const json = await res.json();
-        console.log("[ScanStatusCards] scan_runs response:", json);
-        const rows = (json?.scan_runs || []) as ScanRun[];
-        for (const row of rows) {
-          const key = (row.scanner_name || "").trim().toLowerCase();
-          if (!latest[key]) latest[key] = row;
+        const rows = await res.json() as ScanRun[];
+        if (!res.ok) throw new Error(JSON.stringify(rows));
+        console.log("[ScanStatusCards] authenticated scan_runs rows:", {
+          user_id: user?.id,
+          actor_id: actorId,
+          count: rows.length,
+          rows: rows.map((row) => ({ scanner_name: row.scanner_name, normalized: normalizeScannerName(row.scanner_name), actor_id: row.actor_id })),
+        });
+
+        if (rows.length > 0) {
+          if (!cancelled) {
+            setRuns(indexRuns(rows));
+            setLoading(false);
+          }
+          return;
+        }
+
+        const functionParams = new URLSearchParams({ action: "get_scan_runs", _: Date.now().toString() });
+        if (actorId) functionParams.set("actor_id", actorId);
+        const functionRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?${functionParams.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
+        const functionJson = await functionRes.json();
+        if (!functionRes.ok) throw new Error(JSON.stringify(functionJson));
+        const functionRows = (functionJson?.scan_runs || []) as ScanRun[];
+        console.log("[ScanStatusCards] actor-registry scan_runs fallback:", {
+          actor_id: functionJson?.actor_id,
+          count: functionRows.length,
+          rows: functionRows.map((row) => ({ scanner_name: row.scanner_name, normalized: normalizeScannerName(row.scanner_name), actor_id: row.actor_id })),
+        });
+        if (!cancelled) {
+          setRuns(indexRuns(functionRows));
         }
       } catch (error) {
         console.warn("[ScanStatusCards] Failed to fetch scan runs:", error);
       }
       if (!cancelled) {
-        setRuns(latest);
         setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [actorId]);
+  }, [actorId, authLoading, session, user?.id]);
 
   return (
     <motion.div
@@ -100,7 +172,7 @@ const ScanStatusCards = ({ actorId }: Props) => {
       <h2 className="font-display text-lg font-semibold mb-4">Scan Status</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {CATEGORIES.map((cat) => {
-          const run = runs[cat.key.toLowerCase()];
+          const run = runs[normalizeScannerName(cat.key)];
           const inactive = cat.planned && !run;
           const noRun = !run;
 
