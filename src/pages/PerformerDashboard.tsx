@@ -240,7 +240,7 @@ const PerformerDashboard = () => {
     try {
       const resp = await fetch("https://api.claimmyface.com/scan", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        mode: "cors",
         body: JSON.stringify({ actor_id: externalActorId }),
       });
       const data = await resp.json().catch(() => ({}));
