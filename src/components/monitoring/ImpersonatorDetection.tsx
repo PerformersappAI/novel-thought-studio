@@ -118,7 +118,6 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
 
   const runScan = async () => {
     if (!user) return;
-    const externalActorId = (profile as any)?.external_actor_id;
     setScanning(true);
     try {
       // Fetch profile to get external_actor_id
