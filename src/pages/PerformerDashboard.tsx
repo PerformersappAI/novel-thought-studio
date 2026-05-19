@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag } from "lucide-react";
+import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag, Camera } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectionScoreCard from "@/components/dashboard/ProtectionScoreCard";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
@@ -21,15 +21,23 @@ import { useToast } from "@/hooks/use-toast";
 
 /* ─── Platform icon map ─── */
 const PLATFORM_ICONS: Record<string, any> = {
-  "Web": Globe, "Instagram": Instagram, "YouTube": Youtube, "Facebook": Facebook,
+  "Photo Match": Camera, "Web": Globe, "Instagram": Instagram, "YouTube": Youtube, "Facebook": Facebook,
   "X / Twitter": Twitter, "Twitter": Twitter, "TikTok": Music2, "LinkedIn": Linkedin,
   "Google": Search, "News": Newspaper, "AI": Bot, "Reddit": Globe,
 };
 function getPlatformIcon(type: string) {
+  if (type === "Photo Match") return Camera;
   for (const [key, Icon] of Object.entries(PLATFORM_ICONS)) {
     if (type.toLowerCase().includes(key.toLowerCase())) return Icon;
   }
   return Globe;
+}
+
+const NOISE_TERMS = ["probate", "surrogate", "atlantic-county", "county-government", "will.asp", "wills", "last-will", "estate", "diamond", "stewart", "historical"];
+function isNoiseUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return NOISE_TERMS.some(t => lower.includes(t));
 }
 
 function normalizeMentionType(raw: string | undefined): string {
@@ -127,15 +135,17 @@ const PerformerDashboard = () => {
           const extData = await response.json();
           const extMentions = extData?.mentions || [];
           if (Array.isArray(extMentions)) {
-            externalRows = extMentions.map((m: any, i: number) => ({
-              id: m.id || `ext-${i}`,
-              mention_type: normalizeMentionType(m.mention_type) || m.platform || "Web",
-              title: m.title || m.finding || "",
-              url: m.url || null,
-              found_at: m.found_at || m.date || new Date().toISOString(),
-              status: m.status || "New Alert",
-              thumbnail_url: m.thumbnail_url || null,
-            }));
+            externalRows = extMentions
+              .filter((m: any) => !isNoiseUrl(m.url))
+              .map((m: any, i: number) => ({
+                id: m.id || `ext-${i}`,
+                mention_type: normalizeMentionType(m.mention_type) || m.platform || "Web",
+                title: m.title || m.finding || "",
+                url: m.url || null,
+                found_at: m.found_at || m.date || new Date().toISOString(),
+                status: m.status || "New Alert",
+                thumbnail_url: m.thumbnail_url || null,
+              }));
           }
         } catch (err) {
           console.warn("Failed to fetch external mentions:", err);
@@ -259,10 +269,6 @@ const PerformerDashboard = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Your Identity Map &amp; Scanner — at a glance.</p>
           </div>
-          <Button onClick={handleScanSocial} className="shrink-0">
-            <ScanSearch className="w-4 h-4 mr-2" />
-            Run Manual Scan
-          </Button>
         </header>
 
         <ProtectionScoreCard score={score} />
