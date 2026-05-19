@@ -217,29 +217,11 @@ const PerformerDashboard = () => {
 
   const nextStep = getNextStep();
 
-  const [scanning, setScanning] = useState(false);
-  const handleScanSocial = async () => {
-    if (scanning) return;
-    const externalActorId = (profile as any)?.external_actor_id;
-    if (!externalActorId) {
-      toast({ title: "No actor ID found", description: "Complete your profile registration first.", variant: "destructive" });
-      return;
-    }
-    setScanning(true);
-    try {
-      const resp = await fetch("http://187.77.199.100:8001/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actor_id: externalActorId }),
-      });
-      const data = await resp.json().catch(() => ({}));
-      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-      toast({ title: "Scan started — results will appear shortly." });
-    } catch (err: any) {
-      toast({ title: "Scan failed", description: err?.message || "Please try again.", variant: "destructive" });
-    } finally {
-      setScanning(false);
-    }
+  const handleScanSocial = () => {
+    toast({
+      title: "Manual Scan",
+      description: "To run a full scan, go to your VPS terminal and run: cd /root/claimmyface && python3 run_all.py",
+    });
   };
 
   /* Check if URL likely contains an image */
@@ -258,9 +240,9 @@ const PerformerDashboard = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Your Identity Map &amp; Scanner — at a glance.</p>
           </div>
-          <Button onClick={handleScanSocial} disabled={scanning} className="shrink-0">
-            <ScanSearch className={`w-4 h-4 mr-2 ${scanning ? "animate-spin" : ""}`} />
-            {scanning ? "Scanner running…" : "Run Scanner Now"}
+          <Button onClick={handleScanSocial} className="shrink-0">
+            <ScanSearch className="w-4 h-4 mr-2" />
+            Run Manual Scan
           </Button>
         </header>
 
