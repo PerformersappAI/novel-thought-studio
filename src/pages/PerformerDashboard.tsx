@@ -21,15 +21,23 @@ import { useToast } from "@/hooks/use-toast";
 
 /* ─── Platform icon map ─── */
 const PLATFORM_ICONS: Record<string, any> = {
-  "Web": Globe, "Instagram": Instagram, "YouTube": Youtube, "Facebook": Facebook,
+  "Photo Match": Camera, "Web": Globe, "Instagram": Instagram, "YouTube": Youtube, "Facebook": Facebook,
   "X / Twitter": Twitter, "Twitter": Twitter, "TikTok": Music2, "LinkedIn": Linkedin,
   "Google": Search, "News": Newspaper, "AI": Bot, "Reddit": Globe,
 };
 function getPlatformIcon(type: string) {
+  if (type === "Photo Match") return Camera;
   for (const [key, Icon] of Object.entries(PLATFORM_ICONS)) {
     if (type.toLowerCase().includes(key.toLowerCase())) return Icon;
   }
   return Globe;
+}
+
+const NOISE_TERMS = ["probate", "surrogate", "atlantic-county", "county-government", "will.asp", "wills", "last-will", "estate", "diamond", "stewart", "historical"];
+function isNoiseUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return NOISE_TERMS.some(t => lower.includes(t));
 }
 
 function normalizeMentionType(raw: string | undefined): string {
