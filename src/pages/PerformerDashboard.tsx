@@ -220,28 +220,21 @@ const PerformerDashboard = () => {
   const [scanning, setScanning] = useState(false);
   const handleScanSocial = async () => {
     if (scanning) return;
-    const name = profile?.legal_name || profile?.full_name;
-    if (!name) {
-      toast({ title: "Add your name first", description: "Complete your profile to run a social scan.", variant: "destructive" });
+    const externalActorId = (profile as any)?.external_actor_id;
+    if (!externalActorId) {
+      toast({ title: "No actor ID found", description: "Complete your profile registration first.", variant: "destructive" });
       return;
     }
     setScanning(true);
-    toast({ title: "Scanning social media…", description: "This can take up to a minute." });
     try {
-      const session = await supabase.auth.getSession();
-      const token = session.data.session?.access_token || "";
-      const resp = await fetch("https://erylrcexcsaqhptrapvl.supabase.co/functions/v1/smooth-responder", {
+      const resp = await fetch("http://187.77.199.100:8001/scan", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ performer_name: name }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor_id: externalActorId }),
       });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-      const found = data?.saved ?? data?.total_found ?? 0;
-      toast({ title: "Social scan complete", description: `Found ${found} profile${found === 1 ? "" : "s"} across Instagram, TikTok, and LinkedIn.` });
+      toast({ title: "Scan started — results will appear shortly." });
     } catch (err: any) {
       toast({ title: "Scan failed", description: err?.message || "Please try again.", variant: "destructive" });
     } finally {
