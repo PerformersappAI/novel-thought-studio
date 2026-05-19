@@ -269,10 +269,6 @@ const PerformerDashboard = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Your Identity Map &amp; Scanner — at a glance.</p>
           </div>
-          <Button onClick={handleScanSocial} className="shrink-0">
-            <ScanSearch className="w-4 h-4 mr-2" />
-            Run Manual Scan
-          </Button>
         </header>
 
         <ProtectionScoreCard score={score} />
