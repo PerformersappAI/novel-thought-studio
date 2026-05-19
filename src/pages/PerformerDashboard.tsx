@@ -122,7 +122,7 @@ const PerformerDashboard = () => {
       const externalActorId = (prof as any)?.external_actor_id;
       if (externalActorId) {
         try {
-          const response = await fetch(`http://187.77.199.100:8001/mentions/${externalActorId}`);
+          const response = await fetch(`https://api.claimmyface.com/mentions/${externalActorId}`);
           const extData = await response.json();
           const extMentions = extData?.mentions || [];
           if (Array.isArray(extMentions)) {
