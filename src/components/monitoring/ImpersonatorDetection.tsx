@@ -118,65 +118,29 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
 
   const runScan = async () => {
     if (!user) return;
+    const externalActorId = (profile as any)?.external_actor_id;
     setScanning(true);
-    toast({ title: "Social scan started", description: "Searching Instagram, TikTok, and LinkedIn for possible impersonation profiles…" });
-
     try {
-      // Get profile data for search queries
-      const { data: profile } = await supabase
+      // Fetch profile to get external_actor_id
+      const { data: prof } = await supabase
         .from("profiles")
-        .select("full_name, stage_name")
+        .select("external_actor_id")
         .eq("user_id", user.id)
-        .single();
-
-      const legalName = profile?.full_name || performerName || "";
-      const stageName = profile?.stage_name || "";
-
-      if (!legalName) {
-        toast({ title: "Missing name", description: "Please add your name in your profile first.", variant: "destructive" });
+        .maybeSingle();
+      const actorId = (prof as any)?.external_actor_id;
+      if (!actorId) {
+        toast({ title: "Profile not linked", description: "Your account is not linked to the scanner.", variant: "destructive" });
         setScanning(false);
         return;
       }
-
-      const { data, error } = await supabase.functions.invoke("social-scan", {
-        body: { user_id: user.id, legal_name: legalName, stage_name: stageName },
+      const resp = await fetch("https://api.claimmyface.com/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor_id: actorId }),
       });
-
-      console.log("[social-scan] response:", { data, error });
-
-      if (error) {
-        const msg = (error.message || "").toLowerCase();
-        if (msg.includes("apify") || msg.includes("token") || msg.includes("credential")) {
-          toast({
-            title: "Social scanner not configured",
-            description: "Instagram/TikTok scanning isn't enabled yet. Contact support to turn it on.",
-            variant: "destructive",
-          });
-        } else {
-          throw error;
-        }
-      } else {
-        const saved = data?.saved ?? 0;
-        const searched = data?.searched ?? data?.checked ?? 0;
-        if (saved > 0) {
-          toast({
-            title: "Social scan complete",
-            description: `Found ${saved} profile${saved === 1 ? "" : "s"} matching your name across Instagram, TikTok, and LinkedIn.`,
-          });
-        } else if (searched > 0) {
-          toast({
-            title: "Social scan complete",
-            description: `Checked ${searched} profile${searched === 1 ? "" : "s"} on Instagram, TikTok, and LinkedIn — none matched your name.`,
-          });
-        } else {
-          toast({
-            title: "Social scan returned no results",
-            description: "The scanner couldn't reach Instagram/TikTok/LinkedIn this run. Try again in a moment, or contact support if this keeps happening.",
-            variant: "destructive",
-          });
-        }
-      }
-
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      toast({ title: "Scan started", description: "Check back in 2-3 minutes for results." });
       await fetchResults();
     } catch (err: any) {
       console.error("Social scan error:", err);
