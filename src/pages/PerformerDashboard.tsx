@@ -130,7 +130,7 @@ const PerformerDashboard = () => {
           if (Array.isArray(extMentions)) {
             externalRows = extMentions.map((m: any, i: number) => ({
               id: m.id || `ext-${i}`,
-              mention_type: m.mention_type || m.platform || "Web",
+              mention_type: normalizeMentionType(m.mention_type) || m.platform || "Web",
               title: m.title || m.finding || "",
               url: m.url || null,
               found_at: m.found_at || m.date || new Date().toISOString(),
