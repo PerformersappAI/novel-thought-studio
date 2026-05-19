@@ -81,6 +81,7 @@ const PerformerDashboard = () => {
   const [mentions, setMentions] = useState<MentionRow[]>([]);
   const [viewMention, setViewMention] = useState<MentionRow | null>(null);
   const [hasRunScan, setHasRunScan] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [hasUsedContractScanner, setHasUsedContractScanner] = useState(false);
   const [hasGeneratedEvidence, setHasGeneratedEvidence] = useState(false);
 
@@ -217,11 +218,29 @@ const PerformerDashboard = () => {
 
   const nextStep = getNextStep();
 
-  const handleScanSocial = () => {
-    toast({
-      title: "Manual Scan",
-      description: "To run a full scan, go to your VPS terminal and run: cd /root/claimmyface && python3 run_all.py",
-    });
+  const handleScanSocial = async () => {
+    if (scanning) return;
+    const externalActorId = (profile as any)?.external_actor_id;
+    if (!externalActorId) {
+      toast({ title: "Profile not linked", description: "Your account is not linked to the scanner.", variant: "destructive" });
+      return;
+    }
+    setScanning(true);
+    toast({ title: "Scanner running…", description: "This can take 2-3 minutes. Results will appear when complete." });
+    try {
+      const resp = await fetch("https://api.claimmyface.com/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor_id: externalActorId }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      toast({ title: "Scan started", description: "Results will appear on your dashboard shortly." });
+    } catch (err: any) {
+      toast({ title: "Scan failed", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
   };
 
   /* Check if URL likely contains an image */
