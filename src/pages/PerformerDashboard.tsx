@@ -135,17 +135,17 @@ const PerformerDashboard = () => {
           const extData = await response.json();
           const extMentions = extData?.mentions || [];
           if (Array.isArray(extMentions)) {
-            externalRows = extMentions.map((m: any, i: number) => ({
-              id: m.id || `ext-${i}`,
-              mention_type: normalizeMentionType(m.mention_type) || m.platform || "Web",
-              title: m.title || m.finding || "",
-              url: m.url || null,
-              found_at: m.found_at || m.date || new Date().toISOString(),
-              status: m.status || "New Alert",
-              thumbnail_url: m.thumbnail_url || null,
-            }));
-          }
-        } catch (err) {
+            externalRows = extMentions
+              .filter((m: any) => !isNoiseUrl(m.url))
+              .map((m: any, i: number) => ({
+                id: m.id || `ext-${i}`,
+                mention_type: normalizeMentionType(m.mention_type) || m.platform || "Web",
+                title: m.title || m.finding || "",
+                url: m.url || null,
+                found_at: m.found_at || m.date || new Date().toISOString(),
+                status: m.status || "New Alert",
+                thumbnail_url: m.thumbnail_url || null,
+              }));
           console.warn("Failed to fetch external mentions:", err);
         }
       }
