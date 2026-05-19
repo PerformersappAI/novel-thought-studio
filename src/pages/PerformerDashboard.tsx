@@ -81,6 +81,7 @@ const PerformerDashboard = () => {
   const [mentions, setMentions] = useState<MentionRow[]>([]);
   const [viewMention, setViewMention] = useState<MentionRow | null>(null);
   const [hasRunScan, setHasRunScan] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [hasUsedContractScanner, setHasUsedContractScanner] = useState(false);
   const [hasGeneratedEvidence, setHasGeneratedEvidence] = useState(false);
 
