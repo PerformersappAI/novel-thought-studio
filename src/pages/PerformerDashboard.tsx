@@ -122,11 +122,9 @@ const PerformerDashboard = () => {
       const externalActorId = (prof as any)?.external_actor_id;
       if (externalActorId) {
         try {
-          const { data: extData } = await supabase.functions.invoke(
-            "actor-registry?action=get_mentions&actor_id=" + externalActorId,
-            { method: "GET" }
-          );
-          const extMentions = extData?.mentions || extData || [];
+          const response = await fetch(`http://187.77.199.100:8001/mentions/${externalActorId}`);
+          const extData = await response.json();
+          const extMentions = extData?.mentions || [];
           if (Array.isArray(extMentions)) {
             externalRows = extMentions.map((m: any, i: number) => ({
               id: m.id || `ext-${i}`,
