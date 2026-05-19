@@ -146,6 +146,8 @@ const PerformerDashboard = () => {
                 status: m.status || "New Alert",
                 thumbnail_url: m.thumbnail_url || null,
               }));
+          }
+        } catch (err) {
           console.warn("Failed to fetch external mentions:", err);
         }
       }
