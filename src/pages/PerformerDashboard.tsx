@@ -32,6 +32,21 @@ function getPlatformIcon(type: string) {
   return Globe;
 }
 
+function normalizeMentionType(raw: string | undefined): string {
+  const map: Record<string, string> = {
+    image: "Photo Match",
+    image_yandex: "Photo Match",
+    web: "Web Mention",
+    youtube: "YouTube",
+    deepfake: "Deepfake Alert",
+    voice_clone: "Voice Clone",
+    fake_profile: "Fake Profile",
+    social_tiktok: "TikTok",
+    social_instagram: "Instagram",
+  };
+  return map[(raw || "").trim().toLowerCase()] || (raw || "");
+}
+
 /* ─── Status badge styling ─── */
 function statusBadge(status: string) {
   switch (status) {
