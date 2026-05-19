@@ -55,6 +55,15 @@ function normalizeScannerName(value: string | null | undefined): string {
   return SCANNER_ALIASES[key] ?? key;
 }
 
+function indexRuns(rows: ScanRun[]): Record<string, ScanRun | null> {
+  const latest: Record<string, ScanRun | null> = {};
+  for (const row of rows) {
+    const key = normalizeScannerName(row.scanner_name);
+    if (!latest[key]) latest[key] = row;
+  }
+  return latest;
+}
+
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -80,7 +89,6 @@ const ScanStatusCards = ({ actorId }: Props) => {
     (async () => {
       if (authLoading) return;
 
-      const latest: Record<string, ScanRun | null> = {};
       try {
         if (!session) {
           console.warn("[ScanStatusCards] No authenticated session; skipping scan_runs fetch");
@@ -113,15 +121,39 @@ const ScanStatusCards = ({ actorId }: Props) => {
           count: rows.length,
           rows: rows.map((row) => ({ scanner_name: row.scanner_name, normalized: normalizeScannerName(row.scanner_name), actor_id: row.actor_id })),
         });
-        for (const row of rows) {
-          const key = normalizeScannerName(row.scanner_name);
-          if (!latest[key]) latest[key] = row;
+
+        if (rows.length > 0) {
+          if (!cancelled) setRuns(indexRuns(rows));
+          return;
+        }
+
+        const functionParams = new URLSearchParams({ action: "get_scan_runs", _: Date.now().toString() });
+        if (actorId) functionParams.set("actor_id", actorId);
+        const functionRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?${functionParams.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
+        const functionJson = await functionRes.json();
+        if (!functionRes.ok) throw new Error(JSON.stringify(functionJson));
+        const functionRows = (functionJson?.scan_runs || []) as ScanRun[];
+        console.log("[ScanStatusCards] actor-registry scan_runs fallback:", {
+          actor_id: functionJson?.actor_id,
+          count: functionRows.length,
+          rows: functionRows.map((row) => ({ scanner_name: row.scanner_name, normalized: normalizeScannerName(row.scanner_name), actor_id: row.actor_id })),
+        });
+        if (!cancelled) {
+          setRuns(indexRuns(functionRows));
         }
       } catch (error) {
         console.warn("[ScanStatusCards] Failed to fetch scan runs:", error);
       }
       if (!cancelled) {
-        setRuns(latest);
         setLoading(false);
       }
     })();
