@@ -29,7 +29,7 @@ import {
 import { ShieldAlert } from "lucide-react";
 
 /* ─── Section grouping by mention_type ─── */
-const IDENTITY_TYPES = new Set(["image", "web", "youtube"]);
+const IDENTITY_TYPES = new Set(["image", "image_yandex", "web", "youtube", "news"]);
 const THREAT_TYPES = new Set([
   "deepfake", "voice_clone", "fake_profile", "social_tiktok", "social_instagram",
 ]);
@@ -39,6 +39,7 @@ const IDENTITY_TABS: { key: string; label: string }[] = [
   { key: "image", label: "Images" },
   { key: "web", label: "Web" },
   { key: "youtube", label: "YouTube" },
+  { key: "news", label: "News" },
 ];
 const THREAT_TABS: { key: string; label: string }[] = [
   { key: "All", label: "All" },
