@@ -14,6 +14,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import {
   Eye, AlertTriangle, Radar, Music2, Instagram, Facebook, Youtube, Twitter,
   Linkedin, Search, Globe, Newspaper, Bot, ExternalLink,
