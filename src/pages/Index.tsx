@@ -126,8 +126,12 @@ const Index = () => {
           >
             {[
               { icon: "📷", label: "Photo Detection" },
+              { icon: "🎬", label: "Video Detection" },
               { icon: "🎙️", label: "Voice Detection" },
               { icon: "✍️", label: "Writing Protection" },
+              { icon: "🧬", label: "Deepfake Detection" },
+              { icon: "👤", label: "Fake Profile Detection" },
+              { icon: "🤖", label: "AI-Generated Content" },
               { icon: "⚠️", label: "Risk Score" },
             ].map((p) => (
               <div
@@ -196,7 +200,7 @@ const Index = () => {
           >
             <Button asChild size="lg" className="font-display text-base font-semibold px-8 h-14 glow-red">
               <Link to="/register">
-                Start Protecting Yourself Free <ArrowRight className="w-5 h-5 ml-2" />
+                Start Protecting Yourself <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
           </motion.div>
