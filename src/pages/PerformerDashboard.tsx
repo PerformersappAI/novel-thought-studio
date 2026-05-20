@@ -253,6 +253,30 @@ const PerformerDashboard = () => {
     }
   };
 
+  const handleScanSocialMedia = async () => {
+    if (scanning) return;
+    const externalActorId = (profile as any)?.external_actor_id;
+    if (!externalActorId) {
+      toast({ title: "Profile not linked", description: "Your account is not linked to the scanner.", variant: "destructive" });
+      return;
+    }
+    setScanning(true);
+    try {
+      const resp = await fetch("https://api.claimmyface.com/scan-social", {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ actor_id: externalActorId }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      toast({ title: "Social scan started." });
+    } catch (err: any) {
+      toast({ title: "Social scan failed", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
+  };
+
   /* Check if URL likely contains an image */
   const urlHasImage = (url: string | null) => {
     if (!url) return false;
@@ -290,9 +314,14 @@ const PerformerDashboard = () => {
               <ScanSearch className="w-5 h-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Scanner Activity</h2>
             </div>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={handleScanSocialMedia} disabled={scanning}>
+                <ScanSearch className="w-4 h-4 mr-1" /> Scan Social Media
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
+              </Button>
+            </div>
           </div>
           {alertCount > 0 ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
