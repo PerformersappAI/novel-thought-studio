@@ -94,7 +94,7 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
   const [rows, setRows] = useState<FakeProfile[]>([]);
   const [modalRow, setModalRow] = useState<FakeProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [scanning, setScanning] = useState(false);
+  
 
   const fetchResults = useCallback(async () => {
     if (!user) return;
@@ -118,35 +118,22 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
 
   const runScan = async () => {
     if (!user) return;
-    setScanning(true);
-    try {
-      // Fetch profile to get external_actor_id
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("external_actor_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      const actorId = (prof as any)?.external_actor_id;
-      if (!actorId) {
-        toast({ title: "Profile not linked", description: "Your account is not linked to the scanner.", variant: "destructive" });
-        setScanning(false);
-        return;
-      }
-      const resp = await fetch("https://api.claimmyface.com/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actor_id: actorId }),
-      });
-      const data = await resp.json().catch(() => ({}));
-      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-      toast({ title: "Scan started", description: "Check back in 2-3 minutes for results." });
-      await fetchResults();
-    } catch (err: any) {
-      console.error("Social scan error:", err);
-      toast({ title: "Scan failed", description: err.message || "Something went wrong.", variant: "destructive" });
-    } finally {
-      setScanning(false);
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("external_actor_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const actorId = (prof as any)?.external_actor_id;
+    if (!actorId) {
+      toast({ title: "Profile not linked", description: "Your account is not linked to the scanner.", variant: "destructive" });
+      return;
     }
+    fetch("https://api.claimmyface.com/scan-social", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor_id: actorId }),
+    }).catch((err) => console.error("Social scan error:", err));
+    toast({ title: "Social scan started" });
   };
 
   const dismissRow = async (id: string) => {
@@ -195,10 +182,9 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
               size="sm"
               className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shrink-0"
               onClick={runScan}
-              disabled={scanning}
             >
-              <RefreshCw className={`w-4 h-4 ${scanning ? "animate-spin" : ""}`} />
-              {scanning ? "Scanning…" : "Run Social Scan"}
+              <RefreshCw className="w-4 h-4" />
+              Run Social Scan
             </Button>
           </div>
         </CardHeader>
@@ -227,11 +213,9 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
               <p className="text-sm text-muted-foreground">
                 {loading
                   ? "Loading…"
-                  : scanning
-                  ? "Scanning social platforms…"
                   : "No possible social impersonation profiles found yet."}
               </p>
-              {!loading && !scanning && (
+              {!loading && (
                 <p className="text-xs text-muted-foreground/60 mt-1">
                   Click "Run Social Scan" to search Instagram, TikTok, and LinkedIn.
                 </p>
