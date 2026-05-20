@@ -48,7 +48,6 @@ const THREAT_TABS: { key: string; label: string }[] = [
   { key: "fake_profile", label: "Fake Profiles" },
   { key: "social_tiktok", label: "TikTok" },
   { key: "social_instagram", label: "Instagram" },
-  { key: "youtube", label: "YouTube" },
 ];
 
 const buildNameTokens = (names: (string | null | undefined)[]): string[] => {
