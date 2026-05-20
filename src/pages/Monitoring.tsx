@@ -1016,7 +1016,7 @@ const Monitoring = () => {
                       <p className="text-xs text-muted-foreground">Threats to monitor — these need your attention.</p>
                     </div>
                     <Badge variant="outline" className="ml-2 text-xs border-primary/40 text-primary bg-primary/10">
-                      {threatFindings.length}
+                      {findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase()) && (showUnfilteredThreats || hasNameMatch(f))).length}
                     </Badge>
                   </div>
                 </div>
