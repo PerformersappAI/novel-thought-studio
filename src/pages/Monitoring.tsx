@@ -339,6 +339,13 @@ const Monitoring = () => {
 
   // Multi-select
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const toggleExpanded = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   // Folders
   const [folders, setFolders] = useState<MentionFolder[]>([]);
