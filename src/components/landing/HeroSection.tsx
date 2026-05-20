@@ -76,8 +76,8 @@ const HeroSection = () => {
             >
               Upload your face, voice, videos, and the names you go by. Our scanner
               continuously searches the web and social media — Instagram, TikTok,
-              YouTube, Facebook, casting sites, and AI/deepfake sources — for
-              anyone using your identity without permission.
+              YouTube, Facebook, casting sites, deepfakes, fake profiles, and
+              AI-generated content — for anyone using your identity without permission.
             </motion.p>
 
             <motion.div
