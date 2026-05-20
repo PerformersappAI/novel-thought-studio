@@ -32,7 +32,6 @@ import { ShieldAlert } from "lucide-react";
 const IDENTITY_TYPES = new Set(["image", "image_yandex", "web", "youtube", "news"]);
 const THREAT_TYPES = new Set([
   "deepfake", "voice_clone", "fake_profile", "social_tiktok", "social_instagram",
-  "image", "image_yandex", "youtube",
 ]);
 
 const IDENTITY_TABS: { key: string; label: string }[] = [
