@@ -35,7 +35,7 @@ const Footer = () => {
             </p>
             <Button asChild size="lg" className="font-body text-base font-semibold px-8 h-13 glow-red">
               <Link to="/signup">
-                Claim My Face — It's Free
+                Claim My Face — Get Started
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
