@@ -102,7 +102,7 @@ const Index = () => {
             >
               <Link to="/register">
                 <Shield className="w-5 h-5 mr-2" />
-                Register Your Identity — $29.99 one-time
+                Register Your Identity — $29.99 one-time + $9.99/mo
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
