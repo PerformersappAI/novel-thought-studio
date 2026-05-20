@@ -14,6 +14,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import {
   Eye, AlertTriangle, Radar, Music2, Instagram, Facebook, Youtube, Twitter,
   Linkedin, Search, Globe, Newspaper, Bot, ExternalLink,
@@ -338,6 +339,13 @@ const Monitoring = () => {
 
   // Multi-select
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const toggleExpanded = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   // Folders
   const [folders, setFolders] = useState<MentionFolder[]>([]);
@@ -797,11 +805,14 @@ const Monitoring = () => {
           const renderRow = (f: Finding) => {
             const PIcon = getPlatformIcon(f.platform);
             const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
+            const isImage = f.mediaType === "image" || (f.platform || "").toLowerCase().includes("image");
+            const previewSrc = f.thumbnailUrl || (isImage ? f.url : undefined);
+            const expanded = expandedIds.has(f.id);
             return (
+              <div key={f.id} className="border-b border-border/10 last:border-b-0">
               <div
-                key={f.id}
                 className="flex items-start gap-3 px-5 py-4 hover:bg-primary/5 transition-colors group cursor-pointer"
-                onClick={() => setSelected(f)}
+                onClick={() => (isImage && previewSrc ? toggleExpanded(f.id) : setSelected(f))}
               >
                 <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
                   {f.url && f.url !== "#" && faviconUrl(f.url) ? (
@@ -822,7 +833,25 @@ const Monitoring = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
+                      {isImage && previewSrc ? (
+                        <HoverCard openDelay={150} closeDelay={80}>
+                          <HoverCardTrigger asChild>
+                            <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
+                          </HoverCardTrigger>
+                          <HoverCardContent side="right" className="w-64 p-2">
+                            <img
+                              src={previewSrc}
+                              alt={f.finding}
+                              className="w-full h-auto max-h-64 object-contain rounded"
+                              loading="lazy"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                            <p className="text-[10px] text-muted-foreground mt-1 truncate">{extractDomain(f.url)}</p>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
+                      )}
                       {f.excerpt && (
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
                       )}
@@ -836,9 +865,19 @@ const Monitoring = () => {
                         {f.url && f.url !== "#" && (
                           <>
                             <span className="text-[10px] text-muted-foreground/50">•</span>
-                            <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-                              Source <ExternalLink className="w-3 h-3" />
-                            </a>
+                            {isImage && previewSrc ? (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); toggleExpanded(f.id); }}
+                                className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5"
+                              >
+                                {expanded ? "Hide preview" : "Preview"} <ImageIcon className="w-3 h-3" />
+                              </button>
+                            ) : (
+                              <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                                Source <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
                           </>
                         )}
                       </div>
@@ -876,6 +915,23 @@ const Monitoring = () => {
                     <Eye className="w-4 h-4" />
                   </Button>
                 </div>
+              </div>
+              {isImage && previewSrc && expanded && (
+                <div className="px-5 pb-4 -mt-1">
+                  <div className="rounded-lg border border-border/30 bg-background/40 p-3 flex flex-col items-center">
+                    <img
+                      src={previewSrc}
+                      alt={f.finding}
+                      className="max-h-80 w-auto object-contain rounded"
+                      loading="lazy"
+                      onError={(e) => {
+                        const el = e.currentTarget as HTMLImageElement;
+                        el.replaceWith(Object.assign(document.createElement("p"), { textContent: "Preview unavailable", className: "text-xs text-muted-foreground" }));
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
               </div>
             );
           };
