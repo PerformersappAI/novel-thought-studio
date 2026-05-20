@@ -126,8 +126,12 @@ const Index = () => {
           >
             {[
               { icon: "📷", label: "Photo Detection" },
+              { icon: "🎬", label: "Video Detection" },
               { icon: "🎙️", label: "Voice Detection" },
               { icon: "✍️", label: "Writing Protection" },
+              { icon: "🧬", label: "Deepfake Detection" },
+              { icon: "👤", label: "Fake Profile Detection" },
+              { icon: "🤖", label: "AI-Generated Content" },
               { icon: "⚠️", label: "Risk Score" },
             ].map((p) => (
               <div
