@@ -13,15 +13,24 @@ function matches(types: string[], type: string | null | undefined) {
 }
 
 const DetectionPanels = ({ mentions }: Props) => {
-  const photo = mentions.filter((m) => matches(["image", "photo", "face"], m.mention_type)).length;
-  const voice = mentions.filter((m) => matches(["voice", "audio"], m.mention_type)).length;
+  const photo = mentions.filter((m) => matches(["image", "photo", "face", "photo match"], m.mention_type)).length;
+
+  const voice = mentions.filter((m) => matches(["voice", "audio", "voice clone"], m.mention_type)).length;
+
   const writing = mentions.filter((m) =>
-    matches(["writing", "article", "web", "text"], m.mention_type)
+    matches(["writing", "article", "web", "text", "web mention"], m.mention_type),
   ).length;
+
   const threats = mentions.filter((m) => {
     const s = (m.status || "").toLowerCase();
     const t = (m.mention_type || "").toLowerCase();
-    return s.includes("threat") || s.includes("alert") || t.includes("deepfake");
+    return (
+      s.includes("threat") ||
+      s.includes("alert") ||
+      t.includes("deepfake") ||
+      t.includes("fake profile") ||
+      t.includes("voice clone")
+    );
   }).length;
 
   const items = [
@@ -46,16 +55,12 @@ const DetectionPanels = ({ mentions }: Props) => {
           <div className="flex items-center justify-between">
             <Icon className="w-5 h-5 text-primary" />
             <span
-              className={`text-2xl font-display font-bold ${
-                label === "Overall Threats" && count > 0 ? "text-destructive" : "text-foreground"
-              }`}
+              className={`text-2xl font-display font-bold ${label === "Overall Threats" && count > 0 ? "text-destructive" : "text-foreground"}`}
             >
               {count}
             </span>
           </div>
-          <div className="text-xs font-body text-muted-foreground uppercase tracking-wider">
-            {label}
-          </div>
+          <div className="text-xs font-body text-muted-foreground uppercase tracking-wider">{label}</div>
         </Link>
       ))}
     </motion.div>
