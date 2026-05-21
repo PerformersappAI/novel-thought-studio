@@ -9,6 +9,7 @@ import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import heroIdBadge from "@/assets/hero-id-badge.png";
+import HeroFreeScanWidget from "@/components/landing/HeroFreeScanWidget";
 import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
@@ -89,6 +90,15 @@ const Index = () => {
           >
             AI-powered detection of unauthorized use of your face, voice, and writing.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="w-full max-w-xl"
+          >
+            <HeroFreeScanWidget />
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
