@@ -331,6 +331,7 @@ const Monitoring = () => {
   const [showUnfilteredThreats, setShowUnfilteredThreats] = useState(false);
   const [nameTokens, setNameTokens] = useState<string[]>([]);
   const [searchQ, setSearchQ] = useState("");
+  const [categoryView, setCategoryView] = useState<"All" | "photo" | "social" | "web" | "threats">("All");
   const [selected, setSelected] = useState<Finding | null>(null);
   const [copied, setCopied] = useState(false);
   const [scanning, setScanning] = useState(false);
