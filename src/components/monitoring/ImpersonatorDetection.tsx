@@ -91,7 +91,7 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
   const [rows, setRows] = useState<FakeProfile[]>([]);
   const [modalRow, setModalRow] = useState<FakeProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  
+  const [lastChecked, setLastChecked] = useState<string | null>(null);
 
   const fetchResults = useCallback(async () => {
     if (!user) return;
@@ -106,6 +106,16 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
     if (!error && data) {
       setRows(data as unknown as FakeProfile[]);
     }
+
+    const { data: latest } = await supabase
+      .from("mentions")
+      .select("found_at")
+      .eq("user_id", user.id)
+      .order("found_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setLastChecked((latest as any)?.found_at ?? null);
+
     setLoading(false);
   }, [user]);
 
@@ -113,25 +123,6 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
     fetchResults();
   }, [fetchResults]);
 
-  const runScan = async () => {
-    if (!user) return;
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("external_actor_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    const actorId = (prof as any)?.external_actor_id;
-    if (!actorId) {
-      toast({ title: "Profile not linked", description: "Your account is not linked to the scanner.", variant: "destructive" });
-      return;
-    }
-    fetch("https://api.claimmyface.com/scan-social", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ actor_id: actorId }),
-    }).catch((err) => console.error("Social scan error:", err));
-    toast({ title: "Social scan started" });
-  };
 
   const dismissRow = async (id: string) => {
     await supabase.from("possible_fake_profiles" as any).update({ status: "dismissed" } as any).eq("id", id);
