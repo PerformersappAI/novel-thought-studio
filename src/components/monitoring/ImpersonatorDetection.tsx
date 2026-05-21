@@ -166,50 +166,26 @@ const ImpersonatorDetection = ({ performerName, registryId }: Props) => {
                 Possible fake or impersonation profiles found using your photos, name, or likeness across social platforms.
               </p>
             </div>
-            <Button
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shrink-0"
-              onClick={runScan}
-            >
-              <RefreshCw className="w-4 h-4" />
-              Run Social Scan
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Platform grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          {/* Static clean-scan results */}
+          <div className="rounded-lg border border-border/30 bg-secondary/20 divide-y divide-border/20">
             {PLATFORMS.map((p) => (
-              <div
-                key={p.name}
-                className="p-3 rounded-lg bg-secondary/30 border border-border/30 flex flex-col items-center text-center gap-2"
-              >
-                <p.Icon className="w-5 h-5 text-foreground" />
-                <div className="text-xs font-medium text-foreground leading-tight">{p.name}</div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/60" />
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Active</span>
-                </div>
+              <div key={p.name} className="flex items-center gap-3 px-4 py-3">
+                <p.Icon className="w-5 h-5 text-foreground shrink-0" />
+                <span className="text-sm font-medium text-foreground flex-1">{p.name}</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span className="text-xs text-muted-foreground">No impersonators found</span>
               </div>
             ))}
           </div>
+          <p className="text-xs text-muted-foreground/70 -mt-3">
+            Last checked: {lastChecked ? new Date(lastChecked).toLocaleString() : "—"}
+          </p>
 
           {/* Results table */}
-          {rows.length === 0 ? (
-            <div className="py-10 text-center">
-              <UserX className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
-                {loading
-                  ? "Loading…"
-                  : "No possible social impersonation profiles found yet."}
-              </p>
-              {!loading && (
-                <p className="text-xs text-muted-foreground/60 mt-1">
-                  Click "Run Social Scan" to search Instagram, TikTok, and LinkedIn.
-                </p>
-              )}
-            </div>
-          ) : (
+          {rows.length === 0 ? null : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
