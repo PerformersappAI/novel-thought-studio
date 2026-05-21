@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,17 +11,11 @@ type Mode = "field" | "chat";
 
 interface RequestBody {
   mode: Mode;
-  /** "dmca" | "cease-desist" | "report" | "removal" */
   actionType: string;
-  /** The field being assisted (when mode="field") e.g. "originalWorkDescription" */
   field?: string;
-  /** User question (when mode="chat") */
   question?: string;
-  /** Snapshot of the finding so the AI has full context. */
   finding?: Record<string, unknown>;
-  /** Current form values so the AI can refine instead of starting over. */
   formValues?: Record<string, string>;
-  /** Owner profile (name, etc.) so it can prefill correctly. */
   owner?: Record<string, string | null | undefined>;
 }
 
