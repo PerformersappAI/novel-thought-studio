@@ -442,7 +442,7 @@ const Monitoring = () => {
         category: finalCategory,
         date: m.found_at,
         lastSeen: m.found_at,
-        status: normalizeStatus(m.status),
+        status: normalizeStatus(m.status, m.mention_type),
         url: m.url || "#",
         confidence: m.confidence ?? 90,
         recommended: "Report to Platform" as const,
