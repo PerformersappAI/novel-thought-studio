@@ -810,8 +810,9 @@ const Monitoring = () => {
           const renderRow = (f: Finding) => {
             const PIcon = getPlatformIcon(f.platform);
             const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
-            const isImage = f.mediaType === "image" || (f.platform || "").toLowerCase().includes("image");
-            const previewSrc = f.thumbnailUrl || (isImage ? f.url : undefined);
+            const isYandex = (f.platform || "").toLowerCase() === "image_yandex";
+            const isImage = !isYandex && (f.mediaType === "image" || (f.platform || "").toLowerCase().includes("image"));
+            const previewSrc = isYandex ? undefined : (f.thumbnailUrl || (isImage ? f.url : undefined));
             const expanded = expandedIds.has(f.id);
             return (
               <div key={f.id} className="border-b border-border/10 last:border-b-0">
@@ -880,7 +881,7 @@ const Monitoring = () => {
                               </button>
                             ) : (
                               <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-                                Source <ExternalLink className="w-3 h-3" />
+                                {isYandex ? "View Image" : "Source"} <ExternalLink className="w-3 h-3" />
                               </a>
                             )}
                           </>
@@ -1112,7 +1113,7 @@ const Monitoring = () => {
               {/* Compact source preview */}
               {selected.url && selected.url !== "#" && (
                 <div className="space-y-2">
-                  {selected.thumbnailUrl ? (
+                  {selected.thumbnailUrl && (selected.platform || "").toLowerCase() !== "image_yandex" ? (
                     <a
                       href={selected.url}
                       target="_blank"
