@@ -1113,7 +1113,7 @@ const Monitoring = () => {
               {/* Compact source preview */}
               {selected.url && selected.url !== "#" && (
                 <div className="space-y-2">
-                  {selected.thumbnailUrl ? (
+                  {selected.thumbnailUrl && (selected.platform || "").toLowerCase() !== "image_yandex" ? (
                     <a
                       href={selected.url}
                       target="_blank"
