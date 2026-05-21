@@ -810,8 +810,9 @@ const Monitoring = () => {
           const renderRow = (f: Finding) => {
             const PIcon = getPlatformIcon(f.platform);
             const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
-            const isImage = f.mediaType === "image" || (f.platform || "").toLowerCase().includes("image");
-            const previewSrc = f.thumbnailUrl || (isImage ? f.url : undefined);
+            const isYandex = (f.platform || "").toLowerCase() === "image_yandex";
+            const isImage = !isYandex && (f.mediaType === "image" || (f.platform || "").toLowerCase().includes("image"));
+            const previewSrc = isYandex ? undefined : (f.thumbnailUrl || (isImage ? f.url : undefined));
             const expanded = expandedIds.has(f.id);
             return (
               <div key={f.id} className="border-b border-border/10 last:border-b-0">
