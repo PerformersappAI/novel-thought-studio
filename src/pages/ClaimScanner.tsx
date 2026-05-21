@@ -274,9 +274,23 @@ const ClaimScanner = () => {
                   <ReportRow label="Domain / IP" value={result.domainInfo || "N/A"} />
                 </div>
 
-                <Button onClick={downloadReport} className="gap-2">
-                  <Download className="w-4 h-4" /> Download Report
-                </Button>
+                <div className="flex flex-wrap gap-3">
+                  <Button onClick={downloadReport} className="gap-2">
+                    <Download className="w-4 h-4" /> Download Report
+                  </Button>
+                  {status === "manipulated" && (
+                    <>
+                      <Button asChild variant="destructive" className="gap-2">
+                        <a href={`/dashboard/dmca-generator?target=${encodeURIComponent(result.target)}`}>
+                          Generate DMCA Notice
+                        </a>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <a href="/dashboard/take-action">Take Action</a>
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </CardContent>
