@@ -238,12 +238,14 @@ const FOLDER_COLORS = ["#C41230", "#D4A843", "#3B82F6", "#10B981", "#8B5CF6", "#
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const normalizeStatus = (status?: string | null): Finding["status"] => {
+const normalizeStatus = (status?: string | null, mentionType?: string | null): Finding["status"] => {
   const value = (status || "").toLowerCase();
   if (value.includes("resolved") || value.includes("dismiss")) return "Resolved";
   if (value.includes("review") || value.includes("pending")) return "Under Review";
   if (value.includes("takedown") || value.includes("filed")) return "Takedown Filed";
   if (value.includes("info") || value.includes("legitimate")) return "Informational";
+  const mt = (mentionType || "").toLowerCase();
+  if (value === "new" && (mt === "youtube" || mt === "image_yandex")) return "Informational";
   return "New Alert";
 };
 
@@ -440,7 +442,7 @@ const Monitoring = () => {
         category: finalCategory,
         date: m.found_at,
         lastSeen: m.found_at,
-        status: normalizeStatus(m.status),
+        status: normalizeStatus(m.status, m.mention_type),
         url: m.url || "#",
         confidence: m.confidence ?? 90,
         recommended: "Report to Platform" as const,
