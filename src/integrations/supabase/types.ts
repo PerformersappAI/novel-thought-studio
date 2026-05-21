@@ -166,6 +166,39 @@ export type Database = {
           },
         ]
       }
+      consent_log: {
+        Row: {
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          created_at: string
+          document_version: number | null
+          granted: boolean
+          id: string
+          ip_address: unknown
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          created_at?: string
+          document_version?: number | null
+          granted: boolean
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          consent_type?: Database["public"]["Enums"]["consent_type"]
+          created_at?: string
+          document_version?: number | null
+          granted?: boolean
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       consent_signatures: {
         Row: {
           asset_id: string | null
@@ -1129,7 +1162,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          account_type: string | null
+          avatar_url: string | null
+          bio: string | null
+          display_name: string | null
+          headshot_url: string | null
+          is_discoverable: boolean | null
+          slug: string | null
+          stage_name: string | null
+          union_affiliation: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          display_name?: string | null
+          headshot_url?: string | null
+          is_discoverable?: boolean | null
+          slug?: string | null
+          stage_name?: string | null
+          union_affiliation?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          display_name?: string | null
+          headshot_url?: string | null
+          is_discoverable?: boolean | null
+          slug?: string | null
+          stage_name?: string | null
+          union_affiliation?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_registry_id: { Args: never; Returns: string }
@@ -1145,6 +1216,14 @@ export type Database = {
       app_role: "performer" | "admin" | "producer"
       asset_status: "pending" | "approved" | "rejected" | "revision_requested"
       asset_type: "image" | "video" | "audio" | "text" | "ai_model"
+      consent_type:
+        | "terms_of_service"
+        | "likeness_rights"
+        | "gdpr"
+        | "ccpa"
+        | "biometric"
+        | "face_scan"
+        | "voice_print"
       notification_type:
         | "verification_update"
         | "subscription_event"
@@ -1284,6 +1363,15 @@ export const Constants = {
       app_role: ["performer", "admin", "producer"],
       asset_status: ["pending", "approved", "rejected", "revision_requested"],
       asset_type: ["image", "video", "audio", "text", "ai_model"],
+      consent_type: [
+        "terms_of_service",
+        "likeness_rights",
+        "gdpr",
+        "ccpa",
+        "biometric",
+        "face_scan",
+        "voice_print",
+      ],
       notification_type: [
         "verification_update",
         "subscription_event",
