@@ -120,9 +120,9 @@ const HeroFreeScanWidget = () => {
           className="w-full mt-3 font-body font-semibold glow-red"
           size="lg"
         >
-          <Link to="/register">
+          <a href="/#pricing">
             Get Full Access <ArrowRight className="w-4 h-4 ml-2" />
-          </Link>
+          </a>
         </Button>
       ) : (
         <Button
@@ -140,8 +140,9 @@ const HeroFreeScanWidget = () => {
       )}
 
       <p className="mt-2 text-[11px] text-muted-foreground/70 font-body leading-relaxed">
-        * One free scan per visitor. <Link to="/register" className="underline hover:text-foreground">Create a free account</Link> to unlock unlimited scanning and 24/7 monitoring.
+        * One free scan only. <a href="/#pricing" className="underline hover:text-foreground">Join now</a> to unlock unlimited scanning and 24/7 monitoring.
       </p>
+
 
 
       {(status === "authentic" || status === "manipulated") && (
@@ -183,10 +184,11 @@ const HeroFreeScanWidget = () => {
               Protect yourself fully — monitor your likeness 24/7
             </p>
             <Button asChild size="sm" className="font-body font-semibold glow-red">
-              <Link to="/register">
-                Start Free Trial <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Link>
+              <a href="/#pricing">
+                Join Now <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </a>
             </Button>
+
           </div>
         </div>
       )}
