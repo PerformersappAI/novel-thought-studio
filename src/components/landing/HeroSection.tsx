@@ -122,6 +122,8 @@ const HeroSection = () => {
                 Scanner Active
               </TrustChip>
             </div>
+
+            <HeroFreeScanWidget />
           </motion.div>
 
           {/* Right — Floating credential card */}
