@@ -20,7 +20,7 @@ const PerformerProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const { data } = await supabase
-        .from("profiles")
+        .from("public_profiles" as any)
         .select("*")
         .eq("slug", slug)
         .maybeSingle();
