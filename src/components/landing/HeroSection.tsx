@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, CheckCircle, Fingerprint } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroIdBadge from "@/assets/hero-id-badge.png";
+import HeroFreeScanWidget from "./HeroFreeScanWidget";
 
 const TrustChip = ({ children, delay }: { children: React.ReactNode; delay: number }) => (
   <motion.div
@@ -121,6 +122,8 @@ const HeroSection = () => {
                 Scanner Active
               </TrustChip>
             </div>
+
+            <HeroFreeScanWidget />
           </motion.div>
 
           {/* Right — Floating credential card */}
