@@ -418,10 +418,35 @@ const Monitoring = () => {
             folder_id: null,
           }));
         }
+
+        // Fetch real YouTube titles via oEmbed in parallel
+        const ytRows = externalRows.filter(
+          (r) => (r.mention_type || "").toLowerCase() === "youtube" && r.url
+        );
+        if (ytRows.length > 0) {
+          await Promise.all(
+            ytRows.map(async (r) => {
+              try {
+                const res = await fetch(
+                  `https://www.youtube.com/oembed?url=${encodeURIComponent(r.url!)}&format=json`
+                );
+                if (res.ok) {
+                  const json = await res.json();
+                  r.title = json?.title || "YouTube video";
+                } else {
+                  r.title = "YouTube video";
+                }
+              } catch {
+                r.title = "YouTube video";
+              }
+            })
+          );
+        }
       } catch (err) {
         console.warn("Failed to fetch external mentions:", err);
       }
     }
+
 
     const dbUrls = new Set(dbRows.map(r => r.url).filter(Boolean));
     const merged = [...dbRows, ...externalRows.filter(r => !r.url || !dbUrls.has(r.url))];
