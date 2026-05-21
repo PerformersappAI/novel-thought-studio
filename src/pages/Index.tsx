@@ -9,6 +9,7 @@ import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import heroIdBadge from "@/assets/hero-id-badge.png";
+import deepfakeComparison from "@/assets/deepfake-comparison.png";
 import HeroFreeScanWidget from "@/components/landing/HeroFreeScanWidget";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -44,7 +45,7 @@ const Index = () => {
           transition={{ duration: 8, delay: 2, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        <div className="relative z-10 container px-4 flex flex-col items-center text-center max-w-3xl py-16">
+        <div className="relative z-10 container px-4 flex flex-col items-center text-center max-w-6xl py-16">
           {/* Badge image */}
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
@@ -91,19 +92,36 @@ const Index = () => {
             AI-powered detection of unauthorized use of your face, voice, and writing.
           </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="w-full max-w-xl"
-          >
-            <HeroFreeScanWidget />
-          </motion.div>
+          <div className="grid w-full items-center gap-6 lg:grid-cols-[1fr_1.25fr] lg:text-left">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="w-full max-w-xl mx-auto lg:mx-0"
+            >
+              <HeroFreeScanWidget />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="glass-card overflow-hidden rounded-2xl border border-border/40 shadow-[0_24px_80px_hsl(0_0%_0%/0.35)]"
+            >
+              <img
+                src={deepfakeComparison}
+                alt="Side-by-side comparison of a real actor headshot and an AI generated deepfake"
+                className="w-full h-auto object-cover"
+                loading="eager"
+              />
+            </motion.div>
+          </div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.8 }}
+            className="mt-10"
           >
             <Button
               asChild
