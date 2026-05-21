@@ -19,11 +19,11 @@ const PerformerProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data } = await supabase
-        .from("public_profiles" as any)
+      const { data } = await (supabase as any)
+        .from("public_profiles")
         .select("*")
         .eq("slug", slug)
-        .maybeSingle();
+        .maybeSingle() as { data: any };
 
       if (data) {
         setProfile(data);
