@@ -24,10 +24,7 @@ const PLATFORMS = [
   { name: "TikTok", Icon: Music2 },
   { name: "Facebook", Icon: Facebook },
   { name: "X / Twitter", Icon: Twitter },
-  { name: "YouTube", Icon: Youtube },
   { name: "LinkedIn", Icon: Linkedin },
-  { name: "Threads", Icon: MessageCircle },
-  { name: "Content Platforms", Icon: LockIcon },
 ];
 
 const STATUS_LABELS: Record<string, string> = {
