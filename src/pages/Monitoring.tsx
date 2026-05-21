@@ -881,7 +881,7 @@ const Monitoring = () => {
                               </button>
                             ) : (
                               <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-                                Source <ExternalLink className="w-3 h-3" />
+                                {isYandex ? "View Image" : "Source"} <ExternalLink className="w-3 h-3" />
                               </a>
                             )}
                           </>
