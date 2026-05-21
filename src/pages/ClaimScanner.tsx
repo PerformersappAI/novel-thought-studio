@@ -33,7 +33,7 @@ const analyzeUrl = async (url: string): Promise<ForensicResult> => {
   const seed = hashString(url);
   const confidence = 55 + (seed % 45);
   const isManip = seed % 2 === 0;
-  const models = ["Stable Diffusion XL", "Midjourney v6", "Sora", "ElevenLabs", "DALL-E 3"];
+  const models = ["Stable Diffusion XL", "Midjourney v6", "Sora", "Voice Clone AI", "DALL-E 3"];
   return {
     target: url,
     date: new Date().toISOString(),
@@ -53,7 +53,7 @@ const analyzeFile = async (file: File): Promise<ForensicResult> => {
   const seed = hashString(file.name + file.size) + sum;
   const confidence = 60 + (seed % 40);
   const isManip = seed % 2 === 0;
-  const models = ["Stable Diffusion XL", "Midjourney v6", "Sora", "ElevenLabs", "DALL-E 3"];
+  const models = ["Stable Diffusion XL", "Midjourney v6", "Sora", "Voice Clone AI", "DALL-E 3"];
   return {
     target: `${file.name} (${(file.size / 1024).toFixed(1)} KB, ${file.type || "unknown"})`,
     date: new Date().toISOString(),
