@@ -30,6 +30,7 @@ import MediaKitBuilder from "./pages/MediaKitBuilder";
 import AvatarCreator from "./pages/AvatarCreator";
 import LikenessMonitor from "./pages/LikenessMonitor";
 import Monitoring from "./pages/Monitoring";
+import ClaimScanner from "./pages/ClaimScanner";
 import ProtectionReport from "./pages/ProtectionReport";
 import FaceClaimWizard from "./pages/FaceClaimWizard";
 import ContractChecker from "./pages/ContractChecker";
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/dashboard/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
             <Route path="/dashboard/monitor" element={<ProtectedRoute><LikenessMonitor /></ProtectedRoute>} />
             <Route path="/dashboard/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
+            <Route path="/dashboard/claim-scanner" element={<ProtectedRoute><ClaimScanner /></ProtectedRoute>} />
             <Route path="/dashboard/report" element={<ProtectedRoute><ProtectionReport /></ProtectedRoute>} />
             <Route path="/dashboard/violations" element={<ProtectedRoute><ReportViolation /></ProtectedRoute>} />
             <Route path="/education" element={<Education />} />
