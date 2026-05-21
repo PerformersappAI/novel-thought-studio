@@ -28,7 +28,7 @@ interface Category {
 
 const CATEGORIES: Category[] = [
   { key: "face_match", label: "Photo Matches", emoji: "📸", itemsLabel: "images" },
-  { key: "elevenlabs_voice", label: "Voice Clones (ElevenLabs)", emoji: "🎙️", itemsLabel: "voices" },
+  { key: "elevenlabs_voice", label: "Voice Clones", emoji: "🎙️", itemsLabel: "voices" },
   { key: "writing", label: "Writing Plagiarism", emoji: "✍️", itemsLabel: "articles" },
   { key: "deepfake", label: "Deepfake Video", emoji: "🎬", itemsLabel: "videos", planned: true },
   { key: "social", label: "Social Impersonators", emoji: "👥", itemsLabel: "profiles", planned: true },

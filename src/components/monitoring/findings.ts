@@ -187,7 +187,7 @@ export const MOCK_FINDINGS: Finding[] = [
   },
   {
     id: "f5",
-    platform: "ElevenLabs Demos",
+    platform: "Voice Clone Demos",
     finding: "Voice clone detected: Audio clip matching your voice profile",
     category: "Voice Clones",
     date: days(9),
