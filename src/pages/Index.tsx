@@ -175,7 +175,7 @@ const Index = () => {
       </section>
 
       {/* Your Complete Protection Suite */}
-      <section className="relative py-20 md:py-28">
+      <section id="how-it-works" className="relative py-20 md:py-28 scroll-mt-20">
         <div className="container px-4 max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
