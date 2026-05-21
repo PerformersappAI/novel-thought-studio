@@ -671,7 +671,7 @@ const Monitoring = () => {
     const c = { image: 0, video: 0, voice: 0, deepfake: 0, writing: 0 };
     for (const f of findings) {
       const t = (f.platform || "").toLowerCase();
-      if (t === "image" || t === "social_instagram") c.image++;
+      if (t === "image" || t === "image_yandex" || t === "social_instagram") c.image++;
       else if (t === "video") c.video++;
       else if (t === "voice_clone") c.voice++;
       else if (t === "deepfake") c.deepfake++;
