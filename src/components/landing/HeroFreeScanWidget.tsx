@@ -184,10 +184,11 @@ const HeroFreeScanWidget = () => {
               Protect yourself fully — monitor your likeness 24/7
             </p>
             <Button asChild size="sm" className="font-body font-semibold glow-red">
-              <Link to="/register">
-                Start Free Trial <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Link>
+              <a href="/#pricing">
+                Join Now <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </a>
             </Button>
+
           </div>
         </div>
       )}
