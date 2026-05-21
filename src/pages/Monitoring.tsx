@@ -331,6 +331,7 @@ const Monitoring = () => {
   const [showUnfilteredThreats, setShowUnfilteredThreats] = useState(false);
   const [nameTokens, setNameTokens] = useState<string[]>([]);
   const [searchQ, setSearchQ] = useState("");
+  const [categoryView, setCategoryView] = useState<"All" | "photo" | "social" | "web" | "threats">("All");
   const [selected, setSelected] = useState<Finding | null>(null);
   const [copied, setCopied] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -986,143 +987,120 @@ const Monitoring = () => {
             );
           };
 
+          // Category buckets keyed off mention_type (stored in f.platform).
+          const CATEGORY_DEFS: {
+            key: "photo" | "social" | "web" | "threats";
+            label: string;
+            description: string;
+            accent: string;
+            types: string[];
+          }[] = [
+            {
+              key: "photo",
+              label: "Photo Matches",
+              description: "Images and face matches found across the web.",
+              accent: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
+              types: ["image", "image_yandex", "face_match"],
+            },
+            {
+              key: "social",
+              label: "Social Media",
+              description: "Instagram, TikTok, and YouTube appearances.",
+              accent: "border-blue-500/40 text-blue-400 bg-blue-500/10",
+              types: ["social_instagram", "social_tiktok", "youtube"],
+            },
+            {
+              key: "web",
+              label: "Web Mentions",
+              description: "General web pages mentioning you.",
+              accent: "border-amber-500/40 text-amber-400 bg-amber-500/10",
+              types: ["web", "news"],
+            },
+            {
+              key: "threats",
+              label: "Threats",
+              description: "Deepfakes, voice clones, and impersonation profiles.",
+              accent: "border-primary/40 text-primary bg-primary/10",
+              types: ["deepfake", "voice_clone", "fake_profile"],
+            },
+          ];
+
+          const bucketFor = (f: Finding) => {
+            const t = (f.platform || "").toLowerCase();
+            return CATEGORY_DEFS.find((c) => c.types.includes(t));
+          };
+
+          const buckets: Record<string, Finding[]> = {
+            photo: [], social: [], web: [], threats: [],
+          };
+          for (const f of findings) {
+            const b = bucketFor(f);
+            if (b) buckets[b.key].push(f);
+          }
+
+          const TABS = [
+            { key: "All" as const, label: "All", count: findings.length },
+            ...CATEGORY_DEFS.map((c) => ({
+              key: c.key, label: c.label, count: buckets[c.key].length,
+            })),
+          ];
+
+          const renderSection = (def: typeof CATEGORY_DEFS[number]) => {
+            const items = buckets[def.key];
+            return (
+              <motion.div
+                key={def.key}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm mb-6"
+              >
+                <div className="px-5 py-4 border-b border-border/20 flex items-center gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-display text-lg font-semibold">{def.label}</h2>
+                      <Badge variant="outline" className={`text-xs ${def.accent}`}>
+                        {items.length}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{def.description}</p>
+                  </div>
+                </div>
+                <div className="divide-y divide-border/10">
+                  {items.length === 0 ? (
+                    <div className="py-8 text-center text-sm text-muted-foreground">
+                      No results yet
+                    </div>
+                  ) : (
+                    items.map(renderRow)
+                  )}
+                </div>
+              </motion.div>
+            );
+          };
+
           return (
             <>
-              {/* ─── SECTION 1: YOUR IDENTITY ONLINE ─── */}
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm mb-8">
-                <div className="px-5 py-4 border-b border-border/20 flex flex-col md:flex-row md:items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                    <div>
-                      <h2 className="font-display text-lg font-semibold">Your Identity Online</h2>
-                      <p className="text-xs text-muted-foreground">Where you appear online — verified legitimate results.</p>
-                    </div>
-                    <Badge variant="outline" className="ml-2 text-xs border-emerald-500/40 text-emerald-400 bg-emerald-500/10">
-                      {identityFindings.length}
-                    </Badge>
-                  </div>
-                </div>
+              {/* ─── CATEGORY TABS ─── */}
+              <div className="mb-6 flex flex-wrap gap-2">
+                {TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setCategoryView(t.key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+                      categoryView === t.key
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
+                    }`}
+                  >
+                    {t.label}
+                    <span className="text-[10px] opacity-70">{t.count}</span>
+                  </button>
+                ))}
+              </div>
 
-                {identityRawCount > 0 && (
-                  <div className="px-5 py-2 border-b border-border/10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                    <span>
-                      Scanner returned {identityRawCount} result{identityRawCount === 1 ? "" : "s"}; showing {identityFindings.length} that match your name.
-                    </span>
-                    {identityRawCount > identityFindings.length && (
-                      <button
-                        onClick={() => setShowUnfilteredIdentity((v) => !v)}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        {showUnfilteredIdentity ? "Hide unmatched results" : "Show all results"}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
-                  {IDENTITY_TABS.map((t) => {
-                    const count = t.key === "All"
-                      ? findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase()) && (showUnfilteredIdentity || hasNameMatch(f))).length
-                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && (showUnfilteredIdentity || hasNameMatch(f))).length;
-                    return (
-                      <button
-                        key={t.key}
-                        onClick={() => setIdentityFilter(t.key)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                          identityFilter === t.key
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
-                        }`}
-                      >
-                        {t.label}
-                        <span className="text-[10px] opacity-70">{count}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="divide-y divide-border/10">
-                  {identityFindings.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <ShieldCheck className="w-9 h-9 text-emerald-400/40 mx-auto mb-2" />
-                      <p className="font-display text-base font-semibold text-foreground">No verified identity matches yet</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Run a scan to see where your name appears across the web, images, and YouTube.
-                      </p>
-                    </div>
-                  ) : (
-                    identityFindings.map(renderRow)
-                  )}
-                </div>
-              </motion.div>
-
-              {/* ─── SECTION 2: POTENTIAL THREATS ─── */}
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="rounded-2xl border border-primary/30 bg-card/20 backdrop-blur-sm mb-8">
-                <div className="px-5 py-4 border-b border-border/20 flex flex-col md:flex-row md:items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert className="w-5 h-5 text-primary" />
-                    <div>
-                      <h2 className="font-display text-lg font-semibold">Potential Threats</h2>
-                      <p className="text-xs text-muted-foreground">Threats to monitor — these need your attention.</p>
-                    </div>
-                    <Badge variant="outline" className="ml-2 text-xs border-primary/40 text-primary bg-primary/10">
-                      {findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase()) && (showUnfilteredThreats || hasNameMatch(f))).length}
-                    </Badge>
-                  </div>
-                </div>
-
-                {threatRawCount > 0 && (
-                  <div className="px-5 py-2 border-b border-border/10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                    <span>
-                      Scanner returned {threatRawCount} potential threat{threatRawCount === 1 ? "" : "s"}; showing {threatFindings.length} that mention your name.
-                    </span>
-                    {threatRawCount > threatFindings.length && (
-                      <button
-                        onClick={() => setShowUnfilteredThreats((v) => !v)}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        {showUnfilteredThreats ? "Hide unmatched threats" : "Show all threats"}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <div className="px-5 py-3 border-b border-border/10 flex flex-wrap gap-2">
-                  {THREAT_TABS.map((t) => {
-                    const count = t.key === "All"
-                      ? findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase()) && (showUnfilteredThreats || hasNameMatch(f))).length
-                      : findings.filter((f) => (f.platform || "").toLowerCase() === t.key && (showUnfilteredThreats || hasNameMatch(f))).length;
-                    return (
-                      <button
-                        key={t.key}
-                        onClick={() => setThreatFilter(t.key)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                          threatFilter === t.key
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
-                        }`}
-                      >
-                        {t.label}
-                        <span className="text-[10px] opacity-70">{count}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="divide-y divide-border/10">
-                  {threatFindings.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <ShieldAlert className="w-9 h-9 text-primary/40 mx-auto mb-2" />
-                      <p className="font-display text-base font-semibold text-foreground">No threats detected</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        We haven't found any deepfakes, voice clones, or impersonation profiles. Run a scan to check again.
-                      </p>
-                    </div>
-                  ) : (
-                    threatFindings.map(renderRow)
-                  )}
-                </div>
-              </motion.div>
+              {categoryView === "All"
+                ? CATEGORY_DEFS.map(renderSection)
+                : renderSection(CATEGORY_DEFS.find((c) => c.key === categoryView)!)}
             </>
           );
         })()}
