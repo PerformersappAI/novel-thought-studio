@@ -42,6 +42,14 @@ const LegalAgreementGate = ({ children }: { children: React.ReactNode }) => {
 
   const handleAccept = async () => {
     setSubmitting(true);
+    // Immutable consent log entries (GDPR / CCPA)
+    if (user) {
+      const ua = navigator.userAgent;
+      await (supabase as any).from("consent_log").insert([
+        { user_id: user.id, consent_type: "terms_of_service", granted: true, user_agent: ua },
+        { user_id: user.id, consent_type: "likeness_rights", granted: true, user_agent: ua },
+      ]);
+    }
     await markLegalAccepted();
     setSubmitting(false);
   };
