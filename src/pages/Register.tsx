@@ -652,7 +652,7 @@ const Register = () => {
       } catch {}
       stopCamera();
       stopVoiceStream();
-      navigate("/dashboard");
+      navigate("/#pricing");
     } catch (e: any) {
       toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally {
