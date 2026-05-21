@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,17 +11,11 @@ type Mode = "field" | "chat";
 
 interface RequestBody {
   mode: Mode;
-  /** "dmca" | "cease-desist" | "report" | "removal" */
   actionType: string;
-  /** The field being assisted (when mode="field") e.g. "originalWorkDescription" */
   field?: string;
-  /** User question (when mode="chat") */
   question?: string;
-  /** Snapshot of the finding so the AI has full context. */
   finding?: Record<string, unknown>;
-  /** Current form values so the AI can refine instead of starting over. */
   formValues?: Record<string, string>;
-  /** Owner profile (name, etc.) so it can prefill correctly. */
   owner?: Record<string, string | null | undefined>;
 }
 
@@ -41,7 +36,31 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Require authenticated caller to prevent anonymous LOVABLE_API_KEY drain.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData, error: userErr } = await authClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = (await req.json()) as RequestBody;
+    if (!body || (body.mode !== "field" && body.mode !== "chat")) {
+      return new Response(JSON.stringify({ error: "Invalid mode" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 

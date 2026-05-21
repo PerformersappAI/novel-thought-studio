@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -11,7 +13,38 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // --- Auth required ---
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData, error: userErr } = await authClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = userData.user.id;
+
     const { scanId } = await req.json();
+
+    // If a scanId was passed, verify the caller owns it before we touch it.
+    if (scanId) {
+      const { data: scanRow, error: scanErr } = await authClient
+        .from("likeness_scans").select("user_id").eq("id", scanId).maybeSingle();
+      if (scanErr || !scanRow || scanRow.user_id !== callerId) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!apiKey) {
@@ -39,9 +72,6 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
 
-    // Relevance filter: keep results where URL/title/description contains the
-    // performer's name, OR the domain is a known entertainment/casting/social site.
-    // Drop noise from gov, software vendors, dictionaries, generic reference, etc.
     const ALLOWED_DOMAINS = [
       "instagram.com","tiktok.com","facebook.com","twitter.com","x.com","youtube.com",
       "linkedin.com","threads.net","snapchat.com","pinterest.com","reddit.com","tumblr.com",
@@ -94,11 +124,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update the scan record if scanId provided
+    // Update the scan record using the caller's session (RLS enforced)
     if (scanId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      
       const results = data.data?.map((r: any) => ({
         url: r.url,
         title: r.title || '',
@@ -106,22 +133,13 @@ Deno.serve(async (req) => {
         snippet: r.markdown?.substring(0, 300) || '',
       })) || [];
 
-      await fetch(`${supabaseUrl}/rest/v1/likeness_scans?id=eq.${scanId}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${serviceKey}`,
-          'apikey': serviceKey,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({
-          status: 'completed',
-          query: exactQuery,
-          results,
-          result_count: results.length,
-          completed_at: new Date().toISOString(),
-        }),
-      });
+      await authClient.from("likeness_scans").update({
+        status: 'completed',
+        query: exactQuery,
+        results,
+        result_count: results.length,
+        completed_at: new Date().toISOString(),
+      }).eq("id", scanId);
     }
 
     return new Response(

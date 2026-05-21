@@ -5,3 +5,8 @@ verify_jwt = true
 
 [functions.contract-checker]
 verify_jwt = true
+
+# Stripe sends webhooks without a Supabase JWT — authenticity is enforced via
+# stripe.webhooks.constructEventAsync(STRIPE_WEBHOOK_SECRET) inside the function.
+[functions.stripe-webhook]
+verify_jwt = false

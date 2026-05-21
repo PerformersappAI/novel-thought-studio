@@ -1,7 +1,11 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB base64 cap
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -9,13 +13,60 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { imageBase64, scanId, name, stageName, description } = await req.json();
+    // --- Auth required (biometric endpoint) ---
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData, error: userErr } = await authClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = userData.user.id;
 
-    if (!imageBase64) {
+    const body = await req.json();
+    const { imageBase64, scanId, name, stageName, description } = body ?? {};
+
+    // --- Input validation ---
+    if (typeof imageBase64 !== "string" || imageBase64.length === 0) {
       return new Response(
         JSON.stringify({ success: false, error: 'Image data is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+    if (imageBase64.length > MAX_IMAGE_BYTES) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Image too large (max ~6MB)' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (!/^[A-Za-z0-9+/=\s]+$/.test(imageBase64)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'imageBase64 must be base64-encoded' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const safeName = typeof name === "string" ? name.slice(0, 200) : "";
+    const safeStage = typeof stageName === "string" ? stageName.slice(0, 200) : "";
+
+    // Ownership check on scanId
+    if (scanId) {
+      const { data: scanRow, error: scanErr } = await authClient
+        .from("likeness_scans").select("user_id").eq("id", scanId).maybeSingle();
+      if (scanErr || !scanRow || scanRow.user_id !== callerId) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const apiKey = Deno.env.get('GOOGLE_CLOUD_VISION_API_KEY');
@@ -26,15 +77,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Running reverse image scan via Google Cloud Vision');
-    console.log('Context:', { name, stageName, description });
+    console.log('Running reverse image scan via Google Cloud Vision for user', callerId);
 
-    // Build search terms for filtering
     const searchTerms: string[] = [];
-    if (name) searchTerms.push(...name.toLowerCase().split(/\s+/));
-    if (stageName) searchTerms.push(...stageName.toLowerCase().split(/\s+/));
+    if (safeName) searchTerms.push(...safeName.toLowerCase().split(/\s+/));
+    if (safeStage) searchTerms.push(...safeStage.toLowerCase().split(/\s+/));
 
-    // Call Google Cloud Vision Web Detection
     const visionResponse = await fetch(
       `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
       {
@@ -86,18 +134,13 @@ Deno.serve(async (req) => {
       }
     });
 
-    // If name/stageName provided, score results by relevance
     if (searchTerms.length > 0) {
       results = results.map((r: any) => {
         const text = `${r.url} ${r.title} ${r.description}`.toLowerCase();
         const matchCount = searchTerms.filter(term => text.includes(term)).length;
         return { ...r, _score: matchCount };
       });
-
-      // Sort: name matches first, then the rest
       results.sort((a: any, b: any) => b._score - a._score);
-
-      // Tag name matches
       results = results.map((r: any) => {
         if (r._score > 0) r.match_type = 'name_match';
         const { _score, ...rest } = r;
@@ -105,13 +148,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Also do a Firecrawl text search if name is provided
-    if (name) {
+    if (safeName) {
       const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
       if (firecrawlKey) {
         try {
-          const searchQuery = `"${name}"${stageName ? ` OR "${stageName}"` : ''} photo OR image OR likeness`;
-          console.log('Firecrawl search:', searchQuery);
+          const searchQuery = `"${safeName}"${safeStage ? ` OR "${safeStage}"` : ''} photo OR image OR likeness`;
           const fcResponse = await fetch('https://api.firecrawl.dev/v1/search', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${firecrawlKey}`, 'Content-Type': 'application/json' },
@@ -139,25 +180,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update the scan record
     if (scanId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      await fetch(`${supabaseUrl}/rest/v1/likeness_scans?id=eq.${scanId}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${serviceKey}`,
-          'apikey': serviceKey,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({
-          status: 'completed',
-          results,
-          result_count: results.length,
-          completed_at: new Date().toISOString(),
-        }),
-      });
+      await authClient.from("likeness_scans").update({
+        status: 'completed',
+        results,
+        result_count: results.length,
+        completed_at: new Date().toISOString(),
+      }).eq("id", scanId);
     }
 
     return new Response(
