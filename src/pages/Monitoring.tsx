@@ -894,6 +894,17 @@ const Monitoring = () => {
                       {f.excerpt && (
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
                       )}
+                      {f.url && f.url !== "#" && (
+                        <a
+                          href={f.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="block mt-1 text-xs text-blue-400 hover:text-blue-300 hover:underline truncate"
+                        >
+                          {f.url}
+                        </a>
+                      )}
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5 uppercase tracking-wider">
                           {f.platform}
