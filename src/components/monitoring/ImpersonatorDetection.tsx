@@ -53,7 +53,7 @@ const RISK_STYLES: Record<string, string> = {
 };
 
 const PLATFORM_ICONS: Record<string, any> = {
-  Instagram, TikTok: Music2, LinkedIn: Linkedin, Facebook, YouTube: Youtube, Twitter,
+  Instagram, TikTok: Music2, LinkedIn: Linkedin, Facebook, Twitter,
 };
 
 interface FakeProfile {
