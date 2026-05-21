@@ -843,7 +843,15 @@ const Monitoring = () => {
               <div key={f.id} className="border-b border-border/10 last:border-b-0">
               <div
                 className="flex items-start gap-3 px-5 py-4 hover:bg-primary/5 transition-colors group cursor-pointer"
-                onClick={() => (isImage && previewSrc ? toggleExpanded(f.id) : setSelected(f))}
+                onClick={() => {
+                  if (f.url && f.url !== "#") {
+                    window.open(f.url, "_blank", "noopener,noreferrer");
+                  } else if (isImage && previewSrc) {
+                    toggleExpanded(f.id);
+                  } else {
+                    setSelected(f);
+                  }
+                }}
               >
                 <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
                   {f.url && f.url !== "#" && faviconUrl(f.url) ? (
@@ -885,6 +893,17 @@ const Monitoring = () => {
                       )}
                       {f.excerpt && (
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
+                      )}
+                      {f.url && f.url !== "#" && (
+                        <a
+                          href={f.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="block mt-1 text-xs text-blue-400 hover:text-blue-300 hover:underline truncate"
+                        >
+                          {f.url}
+                        </a>
                       )}
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5 uppercase tracking-wider">
