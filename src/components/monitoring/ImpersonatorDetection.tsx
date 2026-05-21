@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Instagram, Music2, Facebook, Twitter, Youtube, Linkedin,
-  MessageCircle, Lock as LockIcon, Info, UserX, ArrowRight, Trash2,
-  RefreshCw, ExternalLink, Search,
+  Instagram, Music2, Facebook, Twitter, Linkedin,
+  Info, UserX, ArrowRight, Trash2,
+  ExternalLink, Search, CheckCircle2,
 } from "lucide-react";
 import ImpersonatorReportModal from "./ImpersonatorReportModal";
 import { useToast } from "@/hooks/use-toast";
