@@ -532,6 +532,8 @@ const Monitoring = () => {
   };
   const hasNameMatch = (f: Finding) => {
     if (nameTokens.length === 0) return false;
+    const autoPassTypes = ["youtube", "social_tiktok", "social_instagram", "image_yandex", "image"];
+    if (autoPassTypes.includes((f.platform || "").toLowerCase())) return true;
     const hay = `${f.url || ""} ${f.finding || ""}`.toLowerCase().replace(/%20/g, " ");
     return nameTokens.some((t) => hay.includes(t));
   };
