@@ -843,7 +843,15 @@ const Monitoring = () => {
               <div key={f.id} className="border-b border-border/10 last:border-b-0">
               <div
                 className="flex items-start gap-3 px-5 py-4 hover:bg-primary/5 transition-colors group cursor-pointer"
-                onClick={() => (isImage && previewSrc ? toggleExpanded(f.id) : setSelected(f))}
+                onClick={() => {
+                  if (f.url && f.url !== "#") {
+                    window.open(f.url, "_blank", "noopener,noreferrer");
+                  } else if (isImage && previewSrc) {
+                    toggleExpanded(f.id);
+                  } else {
+                    setSelected(f);
+                  }
+                }}
               >
                 <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
                   {f.url && f.url !== "#" && faviconUrl(f.url) ? (
