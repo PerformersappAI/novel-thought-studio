@@ -9,6 +9,7 @@ import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import heroIdBadge from "@/assets/hero-id-badge.png";
+import HeroFreeScanWidget from "@/components/landing/HeroFreeScanWidget";
 import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
