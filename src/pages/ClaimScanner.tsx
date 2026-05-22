@@ -82,9 +82,34 @@ const ClaimScanner = () => {
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const VIDEO_HOSTS = [
+    "youtube.com", "youtu.be", "tiktok.com", "vimeo.com",
+    "dailymotion.com", "twitch.tv", "facebook.com/watch",
+    "fb.watch", "instagram.com/reel", "instagram.com/tv",
+  ];
+
+  const isVideoPlatformUrl = (raw: string) => {
+    try {
+      const u = new URL(raw);
+      const host = u.hostname.replace(/^www\./, "");
+      const full = host + u.pathname;
+      return VIDEO_HOSTS.some((h) => host === h || host.endsWith("." + h) || full.startsWith(h));
+    } catch {
+      return false;
+    }
+  };
+
   const runUrlScan = async () => {
     if (!url.trim()) {
       toast({ title: "Enter a URL", description: "Paste a URL to scan.", variant: "destructive" });
+      return;
+    }
+    if (isVideoPlatformUrl(url.trim())) {
+      toast({
+        title: "Video URL detected",
+        description: "Please upload a screenshot or image file from this video to scan it for deepfakes. We currently scan images only.",
+        variant: "destructive",
+      });
       return;
     }
     setStatus("analyzing");
