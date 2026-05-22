@@ -209,7 +209,7 @@ const HeroFreeScanWidget = () => {
       )}
 
       <p className="mt-2 text-[11px] text-muted-foreground/70 font-body leading-relaxed">
-        * One free scan only. <a href="/#pricing" className="underline hover:text-foreground">Join now</a> to unlock unlimited scanning and 24/7 monitoring.
+        * Free & unlimited preview. <a href="/#pricing" className="underline hover:text-foreground">Join now</a> for 24/7 monitoring and takedown tools.
       </p>
 
       {status === "error" && errorMsg && (
