@@ -55,7 +55,7 @@ const extractFileMeta = async (file: File): Promise<MetaRow[]> => {
   ];
   if (file.type.startsWith("image/")) {
     try {
-      const exif: any = await exifr.parse(file, { tiff: true, ifd0: true, exif: true, gps: true });
+      const exif: any = await exifr.parse(file, true);
       if (exif) {
         if (exif.Make || exif.Model) rows.push({ label: "Camera", value: `${exif.Make ?? ""} ${exif.Model ?? ""}`.trim() });
         if (exif.Software) rows.push({ label: "Software", value: String(exif.Software) });
