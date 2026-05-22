@@ -1,19 +1,75 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
-import { Loader2, ShieldCheck, ShieldAlert, Upload, Link as LinkIcon, ArrowRight, Lock } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldAlert, Upload, Link as LinkIcon, ArrowRight, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import exifr from "exifr";
 
 type Tab = "url" | "file";
-type Status = "idle" | "analyzing" | "authentic" | "manipulated";
+type Status = "idle" | "analyzing" | "authentic" | "manipulated" | "error";
+
+interface MetaRow { label: string; value: string }
 
 const STORAGE_KEY = "cmf_free_scan_used";
 
-const hashString = (s: string) => {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
+const formatBytes = (n: number) => {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+};
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1] ?? "");
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const extractUrlMeta = (raw: string): MetaRow[] => {
+  try {
+    const u = new URL(raw);
+    const rows: MetaRow[] = [
+      { label: "Source", value: u.hostname },
+      { label: "Path", value: u.pathname || "/" },
+    ];
+    if (u.search) rows.push({ label: "Query", value: u.search.slice(0, 80) });
+    const ext = u.pathname.split(".").pop();
+    if (ext && ext.length <= 5) rows.push({ label: "File type", value: ext.toLowerCase() });
+    return rows;
+  } catch {
+    return [{ label: "Source", value: "Invalid URL" }];
+  }
+};
+
+const extractFileMeta = async (file: File): Promise<MetaRow[]> => {
+  const rows: MetaRow[] = [
+    { label: "Filename", value: file.name },
+    { label: "Type", value: file.type || "unknown" },
+    { label: "Size", value: formatBytes(file.size) },
+    { label: "Modified", value: new Date(file.lastModified).toLocaleString() },
+  ];
+  if (file.type.startsWith("image/")) {
+    try {
+      const exif: any = await exifr.parse(file, { tiff: true, ifd0: true, exif: true, gps: true });
+      if (exif) {
+        if (exif.Make || exif.Model) rows.push({ label: "Camera", value: `${exif.Make ?? ""} ${exif.Model ?? ""}`.trim() });
+        if (exif.Software) rows.push({ label: "Software", value: String(exif.Software) });
+        if (exif.DateTimeOriginal) rows.push({ label: "Captured", value: new Date(exif.DateTimeOriginal).toLocaleString() });
+        if (exif.latitude && exif.longitude) rows.push({ label: "GPS", value: `${exif.latitude.toFixed(4)}, ${exif.longitude.toFixed(4)}` });
+        if (exif.ImageWidth && exif.ImageHeight) rows.push({ label: "Dimensions", value: `${exif.ImageWidth}×${exif.ImageHeight}` });
+      } else {
+        rows.push({ label: "EXIF", value: "No metadata embedded" });
+      }
+    } catch {
+      rows.push({ label: "EXIF", value: "Unreadable" });
+    }
+  }
+  return rows;
 };
 
 const HeroFreeScanWidget = () => {
@@ -22,6 +78,8 @@ const HeroFreeScanWidget = () => {
   const [fileName, setFileName] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [confidence, setConfidence] = useState(0);
+  const [meta, setMeta] = useState<MetaRow[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [used, setUsed] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingFile = useRef<File | null>(null);
@@ -33,22 +91,40 @@ const HeroFreeScanWidget = () => {
   }, []);
 
   const handleScan = async () => {
-    let seed = 0;
-    if (tab === "url") {
-      if (!url.trim()) return;
-      seed = hashString(url.trim());
-    } else {
-      if (!pendingFile.current) return;
-      seed = hashString(pendingFile.current.name + pendingFile.current.size);
-    }
     setStatus("analyzing");
-    await new Promise((r) => setTimeout(r, 1800));
-    const isManip = seed % 2 === 0;
-    const conf = 70 + (seed % 30);
-    setConfidence(conf);
-    setStatus(isManip ? "manipulated" : "authentic");
-    try { localStorage.setItem(STORAGE_KEY, "1"); } catch {}
-    setUsed(true);
+    setErrorMsg(null);
+    setMeta([]);
+    try {
+      let metaRows: MetaRow[] = [];
+      let invokeBody: Record<string, unknown> = {};
+
+      if (tab === "url") {
+        if (!url.trim()) return;
+        metaRows = extractUrlMeta(url.trim());
+        invokeBody = { url: url.trim() };
+      } else {
+        if (!pendingFile.current) return;
+        metaRows = await extractFileMeta(pendingFile.current);
+        const fileBase64 = await fileToBase64(pendingFile.current);
+        invokeBody = {
+          fileBase64,
+          fileName: pendingFile.current.name,
+          mimeType: pendingFile.current.type,
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke("sightengine-scan", { body: invokeBody });
+      if (error || !data?.success) throw new Error(error?.message || data?.error || "Scan failed");
+
+      setMeta(metaRows);
+      setConfidence(data.confidence);
+      setStatus(data.detection === "Manipulated" ? "manipulated" : "authentic");
+      try { localStorage.setItem(STORAGE_KEY, "1"); } catch {}
+      setUsed(true);
+    } catch (e: any) {
+      setErrorMsg(e?.message ?? "Scan failed");
+      setStatus("error");
+    }
   };
 
   const onFile = (f: File | null) => {
@@ -115,11 +191,7 @@ const HeroFreeScanWidget = () => {
       )}
 
       {used && status !== "analyzing" ? (
-        <Button
-          asChild
-          className="w-full mt-3 font-body font-semibold glow-red"
-          size="lg"
-        >
+        <Button asChild className="w-full mt-3 font-body font-semibold glow-red" size="lg">
           <a href="/#pricing">
             Get Full Access <ArrowRight className="w-4 h-4 ml-2" />
           </a>
@@ -143,7 +215,11 @@ const HeroFreeScanWidget = () => {
         * One free scan only. <a href="/#pricing" className="underline hover:text-foreground">Join now</a> to unlock unlimited scanning and 24/7 monitoring.
       </p>
 
-
+      {status === "error" && errorMsg && (
+        <div className="mt-3 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive font-body">
+          {errorMsg}
+        </div>
+      )}
 
       {(status === "authentic" || status === "manipulated") && (
         <div className="mt-4 space-y-3">
@@ -179,6 +255,22 @@ const HeroFreeScanWidget = () => {
             </div>
           </div>
 
+          {meta.length > 0 && (
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <div className="flex items-center gap-1.5 mb-2 text-[11px] uppercase tracking-wider text-accent font-body font-semibold">
+                <Info className="w-3 h-3" /> Origin & metadata
+              </div>
+              <dl className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-xs font-body">
+                {meta.map((row) => (
+                  <div key={row.label} className="contents">
+                    <dt className="text-muted-foreground">{row.label}</dt>
+                    <dd className="text-foreground break-all">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
           <div className="rounded-lg bg-primary/10 border border-primary/30 p-4 text-center">
             <p className="font-display font-semibold text-foreground text-sm md:text-base mb-3">
               Protect yourself fully — monitor your likeness 24/7
@@ -188,7 +280,6 @@ const HeroFreeScanWidget = () => {
                 Join Now <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </a>
             </Button>
-
           </div>
         </div>
       )}
