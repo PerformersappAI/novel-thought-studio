@@ -1043,14 +1043,14 @@ const Monitoring = () => {
               label: "Photo Matches",
               description: "Images and face matches found across the web.",
               accent: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-              types: ["image", "image_yandex", "face_match"],
+              types: ["image", "image_yandex", "face_match", "photo", "img"],
             },
             {
               key: "social",
               label: "Social Media",
               description: "Instagram, TikTok, and YouTube appearances.",
               accent: "border-blue-500/40 text-blue-400 bg-blue-500/10",
-              types: ["social_instagram", "social_tiktok", "youtube"],
+              types: ["social_instagram", "social_tiktok", "youtube", "instagram", "tiktok", "yt"],
             },
             {
               key: "web",
@@ -1073,12 +1073,23 @@ const Monitoring = () => {
             return CATEGORY_DEFS.find((c) => c.types.includes(t));
           };
 
+          // Web Mentions relevance filter: drop obituaries and unrelated Roberts hits.
+          const WEB_EXCLUDE = /\b(obituary|obituaries|bill roberts|william roberts|julia roberts|emma roberts|eric roberts|microsoft|sharepoint)\b/i;
+          const WEB_INCLUDE = /\b(will roberts|actor|actress|performer|sag-?aftra|imdb)\b/i;
+          const isWebRelevant = (f: Finding) => {
+            const hay = `${f.finding || ""} ${f.excerpt || ""} ${f.url || ""}`;
+            if (WEB_EXCLUDE.test(hay)) return false;
+            return WEB_INCLUDE.test(hay);
+          };
+
           const buckets: Record<string, Finding[]> = {
             photo: [], social: [], web: [], threats: [],
           };
           for (const f of findings) {
             const b = bucketFor(f);
-            if (b) buckets[b.key].push(f);
+            if (!b) continue;
+            if (b.key === "web" && !isWebRelevant(f)) continue;
+            buckets[b.key].push(f);
           }
 
           const TABS = [
