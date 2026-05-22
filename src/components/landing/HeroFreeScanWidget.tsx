@@ -85,9 +85,8 @@ const HeroFreeScanWidget = () => {
   const pendingFile = useRef<File | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY)) {
-      setUsed(true);
-    }
+    // Free & unlimited trial — do not gate scans
+    setUsed(false);
   }, []);
 
   const handleScan = async () => {
@@ -119,8 +118,6 @@ const HeroFreeScanWidget = () => {
       setMeta(metaRows);
       setConfidence(data.confidence);
       setStatus(data.detection === "Manipulated" ? "manipulated" : "authentic");
-      try { localStorage.setItem(STORAGE_KEY, "1"); } catch {}
-      setUsed(true);
     } catch (e: any) {
       setErrorMsg(e?.message ?? "Scan failed");
       setStatus("error");
@@ -212,7 +209,7 @@ const HeroFreeScanWidget = () => {
       )}
 
       <p className="mt-2 text-[11px] text-muted-foreground/70 font-body leading-relaxed">
-        * One free scan only. <a href="/#pricing" className="underline hover:text-foreground">Join now</a> to unlock unlimited scanning and 24/7 monitoring.
+        * Free & unlimited preview. <a href="/#pricing" className="underline hover:text-foreground">Join now</a> for 24/7 monitoring and takedown tools.
       </p>
 
       {status === "error" && errorMsg && (
