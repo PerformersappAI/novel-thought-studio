@@ -1043,21 +1043,21 @@ const Monitoring = () => {
               label: "Photo Matches",
               description: "Images and face matches found across the web.",
               accent: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-              types: ["image", "image_yandex", "face_match", "photo", "img"],
+              types: ["image", "image_yandex"],
             },
             {
               key: "social",
               label: "Social Media",
               description: "Instagram, TikTok, and YouTube appearances.",
               accent: "border-blue-500/40 text-blue-400 bg-blue-500/10",
-              types: ["social_instagram", "social_tiktok", "youtube", "instagram", "tiktok", "yt"],
+              types: ["social_instagram", "social_tiktok", "youtube"],
             },
             {
               key: "web",
               label: "Web Mentions",
               description: "General web pages mentioning you.",
               accent: "border-amber-500/40 text-amber-400 bg-amber-500/10",
-              types: ["web", "news", "mention"],
+              types: ["web", "news"],
             },
             {
               key: "threats",
@@ -1069,17 +1069,8 @@ const Monitoring = () => {
           ];
 
           const bucketFor = (f: Finding) => {
-            const t = (f.platform || "").toLowerCase();
+            const t = f.platform || "";
             return CATEGORY_DEFS.find((c) => c.types.includes(t));
-          };
-
-          // Web Mentions relevance filter: drop obituaries and unrelated Roberts hits.
-          const WEB_EXCLUDE = /\b(obituary|obituaries|bill roberts|william roberts|julia roberts|emma roberts|eric roberts|microsoft|sharepoint)\b/i;
-          const WEB_INCLUDE = /\b(will roberts|actor|actress|performer|sag-?aftra|imdb)\b/i;
-          const isWebRelevant = (f: Finding) => {
-            const hay = `${f.finding || ""} ${f.excerpt || ""} ${f.url || ""}`;
-            if (WEB_EXCLUDE.test(hay)) return false;
-            return WEB_INCLUDE.test(hay);
           };
 
           const buckets: Record<string, Finding[]> = {
@@ -1088,7 +1079,6 @@ const Monitoring = () => {
           for (const f of findings) {
             const b = bucketFor(f);
             if (!b) continue;
-            if (b.key === "web" && !isWebRelevant(f)) continue;
             buckets[b.key].push(f);
           }
 
