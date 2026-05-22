@@ -1057,7 +1057,7 @@ const Monitoring = () => {
               label: "Web Mentions",
               description: "General web pages mentioning you.",
               accent: "border-amber-500/40 text-amber-400 bg-amber-500/10",
-              types: ["web", "news"],
+              types: ["web", "news", "mention"],
             },
             {
               key: "threats",
