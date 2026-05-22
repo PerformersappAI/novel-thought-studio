@@ -8,6 +8,7 @@ import { Upload, Link as LinkIcon, ShieldCheck, ShieldAlert, Loader2, Download, 
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type Status = "idle" | "analyzing" | "authentic" | "manipulated";
 
@@ -21,48 +22,57 @@ interface ForensicResult {
   notes: string;
 }
 
-const hashString = (s: string) => {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-};
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1] ?? "");
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const buildResult = (
+  target: string,
+  data: any,
+  domainInfo: string | null,
+): ForensicResult => ({
+  target,
+  date: new Date().toISOString(),
+  detection: data.detection,
+  confidence: data.confidence,
+  aiModel:
+    data.detection === "Manipulated"
+      ? data.aiGenScore >= data.deepfakeScore
+        ? "AI-Generated (Sightengine genai)"
+        : "Deepfake (Sightengine deepfake)"
+      : null,
+  domainInfo,
+  notes: `Sightengine deepfake score: ${(data.deepfakeScore * 100).toFixed(1)}%. AI-generated score: ${(data.aiGenScore * 100).toFixed(1)}%.`,
+});
 
 const analyzeUrl = async (url: string): Promise<ForensicResult> => {
   let host = "";
   try { host = new URL(url).hostname; } catch { host = "invalid"; }
-  const seed = hashString(url);
-  const confidence = 55 + (seed % 45);
-  const isManip = seed % 2 === 0;
-  const models = ["Stable Diffusion XL", "Midjourney v6", "Sora", "Voice Clone AI", "DALL-E 3"];
-  return {
-    target: url,
-    date: new Date().toISOString(),
-    detection: isManip ? "Manipulated" : "Authentic",
-    confidence,
-    aiModel: isManip ? models[seed % models.length] : null,
-    domainInfo: host ? `Host: ${host}` : null,
-    notes: "Heuristic analysis based on URL metadata and known AI-generated content signatures.",
-  };
+  const { data, error } = await supabase.functions.invoke("sightengine-scan", {
+    body: { url },
+  });
+  if (error || !data?.success) throw new Error(error?.message || data?.error || "Scan failed");
+  return buildResult(url, data, host ? `Host: ${host}` : null);
 };
 
 const analyzeFile = async (file: File): Promise<ForensicResult> => {
-  const buf = await file.arrayBuffer();
-  const bytes = new Uint8Array(buf.slice(0, 4096));
-  let sum = 0;
-  for (const b of bytes) sum += b;
-  const seed = hashString(file.name + file.size) + sum;
-  const confidence = 60 + (seed % 40);
-  const isManip = seed % 2 === 0;
-  const models = ["Stable Diffusion XL", "Midjourney v6", "Sora", "Voice Clone AI", "DALL-E 3"];
-  return {
-    target: `${file.name} (${(file.size / 1024).toFixed(1)} KB, ${file.type || "unknown"})`,
-    date: new Date().toISOString(),
-    detection: isManip ? "Manipulated" : "Authentic",
-    confidence,
-    aiModel: isManip ? models[seed % models.length] : null,
-    domainInfo: null,
-    notes: "Forensic analysis of file headers, entropy, and embedded metadata.",
-  };
+  const fileBase64 = await fileToBase64(file);
+  const { data, error } = await supabase.functions.invoke("sightengine-scan", {
+    body: { fileBase64, fileName: file.name, mimeType: file.type },
+  });
+  if (error || !data?.success) throw new Error(error?.message || data?.error || "Scan failed");
+  return buildResult(
+    `${file.name} (${(file.size / 1024).toFixed(1)} KB, ${file.type || "unknown"})`,
+    data,
+    null,
+  );
 };
 
 const ClaimScanner = () => {
