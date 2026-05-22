@@ -1043,7 +1043,7 @@ const Monitoring = () => {
               label: "Photo Matches",
               description: "Images and face matches found across the web.",
               accent: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-              types: ["image", "image_yandex", "face_match"],
+              types: ["image", "image_yandex", "face_match", "photo", "img"],
             },
             {
               key: "social",
