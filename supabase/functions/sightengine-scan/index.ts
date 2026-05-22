@@ -1,10 +1,5 @@
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
