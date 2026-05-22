@@ -89,19 +89,27 @@ const ClaimScanner = () => {
     }
     setStatus("analyzing");
     setResult(null);
-    await new Promise((r) => setTimeout(r, 1500));
-    const r = await analyzeUrl(url.trim());
-    setResult(r);
-    setStatus(r.detection === "Authentic" ? "authentic" : "manipulated");
+    try {
+      const r = await analyzeUrl(url.trim());
+      setResult(r);
+      setStatus(r.detection === "Authentic" ? "authentic" : "manipulated");
+    } catch (e: any) {
+      toast({ title: "Scan failed", description: e?.message ?? "Unknown error", variant: "destructive" });
+      setStatus("idle");
+    }
   };
 
   const runFileScan = async (file: File) => {
     setStatus("analyzing");
     setResult(null);
-    await new Promise((r) => setTimeout(r, 1500));
-    const r = await analyzeFile(file);
-    setResult(r);
-    setStatus(r.detection === "Authentic" ? "authentic" : "manipulated");
+    try {
+      const r = await analyzeFile(file);
+      setResult(r);
+      setStatus(r.detection === "Authentic" ? "authentic" : "manipulated");
+    } catch (e: any) {
+      toast({ title: "Scan failed", description: e?.message ?? "Unknown error", variant: "destructive" });
+      setStatus("idle");
+    }
   };
 
   const onDrop = (e: React.DragEvent) => {
