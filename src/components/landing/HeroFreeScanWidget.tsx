@@ -118,8 +118,6 @@ const HeroFreeScanWidget = () => {
       setMeta(metaRows);
       setConfidence(data.confidence);
       setStatus(data.detection === "Manipulated" ? "manipulated" : "authentic");
-      try { localStorage.setItem(STORAGE_KEY, "1"); } catch {}
-      setUsed(true);
     } catch (e: any) {
       setErrorMsg(e?.message ?? "Scan failed");
       setStatus("error");
