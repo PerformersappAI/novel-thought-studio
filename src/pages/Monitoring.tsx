@@ -1050,7 +1050,7 @@ const Monitoring = () => {
               label: "Social Media",
               description: "Instagram, TikTok, and YouTube appearances.",
               accent: "border-blue-500/40 text-blue-400 bg-blue-500/10",
-              types: ["social_instagram", "social_tiktok", "youtube"],
+              types: ["social_instagram", "social_tiktok", "youtube", "instagram", "tiktok", "yt"],
             },
             {
               key: "web",
