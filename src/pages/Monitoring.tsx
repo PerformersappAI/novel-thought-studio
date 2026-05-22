@@ -238,16 +238,59 @@ const FOLDER_COLORS = ["#C41230", "#D4A843", "#3B82F6", "#10B981", "#8B5CF6", "#
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const normalizeStatus = (status?: string | null, mentionType?: string | null): Finding["status"] => {
+const LEGITIMATE_DOMAINS = [
+  "actorwillroberts.com",
+  "imdb.com",
+  "imdb.me",
+  "sagaftra.org",
+  "backstage.com",
+  "wikipedia.org",
+];
+
+const isLegitimateDomain = (url?: string | null): boolean => {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    return LEGITIMATE_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`));
+  } catch {
+    return false;
+  }
+};
+
+const normalizeStatus = (
+  status?: string | null,
+  mentionType?: string | null,
+  url?: string | null,
+): Finding["status"] => {
   const value = (status || "").toLowerCase();
-  if (value.includes("resolved") || value.includes("dismiss")) return "Resolved";
-  if (value.includes("review") || value.includes("pending")) return "Under Review";
-  if (value.includes("takedown") || value.includes("filed")) return "Takedown Filed";
-  if (value.includes("info") || value.includes("legitimate")) return "Informational";
   const mt = (mentionType || "").toLowerCase();
+
+  // Explicit resolved/takedown states win
+  if (value.includes("resolved") || value.includes("dismiss")) return "Resolved";
+  if (value.includes("takedown") || value.includes("filed")) return "Takedown Filed";
+
+  // Known legitimate sources are always informational
+  if (value === "face_legitimate" || value.includes("legitimate") || isLegitimateDomain(url)) {
+    return "Informational";
+  }
+
+  // Real threats: explicit threat status, pending review, or inherently-malicious mention types
+  const threatTypes = ["deepfake", "voice_clone", "fake_profile"];
+  if (value === "face_threat" || value === "pending" || threatTypes.includes(mt)) {
+    return "New Alert";
+  }
+
+  if (value.includes("review")) return "Under Review";
+  if (value.includes("info")) return "Informational";
+
+  // Social media defaults to informational unless flagged as a threat above
+  const socialTypes = ["social_instagram", "social_tiktok", "youtube", "tiktok", "instagram"];
+  if (socialTypes.includes(mt)) return "Informational";
+
   if (value === "new" && (mt === "youtube" || mt === "image_yandex")) return "Informational";
   return "New Alert";
 };
+
 
 const MENTION_TYPE_TO_CATEGORY: Record<string, FindingCategory> = {
   youtube: "Social Media",
@@ -468,7 +511,7 @@ const Monitoring = () => {
         category: finalCategory,
         date: m.found_at,
         lastSeen: m.found_at,
-        status: normalizeStatus(m.status, m.mention_type),
+        status: normalizeStatus(m.status, m.mention_type, m.url),
         url: m.url || "#",
         confidence: m.confidence ?? 90,
         recommended: "Report to Platform" as const,
