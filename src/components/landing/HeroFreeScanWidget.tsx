@@ -85,9 +85,8 @@ const HeroFreeScanWidget = () => {
   const pendingFile = useRef<File | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY)) {
-      setUsed(true);
-    }
+    // Free & unlimited trial — do not gate scans
+    setUsed(false);
   }, []);
 
   const handleScan = async () => {
