@@ -92,6 +92,11 @@ const PerformerProfileTab = () => {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Profile updated" });
+      if (form.profession && user.email) {
+        supabase.functions.invoke("actor-sync-profession", {
+          body: { email: user.email, profession: form.profession },
+        }).catch(() => { /* non-blocking */ });
+      }
     }
   };
 
