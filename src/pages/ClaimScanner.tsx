@@ -11,6 +11,22 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type Status = "idle" | "analyzing" | "authentic" | "manipulated";
+type Verdict = "likely-authentic" | "likely-ai" | "uncertain" | "inconclusive";
+
+const getVerdict = (detection: "Authentic" | "Manipulated", confidence: number): Verdict => {
+  if (confidence < 50) return "inconclusive";
+  if (confidence < 85) return "uncertain";
+  return detection === "Authentic" ? "likely-authentic" : "likely-ai";
+};
+
+const VERDICT_META: Record<Verdict, { label: string; color: string; bg: string; border: string }> = {
+  "likely-authentic": { label: "Likely Authentic", color: "text-green-500", bg: "bg-green-500", border: "border-green-500/50" },
+  "likely-ai":        { label: "Likely AI-Generated", color: "text-destructive", bg: "bg-destructive", border: "border-destructive/50" },
+  "uncertain":        { label: "Uncertain — low confidence result", color: "text-yellow-500", bg: "bg-yellow-500", border: "border-yellow-500/50" },
+  "inconclusive":     { label: "Inconclusive", color: "text-muted-foreground", bg: "bg-muted-foreground", border: "border-border" },
+};
+
+const isScreenshotName = (name: string) => /screen[\s_-]?shot/i.test(name);
 
 interface ForensicResult {
   target: string;
