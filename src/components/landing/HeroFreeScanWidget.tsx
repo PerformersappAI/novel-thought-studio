@@ -266,8 +266,14 @@ const HeroFreeScanWidget = () => {
       {(status === "authentic" || status === "manipulated") && (() => {
         const isScreenshot = !!fileName && /screen[\s_-]?shot/i.test(fileName);
         let verdictLabel: string;
+        let verdictDetail: string | null = null;
         let tone: "green" | "red" | "yellow" | "gray";
-        if (confidence < 50) { verdictLabel = "Inconclusive"; tone = "gray"; }
+        if (isScreenshot) {
+          verdictLabel = "Suspicious — Screenshot Detected";
+          verdictDetail = "This image may have been screenshotted to remove AI detection fingerprints. Original source should be verified.";
+          tone = "yellow";
+        }
+        else if (confidence < 50) { verdictLabel = "Inconclusive"; tone = "gray"; }
         else if (confidence < 85) { verdictLabel = "Uncertain — low confidence result"; tone = "yellow"; }
         else if (status === "authentic") { verdictLabel = "Likely Authentic"; tone = "green"; }
         else { verdictLabel = "Likely AI-Generated"; tone = "red"; }
