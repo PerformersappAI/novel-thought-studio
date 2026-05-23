@@ -95,6 +95,7 @@ const ClaimScanner = () => {
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<ForensicResult | null>(null);
+  const [scannedFileName, setScannedFileName] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
