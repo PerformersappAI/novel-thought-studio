@@ -46,8 +46,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    let initialized = false;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
@@ -59,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setRole(null);
           setLegalAccepted(null);
         }
-        setLoading(false);
+        if (initialized) setLoading(false);
       }
     );
 
@@ -70,11 +72,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         fetchRole(session.user.id);
         fetchLegalStatus(session.user.id);
       }
+      initialized = true;
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
 
   const signUp = async (email: string, password: string, fullName: string, meta?: Record<string, string>) => {
     const { error } = await supabase.auth.signUp({
