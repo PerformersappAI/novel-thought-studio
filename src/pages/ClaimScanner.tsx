@@ -131,6 +131,7 @@ const ClaimScanner = () => {
     }
     setStatus("analyzing");
     setResult(null);
+    setScannedFileName(null);
     try {
       const r = await analyzeUrl(url.trim());
       setResult(r);
@@ -144,6 +145,7 @@ const ClaimScanner = () => {
   const runFileScan = async (file: File) => {
     setStatus("analyzing");
     setResult(null);
+    setScannedFileName(file.name);
     try {
       const r = await analyzeFile(file);
       setResult(r);
