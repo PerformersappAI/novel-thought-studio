@@ -263,25 +263,36 @@ const HeroFreeScanWidget = () => {
         </div>
       )}
 
-      {(status === "authentic" || status === "manipulated") && (
+      {(status === "authentic" || status === "manipulated") && (() => {
+        const isScreenshot = !!fileName && /screen[\s_-]?shot/i.test(fileName);
+        let verdictLabel: string;
+        let tone: "green" | "red" | "yellow" | "gray";
+        if (confidence < 50) { verdictLabel = "Inconclusive"; tone = "gray"; }
+        else if (confidence < 85) { verdictLabel = "Uncertain — low confidence result"; tone = "yellow"; }
+        else if (status === "authentic") { verdictLabel = "Likely Authentic"; tone = "green"; }
+        else { verdictLabel = "Likely AI-Generated"; tone = "red"; }
+        const toneMap = {
+          green:  { text: "text-green-500",       bg: "bg-green-500",       border: "border-green-500/30",      panel: "bg-green-500/5" },
+          red:    { text: "text-destructive",     bg: "bg-destructive",     border: "border-destructive/40",    panel: "bg-destructive/5" },
+          yellow: { text: "text-yellow-500",      bg: "bg-yellow-500",      border: "border-yellow-500/40",     panel: "bg-yellow-500/5" },
+          gray:   { text: "text-muted-foreground",bg: "bg-muted-foreground",border: "border-white/15",          panel: "bg-white/[0.03]" },
+        }[tone];
+        return (
         <div className="mt-4 space-y-3">
-          <div className={cn(
-            "rounded-lg border p-3 flex items-center gap-3",
-            status === "authentic"
-              ? "border-green-500/30 bg-green-500/5"
-              : "border-destructive/40 bg-destructive/5"
-          )}>
-            {status === "authentic" ? (
-              <ShieldCheck className="w-6 h-6 text-green-500 flex-shrink-0" />
+          {isScreenshot && (
+            <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-3 text-xs font-body text-yellow-600 dark:text-yellow-400">
+              ⚠️ This looks like a screenshot. Screenshots remove the digital fingerprints AI detectors need. For accurate results, upload the original image file.
+            </div>
+          )}
+          <div className={cn("rounded-lg border p-3 flex items-center gap-3", toneMap.border, toneMap.panel)}>
+            {tone === "green" ? (
+              <ShieldCheck className={cn("w-6 h-6 flex-shrink-0", toneMap.text)} />
             ) : (
-              <ShieldAlert className="w-6 h-6 text-destructive flex-shrink-0" />
+              <ShieldAlert className={cn("w-6 h-6 flex-shrink-0", toneMap.text)} />
             )}
             <div className="flex-1">
-              <div className={cn(
-                "font-display font-semibold text-base",
-                status === "authentic" ? "text-green-500" : "text-destructive"
-              )}>
-                {status === "authentic" ? "Authentic" : "AI Generated"}
+              <div className={cn("font-display font-semibold text-base", toneMap.text)}>
+                {verdictLabel}
               </div>
               <div className="text-xs text-muted-foreground font-body">
                 Confidence: {confidence}%
@@ -289,10 +300,7 @@ const HeroFreeScanWidget = () => {
             </div>
             <div className="w-20">
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className={cn("h-full", status === "authentic" ? "bg-green-500" : "bg-destructive")}
-                  style={{ width: `${confidence}%` }}
-                />
+                <div className={cn("h-full", toneMap.bg)} style={{ width: `${confidence}%` }} />
               </div>
             </div>
           </div>
@@ -324,7 +332,8 @@ const HeroFreeScanWidget = () => {
             </Button>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
