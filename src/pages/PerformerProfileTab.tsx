@@ -52,6 +52,7 @@ const PerformerProfileTab = () => {
         tiktok_handle: data?.tiktok_handle ?? "",
         youtube_handle: data?.youtube_handle ?? "",
         is_discoverable: data?.is_discoverable ?? false,
+        profession: data?.profession ?? "",
         signature_phrase: data?.signature_phrase ?? "",
         trademark_entity: data?.trademark_entity ?? "",
       });
