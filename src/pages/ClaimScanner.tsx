@@ -11,6 +11,22 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type Status = "idle" | "analyzing" | "authentic" | "manipulated";
+type Verdict = "likely-authentic" | "likely-ai" | "uncertain" | "inconclusive";
+
+const getVerdict = (detection: "Authentic" | "Manipulated", confidence: number): Verdict => {
+  if (confidence < 50) return "inconclusive";
+  if (confidence < 85) return "uncertain";
+  return detection === "Authentic" ? "likely-authentic" : "likely-ai";
+};
+
+const VERDICT_META: Record<Verdict, { label: string; color: string; bg: string; border: string }> = {
+  "likely-authentic": { label: "Likely Authentic", color: "text-green-500", bg: "bg-green-500", border: "border-green-500/50" },
+  "likely-ai":        { label: "Likely AI-Generated", color: "text-destructive", bg: "bg-destructive", border: "border-destructive/50" },
+  "uncertain":        { label: "Uncertain — low confidence result", color: "text-yellow-500", bg: "bg-yellow-500", border: "border-yellow-500/50" },
+  "inconclusive":     { label: "Inconclusive", color: "text-muted-foreground", bg: "bg-muted-foreground", border: "border-border" },
+};
+
+const isScreenshotName = (name: string) => /screen[\s_-]?shot/i.test(name);
 
 interface ForensicResult {
   target: string;
@@ -79,6 +95,7 @@ const ClaimScanner = () => {
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<ForensicResult | null>(null);
+  const [scannedFileName, setScannedFileName] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -114,6 +131,7 @@ const ClaimScanner = () => {
     }
     setStatus("analyzing");
     setResult(null);
+    setScannedFileName(null);
     try {
       const r = await analyzeUrl(url.trim());
       setResult(r);
@@ -127,6 +145,7 @@ const ClaimScanner = () => {
   const runFileScan = async (file: File) => {
     setStatus("analyzing");
     setResult(null);
+    setScannedFileName(file.name);
     try {
       const r = await analyzeFile(file);
       setResult(r);
@@ -273,21 +292,28 @@ const ClaimScanner = () => {
                 <span>Analyzing...</span>
               </div>
             )}
-            {result && status !== "analyzing" && (
+            {result && status !== "analyzing" && (() => {
+              const verdict = getVerdict(result.detection, result.confidence);
+              const meta = VERDICT_META[verdict];
+              const showScreenshotWarning = !!scannedFileName && isScreenshotName(scannedFileName);
+              const isAuthenticLike = verdict === "likely-authentic";
+              return (
               <div className="space-y-5">
+                {showScreenshotWarning && (
+                  <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+                    ⚠️ This looks like a screenshot. Screenshots remove the digital fingerprints AI detectors need. For accurate results, upload the original image file.
+                  </div>
+                )}
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-3">
-                    {status === "authentic" ? (
-                      <ShieldCheck className="w-8 h-8 text-green-500" />
+                    {isAuthenticLike ? (
+                      <ShieldCheck className={cn("w-8 h-8", meta.color)} />
                     ) : (
-                      <ShieldAlert className="w-8 h-8 text-destructive" />
+                      <ShieldAlert className={cn("w-8 h-8", meta.color)} />
                     )}
                     <div>
-                      <div className={cn(
-                        "text-xl font-semibold",
-                        status === "authentic" ? "text-green-500" : "text-destructive",
-                      )}>
-                        {result.detection}
+                      <div className={cn("text-xl font-semibold", meta.color)}>
+                        {meta.label}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Confidence: {result.confidence}%
@@ -297,10 +323,7 @@ const ClaimScanner = () => {
                   <div className="w-full sm:w-64">
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
                       <div
-                        className={cn(
-                          "h-full",
-                          status === "authentic" ? "bg-green-500" : "bg-destructive",
-                        )}
+                        className={cn("h-full", meta.bg)}
                         style={{ width: `${result.confidence}%` }}
                       />
                     </div>
@@ -311,7 +334,8 @@ const ClaimScanner = () => {
                   <h3 className="font-semibold mb-3">Forensic Report</h3>
                   <ReportRow label="File / URL" value={result.target} />
                   <ReportRow label="Date / Time" value={new Date(result.date).toLocaleString()} />
-                  <ReportRow label="Detection" value={result.detection} />
+                  <ReportRow label="Verdict" value={meta.label} />
+                  <ReportRow label="Raw Detection" value={result.detection} />
                   <ReportRow label="Confidence" value={`${result.confidence}%`} />
                   <ReportRow label="AI Model Detected" value={result.aiModel || "None"} />
                   <ReportRow label="Domain / IP" value={result.domainInfo || "N/A"} />
@@ -321,7 +345,7 @@ const ClaimScanner = () => {
                   <Button onClick={downloadReport} className="gap-2">
                     <Download className="w-4 h-4" /> Download Report
                   </Button>
-                  {status === "manipulated" && (
+                  {(verdict === "likely-ai" || verdict === "uncertain") && (
                     <>
                       <Button asChild variant="destructive" className="gap-2">
                         <a href={`/dashboard/dmca-generator?target=${encodeURIComponent(result.target)}`}>
@@ -335,7 +359,8 @@ const ClaimScanner = () => {
                   )}
                 </div>
               </div>
-            )}
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
