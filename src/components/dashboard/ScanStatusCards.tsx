@@ -171,14 +171,16 @@ const ScanStatusCards = ({ actorId }: Props) => {
       className="rounded-2xl border border-border/30 bg-card/40 p-6"
     >
       <h2 className="font-display text-lg font-semibold mb-4">Scan Status</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {CATEGORIES.map((cat) => {
           const run = runs[normalizeScannerName(cat.key)];
           const inactive = cat.planned && !run;
           const noRun = !run;
+          const hasThreats = !!run && run.status === "completed" && run.threats_found > 0;
 
           let body: React.ReactNode;
           let tone = "border-border/30 bg-secondary/20";
+          let badge: React.ReactNode = null;
 
           if (noRun) {
             body = (
@@ -195,6 +197,11 @@ const ScanStatusCards = ({ actorId }: Props) => {
               </p>
             );
             tone = "border-primary/30 bg-primary/5";
+            badge = (
+              <span className="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-primary/15 text-primary border border-primary/30">
+                Scanning
+              </span>
+            );
           } else if (run!.status === "failed") {
             body = (
               <p className="text-sm text-destructive flex items-center gap-2">
@@ -203,41 +210,73 @@ const ScanStatusCards = ({ actorId }: Props) => {
               </p>
             );
             tone = "border-destructive/30 bg-destructive/5";
-          } else {
-            // success
+          } else if (hasThreats) {
             body = (
               <p className="text-sm text-foreground leading-relaxed">
                 <span className="text-muted-foreground">Last scan:</span>{" "}
                 {timeAgo(run!.started_at)} — {run!.items_scanned} {cat.itemsLabel} checked —{" "}
-                <span className={run!.threats_found > 0 ? "text-destructive font-medium" : ""}>
-                  {run!.threats_found} threats
-                </span>{" "}
-                — {run!.legitimate_found} verified{" "}
-                <CheckCircle2 className="inline w-3.5 h-3.5 text-emerald-500 -mt-0.5" />
+                <span className="text-destructive font-semibold">{run!.threats_found} threats</span>
               </p>
             );
-            tone = "border-border/30 bg-card/60";
+            tone = "border-destructive/40 bg-destructive/5 hover:bg-destructive/10";
+            badge = (
+              <span className="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-destructive/15 text-destructive border border-destructive/40">
+                Alert
+              </span>
+            );
+          } else {
+            body = (
+              <p className="text-sm text-foreground leading-relaxed">
+                <span className="text-muted-foreground">Last scan:</span>{" "}
+                {timeAgo(run!.started_at)} — {run!.items_scanned} {cat.itemsLabel} checked — {run!.legitimate_found} verified
+              </p>
+            );
+            tone = "border-emerald-500/30 bg-emerald-500/5";
+            badge = (
+              <span className="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                Clean
+              </span>
+            );
           }
 
-          return (
-            <div
-              key={cat.key}
-              className={`rounded-xl border p-4 transition-colors ${tone}`}
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-base">{cat.emoji}</span>
-                <span className="font-medium text-sm text-foreground">{cat.label}</span>
+          const cardInner = (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">{cat.emoji}</span>
+                <span className="font-semibold text-base text-foreground">{cat.label}</span>
                 {inactive && (
                   <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground border border-border/30 rounded px-1.5 py-0.5">
                     Planned
                   </span>
                 )}
+                {!inactive && badge && <span className="ml-auto flex items-center gap-1">{badge}{hasThreats && <ChevronRight className="w-4 h-4 text-destructive" />}</span>}
               </div>
               {loading ? (
                 <p className="text-sm text-muted-foreground">Loading…</p>
               ) : (
                 body
               )}
+            </>
+          );
+
+          if (hasThreats) {
+            return (
+              <Link
+                key={cat.key}
+                to="/dashboard/monitoring"
+                className={`block rounded-xl border p-5 transition-colors cursor-pointer ${tone}`}
+              >
+                {cardInner}
+              </Link>
+            );
+          }
+
+          return (
+            <div
+              key={cat.key}
+              className={`rounded-xl border p-5 transition-colors ${tone}`}
+            >
+              {cardInner}
             </div>
           );
         })}
