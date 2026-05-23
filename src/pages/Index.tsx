@@ -130,7 +130,7 @@ const Index = () => {
             >
               <Link to="/register">
                 <Shield className="w-5 h-5 mr-2" />
-                Register Your Identity — $29.99 one-time + $9.99/mo
+                Register Your Identity — $19.99 one-time + $9.99/mo
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
@@ -295,7 +295,7 @@ const Index = () => {
               <Card className="glass-card border-border/30 h-full flex flex-col">
                 <CardContent className="p-6 flex flex-col flex-1 gap-4">
                   <h3 className="font-display text-xl font-bold">Register &amp; Scan</h3>
-                  <p className="font-display text-3xl font-bold">$29.99 <span className="text-sm font-normal text-muted-foreground">one-time</span></p>
+                  <p className="font-display text-3xl font-bold">$19.99 <span className="text-sm font-normal text-muted-foreground">one-time</span></p>
                   <ul className="space-y-2 flex-1">
                     {["Face registered in vault", "SHA-256 cryptographic certificate", "One full platform scan", "Identity Statement", "DMCA generator access"].map(f => (
                       <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground font-body">
@@ -402,7 +402,7 @@ const Index = () => {
             {[
               { q: "Is ClaimMyFace a law firm?", a: "No. ClaimMyFace is a documentation and evidence-vault platform. We help you build timestamped proof of your identity and likeness — but we are not attorneys and do not provide legal advice." },
               { q: "How is this different from just watermarking my photos?", a: "Watermarks can be removed. ClaimMyFace creates SHA-256 cryptographic hashes of your assets, timestamps them on registration, and stores them in a secure vault — creating legal-weight evidence of prior ownership." },
-              { q: "What does the $29 registration fee cover?", a: "Your one-time registration includes identity verification, face vault setup, your Face Registration Certificate, and your Identity Statement — all timestamped proof of ownership." },
+              { q: "What does the $19.99 registration fee cover?", a: "Your one-time registration includes identity verification, face vault setup, your Face Registration Certificate, and your Identity Statement — all timestamped proof of ownership." },
               { q: "Do I need to be SAG-AFTRA to register?", a: "No. ClaimMyFace is open to any performer, creator, or public figure who wants to protect their digital likeness." },
               { q: "What happens if someone is using my face without permission?", a: "Use our Emergency Response protocol — it walks you through documentation, DMCA filing, and incident reporting step by step." },
               { q: "Is my data private?", a: "Yes. Your uploaded assets are stored in a private encrypted vault. We never share, sell, or display your personal assets." },

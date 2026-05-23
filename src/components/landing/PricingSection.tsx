@@ -27,7 +27,7 @@ const plans: Plan[] = [
   {
     name: "Register Your Face",
     label: "Start Here",
-    price: "$29",
+    price: "$19.99",
     period: "one-time",
     subtitle: "Claim your face. One time. Yours forever.",
     features: [
@@ -40,7 +40,7 @@ const plans: Plan[] = [
       "Listed in ClaimMyFace registry",
       "DMCA Takedown Assistant",
     ],
-    cta: "Register My Face — $29 →",
+    cta: "Register My Face — $19.99 →",
     href: `/signup?plan=registration&price=${import.meta.env.VITE_REGISTRATION_PRICE_ID ?? ""}`,
     note: "One-time fee. No subscription required to register.",
     variant: "default",
@@ -120,7 +120,7 @@ const compareRows: Array<[string, boolean, boolean]> = [
 const faqs = [
   {
     q: "Do I need to pay monthly or can I just register once?",
-    a: "You can register once for $29 and keep your certificate and badge forever. The $9.99/mo adds active monitoring — we watch the web for you 24/7. Without monitoring you'd need to search manually.",
+    a: "You can register once for $19.99 and keep your certificate and badge forever. The $9.99/mo adds active monitoring — we watch the web for you 24/7. Without monitoring you'd need to search manually.",
   },
   {
     q: "Can I cancel the monthly plan anytime?",
@@ -135,7 +135,7 @@ const faqs = [
     a: "Your registration date becomes your legal timestamp. Performers who registered before the law passes will have the strongest standing under the new federal framework.",
   },
   {
-    q: "Is the $29 really just one time?",
+    q: "Is the $19.99 really just one time?",
     a: "Yes. One payment. Your face is registered and timestamped forever. The monthly plan is optional — it adds the watching and alerting layer on top.",
   },
 ];
@@ -260,7 +260,7 @@ const PricingSection = () => {
             <div className="p-4 font-display font-semibold text-sm text-foreground text-center border-l border-white/[0.08]">
               Register
               <span className="block text-[11px] font-body font-normal text-muted-foreground">
-                $29
+                $19.99
               </span>
             </div>
             <div className="p-4 font-display font-semibold text-sm text-foreground text-center border-l border-white/[0.08]">
