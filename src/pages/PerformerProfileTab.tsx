@@ -20,6 +20,7 @@ const UNIONS = ["SAG-AFTRA", "Fi-Core", "Non-Union", "ACTRA", "Equity", "Other"]
 const TYPES = ["Actor", "Voice Actor", "Musician", "Dancer", "Stunt Performer", "Model", "Content Creator", "Other"];
 const YEARS = ["0-2", "3-5", "6-10", "10+"];
 const MARKETS = ["Los Angeles", "New York", "Atlanta", "Chicago", "London", "Other"];
+const PROFESSIONS = ["Actor", "Model", "Influencer", "CEO", "Executive", "Lawyer", "Doctor", "Athlete", "Musician", "Politician", "Public Figure", "Other"];
 
 const PerformerProfileTab = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const PerformerProfileTab = () => {
         tiktok_handle: data?.tiktok_handle ?? "",
         youtube_handle: data?.youtube_handle ?? "",
         is_discoverable: data?.is_discoverable ?? false,
+        profession: data?.profession ?? "",
         signature_phrase: data?.signature_phrase ?? "",
         trademark_entity: data?.trademark_entity ?? "",
       });
@@ -124,6 +126,14 @@ const PerformerProfileTab = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Legal Name</Label><Input value={form.legal_name} onChange={(e) => update("legal_name", e.target.value)} /></div>
             <div className="space-y-2"><Label>Stage Name *</Label><Input required value={form.stage_name} onChange={(e) => update("stage_name", e.target.value)} /></div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Your Profession / How You're Known Online</Label>
+              <Select value={form.profession || undefined} onValueChange={(v) => update("profession", v)}>
+                <SelectTrigger><SelectValue placeholder="Select your profession" /></SelectTrigger>
+                <SelectContent>{PROFESSIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">This helps us find you more accurately across the web.</p>
+            </div>
             <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => update("phone", e.target.value)} /></div>
             <div className="space-y-2">
               <Label>Union Status</Label>
