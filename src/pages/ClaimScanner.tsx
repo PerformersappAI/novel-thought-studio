@@ -340,14 +340,12 @@ const ClaimScanner = () => {
                   <ReportRow label="AI Model Detected" value={result.aiModel || "None"} />
                   <ReportRow label="Domain / IP" value={result.domainInfo || "N/A"} />
                 </div>
-              );
-            })()}
 
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={downloadReport} className="gap-2">
                     <Download className="w-4 h-4" /> Download Report
                   </Button>
-                  {status === "manipulated" && (
+                  {(verdict === "likely-ai" || verdict === "uncertain") && (
                     <>
                       <Button asChild variant="destructive" className="gap-2">
                         <a href={`/dashboard/dmca-generator?target=${encodeURIComponent(result.target)}`}>
@@ -361,7 +359,8 @@ const ClaimScanner = () => {
                   )}
                 </div>
               </div>
-            )}
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
