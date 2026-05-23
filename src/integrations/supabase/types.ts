@@ -725,6 +725,7 @@ export type Database = {
           preferred_language: string
           primary_market: string | null
           production_type: string | null
+          profession: string | null
           signature_phrase: string | null
           slug: string | null
           stage_name: string | null
@@ -777,6 +778,7 @@ export type Database = {
           preferred_language?: string
           primary_market?: string | null
           production_type?: string | null
+          profession?: string | null
           signature_phrase?: string | null
           slug?: string | null
           stage_name?: string | null
@@ -829,6 +831,7 @@ export type Database = {
           preferred_language?: string
           primary_market?: string | null
           production_type?: string | null
+          profession?: string | null
           signature_phrase?: string | null
           slug?: string | null
           stage_name?: string | null
