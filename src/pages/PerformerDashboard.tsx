@@ -5,6 +5,7 @@ import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, Ex
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
 import ScanStatusCards from "@/components/dashboard/ScanStatusCards";
+import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
 import FacePanel from "@/components/dashboard/FacePanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
