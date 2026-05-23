@@ -31,8 +31,8 @@ const CATEGORIES: Category[] = [
   { key: "face_match", label: "Photo Matches", emoji: "📸", itemsLabel: "images" },
   { key: "elevenlabs_voice", label: "Voice Clones", emoji: "🎙️", itemsLabel: "voices" },
   { key: "writing", label: "Writing Plagiarism", emoji: "✍️", itemsLabel: "articles" },
-  { key: "deepfake", label: "Deepfake Video", emoji: "🎬", itemsLabel: "videos", planned: true },
-  { key: "social", label: "Social Impersonators", emoji: "👥", itemsLabel: "profiles", planned: true },
+  { key: "deepfake", label: "Deepfake Video", emoji: "🎬", itemsLabel: "videos" },
+  { key: "social", label: "Social Impersonators", emoji: "👥", itemsLabel: "profiles" },
 ];
 
 const SCANNER_ALIASES: Record<string, string> = {
@@ -185,10 +185,10 @@ const ScanStatusCards = ({ actorId }: Props) => {
           if (noRun) {
             body = (
               <p className="text-sm text-muted-foreground">
-                Not yet active — scanner coming soon
+                Monitoring active — no recent scan yet
               </p>
             );
-            tone = "border-border/20 bg-secondary/10 opacity-60";
+            tone = "border-border/30 bg-secondary/20";
           } else if (run!.status === "running") {
             body = (
               <p className="text-sm text-foreground flex items-center gap-2">
