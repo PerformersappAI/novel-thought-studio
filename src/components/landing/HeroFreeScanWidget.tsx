@@ -287,7 +287,7 @@ const HeroFreeScanWidget = () => {
         <div className="mt-4 space-y-3">
           {isScreenshot && (
             <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-3 text-xs font-body text-yellow-600 dark:text-yellow-400">
-              ⚠️ This looks like a screenshot. Screenshots remove the digital fingerprints AI detectors need. For accurate results, upload the original image file.
+              ⚠️ This image may have been screenshotted to remove AI detection fingerprints. Original source should be verified.
             </div>
           )}
           <div className={cn("rounded-lg border p-3 flex items-center gap-3", toneMap.border, toneMap.panel)}>
@@ -300,6 +300,9 @@ const HeroFreeScanWidget = () => {
               <div className={cn("font-display font-semibold text-base", toneMap.text)}>
                 {verdictLabel}
               </div>
+              {verdictDetail && (
+                <div className="text-xs text-foreground/80 font-body mt-0.5">{verdictDetail}</div>
+              )}
               <div className="text-xs text-muted-foreground font-body">
                 Confidence: {confidence}%
               </div>
