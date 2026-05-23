@@ -287,7 +287,7 @@ const HeroFreeScanWidget = () => {
         <div className="mt-4 space-y-3">
           {isScreenshot && (
             <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-3 text-xs font-body text-yellow-600 dark:text-yellow-400">
-              ⚠️ This image may have been screenshotted to remove AI detection fingerprints. Original source should be verified.
+              ⚠️ <strong>Suspicious — Screenshot Detected.</strong> This image may have been screenshotted to hide AI generation fingerprints. Treat with caution.
             </div>
           )}
           <div className={cn("rounded-lg border p-3 flex items-center gap-3", toneMap.border, toneMap.panel)}>
