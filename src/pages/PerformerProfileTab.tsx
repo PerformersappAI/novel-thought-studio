@@ -20,6 +20,7 @@ const UNIONS = ["SAG-AFTRA", "Fi-Core", "Non-Union", "ACTRA", "Equity", "Other"]
 const TYPES = ["Actor", "Voice Actor", "Musician", "Dancer", "Stunt Performer", "Model", "Content Creator", "Other"];
 const YEARS = ["0-2", "3-5", "6-10", "10+"];
 const MARKETS = ["Los Angeles", "New York", "Atlanta", "Chicago", "London", "Other"];
+const PROFESSIONS = ["Actor", "Model", "Influencer", "CEO", "Executive", "Lawyer", "Doctor", "Athlete", "Musician", "Politician", "Public Figure", "Other"];
 
 const PerformerProfileTab = () => {
   const navigate = useNavigate();
