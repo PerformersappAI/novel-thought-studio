@@ -292,9 +292,8 @@ const PerformerDashboard = () => {
 
         <DetectionPanels mentions={mentions} />
 
-        <VaultCompletionScore items={vaultItems} />
-
         <FacePanel thumbs={thumbs} registryId={registryId} registeredAt={profile?.face_registered_at} />
+
 
         {/* What We Found summary */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
