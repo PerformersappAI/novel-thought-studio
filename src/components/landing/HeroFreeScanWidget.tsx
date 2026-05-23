@@ -332,7 +332,8 @@ const HeroFreeScanWidget = () => {
             </Button>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
