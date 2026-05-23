@@ -292,21 +292,28 @@ const ClaimScanner = () => {
                 <span>Analyzing...</span>
               </div>
             )}
-            {result && status !== "analyzing" && (
+            {result && status !== "analyzing" && (() => {
+              const verdict = getVerdict(result.detection, result.confidence);
+              const meta = VERDICT_META[verdict];
+              const showScreenshotWarning = !!scannedFileName && isScreenshotName(scannedFileName);
+              const isAuthenticLike = verdict === "likely-authentic";
+              return (
               <div className="space-y-5">
+                {showScreenshotWarning && (
+                  <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+                    ⚠️ This looks like a screenshot. Screenshots remove the digital fingerprints AI detectors need. For accurate results, upload the original image file.
+                  </div>
+                )}
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-3">
-                    {status === "authentic" ? (
-                      <ShieldCheck className="w-8 h-8 text-green-500" />
+                    {isAuthenticLike ? (
+                      <ShieldCheck className={cn("w-8 h-8", meta.color)} />
                     ) : (
-                      <ShieldAlert className="w-8 h-8 text-destructive" />
+                      <ShieldAlert className={cn("w-8 h-8", meta.color)} />
                     )}
                     <div>
-                      <div className={cn(
-                        "text-xl font-semibold",
-                        status === "authentic" ? "text-green-500" : "text-destructive",
-                      )}>
-                        {result.detection}
+                      <div className={cn("text-xl font-semibold", meta.color)}>
+                        {meta.label}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Confidence: {result.confidence}%
@@ -316,10 +323,7 @@ const ClaimScanner = () => {
                   <div className="w-full sm:w-64">
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
                       <div
-                        className={cn(
-                          "h-full",
-                          status === "authentic" ? "bg-green-500" : "bg-destructive",
-                        )}
+                        className={cn("h-full", meta.bg)}
                         style={{ width: `${result.confidence}%` }}
                       />
                     </div>
@@ -330,11 +334,14 @@ const ClaimScanner = () => {
                   <h3 className="font-semibold mb-3">Forensic Report</h3>
                   <ReportRow label="File / URL" value={result.target} />
                   <ReportRow label="Date / Time" value={new Date(result.date).toLocaleString()} />
-                  <ReportRow label="Detection" value={result.detection} />
+                  <ReportRow label="Verdict" value={meta.label} />
+                  <ReportRow label="Raw Detection" value={result.detection} />
                   <ReportRow label="Confidence" value={`${result.confidence}%`} />
                   <ReportRow label="AI Model Detected" value={result.aiModel || "None"} />
                   <ReportRow label="Domain / IP" value={result.domainInfo || "N/A"} />
                 </div>
+              );
+            })()}
 
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={downloadReport} className="gap-2">
