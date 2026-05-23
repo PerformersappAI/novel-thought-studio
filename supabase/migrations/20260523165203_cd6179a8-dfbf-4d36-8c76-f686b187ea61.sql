@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Headshots are publicly viewable" ON storage.objects;
