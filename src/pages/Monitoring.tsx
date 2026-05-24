@@ -760,6 +760,58 @@ const Monitoring = () => {
     return c;
   }, [findings]);
 
+  /* ─── Trigger a real scan on the external scanner ─── */
+  const handleRequestScan = useCallback(async () => {
+    if (requestingScan) return;
+    setRequestingScan(true);
+    setScanProgress(0);
+
+    try {
+      await supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+    } catch (err) {
+      console.warn("Failed to trigger scan:", err);
+      toast({
+        title: "Scan failed to start",
+        description: "Could not reach the scanner. Please try again.",
+        variant: "destructive",
+      });
+      setRequestingScan(false);
+      setScanProgress(0);
+      return;
+    }
+
+    toast({
+      title: "Scan started",
+      description: "Scanning… this takes 2–3 minutes.",
+    });
+
+    const TOTAL_MS = 180_000;
+    const TICK_MS = 1500;
+    const start = Date.now();
+    const interval = setInterval(() => {
+      const pct = Math.min(99, ((Date.now() - start) / TOTAL_MS) * 100);
+      setScanProgress(pct);
+    }, TICK_MS);
+
+    setTimeout(async () => {
+      clearInterval(interval);
+      setScanProgress(100);
+      try {
+        await loadMentions();
+      } catch (err) {
+        console.warn("Failed to refresh mentions:", err);
+      }
+      toast({
+        title: "Scan complete",
+        description: "Latest results have been refreshed.",
+      });
+      setRequestingScan(false);
+      setTimeout(() => setScanProgress(0), 1500);
+    }, TOTAL_MS);
+  }, [requestingScan, toast, loadMentions]);
+
+
+
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto">
