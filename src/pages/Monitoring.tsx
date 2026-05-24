@@ -380,6 +380,8 @@ const Monitoring = () => {
   const [scanning, setScanning] = useState(false);
   const [scanDone, setScanDone] = useState(false);
   const [liveFeed, setLiveFeed] = useState<Finding[]>([]);
+  const [requestingScan, setRequestingScan] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
   const scanAbortRef = useRef<AbortController | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
 
