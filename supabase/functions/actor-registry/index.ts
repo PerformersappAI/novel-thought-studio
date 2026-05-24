@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, cache-control, pragma",
 };
 
-const EXTERNAL_API = "http://187.77.199.100:8001";
+const EXTERNAL_API = "https://api.claimmyface.com";
 const VPS_SUPABASE_URL = "https://pozwmfmqapizeoctuais.supabase.co";
 
 async function fetchScanRunsFromRest(baseUrl: string, serviceKey: string, actorId: string | null) {
@@ -148,10 +148,27 @@ Deno.serve(async (req) => {
 
     // POST /scan
     if (action === "scan" && req.method === "POST") {
+      // Resolve actor_id from profile (or request body override)
+      const reqBody = await req.json().catch(() => ({} as any));
+      let actorId: string | null = reqBody?.actor_id ?? null;
+      if (!actorId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("external_actor_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        actorId = (profile as any)?.external_actor_id ?? null;
+      }
+
       const backgroundScan = async () => {
         try {
-          const extRes = await fetch(`${EXTERNAL_API}/scan`, { method: "POST" });
-          await extRes.text();
+          const extRes = await fetch(`${EXTERNAL_API}/scan`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(actorId ? { actor_id: actorId } : {}),
+          });
+          const text = await extRes.text();
+          console.log(`VPS /scan responded ${extRes.status}: ${text.slice(0, 500)}`);
         } catch (error) {
           console.error("Background actor scan failed:", error);
         }
@@ -162,7 +179,7 @@ Deno.serve(async (req) => {
       if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(task);
       else task.catch((error) => console.error("Actor scan task failed:", error));
 
-      return new Response(JSON.stringify({ accepted: true, status: "scanning" }), {
+      return new Response(JSON.stringify({ accepted: true, status: "scanning", actor_id: actorId }), {
         status: 202,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

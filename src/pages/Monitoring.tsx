@@ -531,6 +531,7 @@ const Monitoring = () => {
     });
 
     setFindings(data);
+    return data.length;
   }, [user]);
 
   // Always re-fetch fresh on mount — never use cached results
@@ -764,13 +765,21 @@ const Monitoring = () => {
     setRequestingScan(true);
     setScanProgress(0);
 
+    const baselineCount = findings.length;
+
     try {
-      await supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+      const { data, error } = await supabase.functions.invoke(
+        "actor-registry?action=scan",
+        { method: "POST", body: {} },
+      );
+      if (error || (data && (data as any).error)) {
+        throw new Error(error?.message || (data as any).error || "Scan failed to start");
+      }
     } catch (err) {
       console.warn("Failed to trigger scan:", err);
       toast({
         title: "Scan failed to start",
-        description: "Could not reach the scanner. Please try again.",
+        description: err instanceof Error ? err.message : "Could not reach the scanner.",
         variant: "destructive",
       });
       setRequestingScan(false);
@@ -780,33 +789,52 @@ const Monitoring = () => {
 
     toast({
       title: "Scan started",
-      description: "Scanning… this takes 2–3 minutes.",
+      description: "Scanning… this takes up to 3 minutes.",
     });
 
-    const TOTAL_MS = 180_000;
-    const TICK_MS = 1500;
+    const TOTAL_MS = 240_000; // 4 min ceiling
+    const POLL_MS = 10_000;
     const start = Date.now();
-    const interval = setInterval(() => {
+    let finalCount = baselineCount;
+    let foundNew = false;
+
+    const progressInterval = setInterval(() => {
       const pct = Math.min(99, ((Date.now() - start) / TOTAL_MS) * 100);
       setScanProgress(pct);
-    }, TICK_MS);
+    }, 1000);
 
-    setTimeout(async () => {
-      clearInterval(interval);
-      setScanProgress(100);
-      try {
-        await loadMentions();
-      } catch (err) {
-        console.warn("Failed to refresh mentions:", err);
+    try {
+      while (Date.now() - start < TOTAL_MS) {
+        await new Promise((r) => setTimeout(r, POLL_MS));
+        try {
+          const count = await loadMentions();
+          if (typeof count === "number") finalCount = count;
+          if (typeof count === "number" && count > baselineCount) {
+            foundNew = true;
+            break;
+          }
+        } catch (err) {
+          console.warn("Poll loadMentions failed:", err);
+        }
       }
-      toast({
-        title: "Scan complete",
-        description: "Latest results have been refreshed.",
-      });
+    } finally {
+      clearInterval(progressInterval);
+      setScanProgress(100);
+      if (foundNew) {
+        toast({
+          title: "Scan complete",
+          description: `${finalCount - baselineCount} new result${finalCount - baselineCount === 1 ? "" : "s"} found.`,
+        });
+      } else {
+        toast({
+          title: "Scan complete",
+          description: `No new results (showing ${finalCount}).`,
+        });
+      }
       setRequestingScan(false);
       setTimeout(() => setScanProgress(0), 1500);
-    }, TOTAL_MS);
-  }, [requestingScan, toast, loadMentions]);
+    }
+  }, [requestingScan, toast, loadMentions, findings.length]);
 
 
 
