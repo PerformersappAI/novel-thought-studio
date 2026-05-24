@@ -444,17 +444,8 @@ const Monitoring = () => {
     const externalActorId = (prof as any)?.external_actor_id;
     if (externalActorId) {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData.session?.access_token;
-        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vps-proxy?path=${encodeURIComponent(`/mentions/${externalActorId}`)}&_=${Date.now()}`;
-        const res = await fetch(fnUrl, {
-          method: "GET",
-          cache: "no-store",
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        });
+        const apiUrl = `https://api.claimmyface.com/mentions/${externalActorId}?_=${Date.now()}`;
+        const res = await fetch(apiUrl, { method: "GET", cache: "no-store" });
         const extData = await res.json();
         console.log("[Monitoring] extData keys:", Object.keys(extData || {}));
         const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || [];
