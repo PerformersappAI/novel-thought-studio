@@ -771,43 +771,38 @@ const Monitoring = () => {
           </p>
         </motion.div>
 
-        {/* ─── RADAR + SCAN BUTTON ─── */}
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-8 mb-8">
-          <RadarGraphic active={scanning} />
-          <div className="text-center mt-6 space-y-4">
-            {scanning ? (
-              <>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-sm font-mono text-primary tracking-wider uppercase">Scanning {liveFeed.length} sources…</span>
-                </div>
-                <Button onClick={runScan} variant="outline" size="lg" className="gap-2 border-primary/40 text-primary hover:bg-primary/10">
-                  <RefreshCw className="w-4 h-4 animate-spin" /> Stop Scan
-                </Button>
-              </>
-            ) : scanDone ? (
-              <>
-                <div className="flex items-center justify-center gap-2 text-emerald-400">
-                  <ShieldCheck className="w-5 h-5" />
-                  <span className="text-sm font-semibold">Scan complete — {findings.length} results found</span>
-                </div>
-                <Button onClick={runScan} size="lg" className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
-                  <Radar className="w-5 h-5" /> Run Again
-                </Button>
-              </>
-            ) : (
-              <>
+        {/* ─── LAST SCAN STATUS CARD ─── */}
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-6 md:p-8 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">Last Scan</p>
+                <p className="text-lg font-semibold text-foreground">
+                  {mentions[0]?.found_at
+                    ? new Date(mentions[0].found_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+                    : "No scans yet"}
+                </p>
                 {alertCount > 0 && (
-                  <div className="flex items-center justify-center gap-2 text-primary">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span className="text-sm font-medium">{alertCount} alert{alertCount > 1 ? "s" : ""} need your attention</span>
-                  </div>
+                  <p className="text-sm text-primary mt-1 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {alertCount} alert{alertCount > 1 ? "s" : ""} need your attention
+                  </p>
                 )}
-                <Button onClick={runScan} size="lg" className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base px-8">
-                  <Radar className="w-5 h-5" /> Run My Scan
-                </Button>
-              </>
-            )}
+              </div>
+            </div>
+            <Button
+              onClick={() => toast({
+                title: "Scan request received",
+                description: "Your scan request has been received. Results typically update within 24 hours.",
+              })}
+              size="lg"
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+            >
+              <RefreshCw className="w-4 h-4" /> Request New Scan
+            </Button>
           </div>
         </motion.div>
 
