@@ -441,15 +441,30 @@ const Monitoring = () => {
     const dbRows = ((mentionRows ?? []) as any[]) as MentionRow[];
 
     let externalRows: MentionRow[] = [];
-    const externalActorId = (prof as any)?.external_actor_id || "8e53f67f-5290-42ff-bab1-b14dd4d08605";
+    const urlParams = new URLSearchParams(window.location.search);
+    const actorOverride = urlParams.get("actor");
+    const externalActorId =
+      actorOverride || (prof as any)?.external_actor_id || "8e53f67f-5290-42ff-bab1-b14dd4d08605";
+    console.log("[Monitoring] using externalActorId:", externalActorId, "profile had:", (prof as any)?.external_actor_id);
     if (externalActorId) {
       try {
         const apiUrl = `https://api.claimmyface.com/mentions/${externalActorId}?_=${Date.now()}`;
         const res = await fetch(apiUrl, { method: "GET", cache: "no-store" });
+        console.log("[Monitoring] VPS fetch status:", res.status, apiUrl);
+        if (!res.ok) {
+          throw new Error(`Scanner returned HTTP ${res.status}`);
+        }
         const extData = await res.json();
         console.log("[Monitoring] extData keys:", Object.keys(extData || {}));
         const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || [];
-        console.log("[Monitoring] extMentions count:", Array.isArray(extMentions) ? extMentions.length : 0);
+        const extCount = Array.isArray(extMentions) ? extMentions.length : 0;
+        console.log("[Monitoring] extMentions count:", extCount);
+        if (extCount === 0 && dbRows.length === 0) {
+          toast({
+            title: "Scanner returned 0 results",
+            description: `actor_id ${externalActorId.slice(0, 8)}… has no mentions yet. Click "Request New Scan".`,
+          });
+        }
         if (Array.isArray(extMentions)) {
           externalRows = extMentions.map((m: any, i: number) => ({
             id: m.id || `ext-${i}`,
@@ -492,8 +507,13 @@ const Monitoring = () => {
             })
           );
         }
-      } catch (err) {
-        console.warn("Failed to fetch external mentions:", err);
+      } catch (err: any) {
+        console.error("[Monitoring] Failed to fetch external mentions:", err);
+        toast({
+          title: "Could not reach scanner",
+          description: err?.message || "Network error contacting api.claimmyface.com",
+          variant: "destructive",
+        });
       }
     }
 
