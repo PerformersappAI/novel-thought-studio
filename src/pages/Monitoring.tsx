@@ -444,19 +444,25 @@ const Monitoring = () => {
     const externalActorId = (prof as any)?.external_actor_id;
     if (externalActorId) {
       try {
-        const cacheBust = `&_=${Date.now()}`;
-        const { data: extData } = await supabase.functions.invoke(
-          "actor-registry?action=get_mentions&actor_id=" + externalActorId + cacheBust,
-          { method: "GET" }
-        );
-        console.log("[Monitoring] Raw extData:", JSON.stringify(extData).substring(0, 3000));
-        const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || extData || [];
-        console.log("[Monitoring] extMentions count:", extMentions.length, "first 3 mention_types:", extMentions.slice?.(0, 3).map?.((m: any) => m.mention_type));
-        console.log("[Monitoring] all mention_types:", extMentions.map((m: any) => m.mention_type));
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?action=get_mentions&actor_id=${encodeURIComponent(externalActorId)}&_=${Date.now()}`;
+        const res = await fetch(fnUrl, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        });
+        const extData = await res.json();
+        console.log("[Monitoring] extData keys:", Object.keys(extData || {}));
+        const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || [];
+        console.log("[Monitoring] extMentions count:", Array.isArray(extMentions) ? extMentions.length : 0);
         if (Array.isArray(extMentions)) {
           externalRows = extMentions.map((m: any, i: number) => ({
             id: m.id || `ext-${i}`,
-            mention_type: m.mention_type || m.platform || "Web",
+            mention_type: m.mention_type || m.platform || "web",
             title: m.title || m.finding || "",
             url: m.url || null,
             found_at: m.found_at || m.date || new Date().toISOString(),
@@ -499,6 +505,7 @@ const Monitoring = () => {
         console.warn("Failed to fetch external mentions:", err);
       }
     }
+
 
 
     const dbUrls = new Set(dbRows.map(r => r.url).filter(Boolean));
