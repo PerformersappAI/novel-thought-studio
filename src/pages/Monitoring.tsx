@@ -446,7 +446,7 @@ const Monitoring = () => {
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
-        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?action=get_mentions&actor_id=${encodeURIComponent(externalActorId)}&_=${Date.now()}`;
+        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vps-proxy?path=${encodeURIComponent(`/mentions/${externalActorId}`)}&_=${Date.now()}`;
         const res = await fetch(fnUrl, {
           method: "GET",
           cache: "no-store",
