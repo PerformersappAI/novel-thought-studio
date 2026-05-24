@@ -380,6 +380,8 @@ const Monitoring = () => {
   const [scanning, setScanning] = useState(false);
   const [scanDone, setScanDone] = useState(false);
   const [liveFeed, setLiveFeed] = useState<Finding[]>([]);
+  const [requestingScan, setRequestingScan] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
   const scanAbortRef = useRef<AbortController | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -758,6 +760,58 @@ const Monitoring = () => {
     return c;
   }, [findings]);
 
+  /* ─── Trigger a real scan on the external scanner ─── */
+  const handleRequestScan = useCallback(async () => {
+    if (requestingScan) return;
+    setRequestingScan(true);
+    setScanProgress(0);
+
+    try {
+      await supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
+    } catch (err) {
+      console.warn("Failed to trigger scan:", err);
+      toast({
+        title: "Scan failed to start",
+        description: "Could not reach the scanner. Please try again.",
+        variant: "destructive",
+      });
+      setRequestingScan(false);
+      setScanProgress(0);
+      return;
+    }
+
+    toast({
+      title: "Scan started",
+      description: "Scanning… this takes 2–3 minutes.",
+    });
+
+    const TOTAL_MS = 180_000;
+    const TICK_MS = 1500;
+    const start = Date.now();
+    const interval = setInterval(() => {
+      const pct = Math.min(99, ((Date.now() - start) / TOTAL_MS) * 100);
+      setScanProgress(pct);
+    }, TICK_MS);
+
+    setTimeout(async () => {
+      clearInterval(interval);
+      setScanProgress(100);
+      try {
+        await loadMentions();
+      } catch (err) {
+        console.warn("Failed to refresh mentions:", err);
+      }
+      toast({
+        title: "Scan complete",
+        description: "Latest results have been refreshed.",
+      });
+      setRequestingScan(false);
+      setTimeout(() => setScanProgress(0), 1500);
+    }, TOTAL_MS);
+  }, [requestingScan, toast, loadMentions]);
+
+
+
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto">
@@ -793,18 +847,28 @@ const Monitoring = () => {
                 )}
               </div>
             </div>
-            <Button
-              onClick={() => toast({
-                title: "Scan request received",
-                description: "Your scan request has been received. Results typically update within 24 hours.",
-              })}
-              size="lg"
-              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-            >
-              <RefreshCw className="w-4 h-4" /> Request New Scan
-            </Button>
+            <div className="flex flex-col items-stretch md:items-end gap-2 md:min-w-[260px]">
+              <Button
+                onClick={handleRequestScan}
+                disabled={requestingScan}
+                size="lg"
+                className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              >
+                <RefreshCw className={`w-4 h-4 ${requestingScan ? "animate-spin" : ""}`} />
+                {requestingScan ? "Scanning…" : "Request New Scan"}
+              </Button>
+              {requestingScan && (
+                <div className="w-full space-y-1">
+                  <Progress value={scanProgress} className="h-2" />
+                  <p className="text-xs text-muted-foreground text-center md:text-right">
+                    Scanning… this takes 2–3 minutes
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
+
 
         {/* ─── LIVE TERMINAL FEED (during scan) ─── */}
         <AnimatePresence>
