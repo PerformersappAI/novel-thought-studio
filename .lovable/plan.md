@@ -1,37 +1,39 @@
-# Why no results appear
+## Why the dashboard shows all zeros
 
-The "Request New Scan" button on the Monitoring dashboard calls the `actor-registry` edge function with `?action=scan`. That function forwards to `http://187.77.199.100:8001/scan` over plain HTTP from the edge runtime.
-
-Edge function logs confirm:
+I confirmed the VPS API is healthy right now:
 
 ```
-Background actor scan failed: TypeError: error sending request for url
-(http://187.77.199.100:8001/scan): tcp connect error: Connection timed out
+GET https://api.claimmyface.com/mentions/8e53f67f-5290-42ff-bab1-b14dd4d08605
+→ 25+ mentions (YouTube, Yandex image matches, Instagram, TikTok, web)
+CORS: access-control-allow-origin: *
 ```
 
-So:
-1. The VPS scan is never actually started — the request dies after ~120s.
-2. The frontend still waits the full 3 minutes and then re-fetches `/mentions/{actor_id}` from `https://api.claimmyface.com`, which returns the same cached results as before (no new scan ran), so the user sees "no new results".
+So the data exists. The dashboard at `claimmyface.com` showing `0 / 0 / 0 / 0` means one of three things, and the current code hides which one it is:
 
-The mentions fetch itself works (we already migrated it to `https://api.claimmyface.com`). The bug is only in the scan-trigger path.
+1. **The published site is stale.** The custom domain `claimmyface.com` serves the last *Published* build, not the preview. Recent fixes to `Monitoring.tsx` only take effect after a republish.
+2. **The browser fetch is failing silently.** In `loadMentions`, the external-mentions fetch is wrapped in `try { ... } catch (err) { console.warn(...) }`. If it throws (network blip, ad-blocker, etc.) the user sees "No results yet" with zero feedback.
+3. **The logged-in user's `external_actor_id` is different** from the hardcoded fallback `8e53f67f-...`, and their actual VPS scan returned 0 mentions. Right now the UI cannot tell you which actor_id was queried.
 
-# Fix
+## Fix
 
-## 1. Edge function `supabase/functions/actor-registry/index.ts`
-- Replace `EXTERNAL_API = "http://187.77.199.100:8001"` with `https://api.claimmyface.com` so all VPS calls (`/register`, `/actor/:id`, `/scan`, `/mentions/:id`) go over HTTPS and actually reach the server.
-- In the `action=scan` branch, send the user's `external_actor_id` in the POST body (`{ actor_id }`) so the VPS knows which performer to scan, instead of an empty POST.
-- Keep the `EdgeRuntime.waitUntil` background pattern and the immediate `202 accepted` response — that part is correct.
-- Log the VPS response status/body for easier debugging next time.
+### 1. Republish so the custom domain gets the latest code
+Trigger Publish so `claimmyface.com` serves the current `Monitoring.tsx`. This alone may resolve the screenshot.
 
-## 2. Frontend `src/pages/Monitoring.tsx` — `handleRequestScan`
-- Surface real errors: if the edge function returns an error, show the toast and stop (currently `supabase.functions.invoke` errors are silently caught only for network errors; an `error` field in the response is ignored).
-- Replace the hard-coded 3-minute `setTimeout` with a polling loop that re-fetches `/mentions/{actor_id}` every ~10s for up to 4 minutes, stopping early as soon as the result count increases. This way:
-  - If the scan finishes early, results show immediately.
-  - If it produces zero new items, the toast says "No new results found" instead of pretending success.
-- Have `loadMentions` return the new count so the polling loop can compare against the previous count.
+### 2. Make `loadMentions` loud instead of silent (`src/pages/Monitoring.tsx`)
+- Show a toast on fetch failure ("Could not reach scanner — {error}") instead of only `console.warn`.
+- Log the resolved `externalActorId`, the HTTP status, and the parsed mentions count so we can see in the browser console exactly which actor_id was hit and how many rows came back.
+- If the API responds 200 but with `mentions: []`, show an informational toast: "Scanner returned 0 results for actor {id} — run a scan."
+- Add a small debug line under the header (only visible in dev / when `?debug=1`) showing `actor_id = …, fetched = N`.
 
-## 3. Verify
-- Redeploy `actor-registry`, hit "Request New Scan", and check `supabase--edge_function_logs actor-registry` for a successful POST to `https://api.claimmyface.com/scan` (no more `Connection timed out`).
-- Confirm new mentions appear in the dashboard tabs after the poll loop detects them.
+### 3. Stop relying on a hardcoded fallback actor_id
+Right now if `profile.external_actor_id` is null, the code falls back to `8e53f67f-...` — which is one specific user's data. For any other user this either shows someone else's results or hides the real problem. Change the fallback to:
+- If `profile.external_actor_id` is missing, do NOT fetch; show a one-time prompt "Your account isn't linked to the scanner yet — click Request New Scan to register."
+- Keep the hardcoded id only behind an explicit dev override (`?actor=...` query param).
 
-No DB schema changes, no new secrets, no UI redesign — only the scan-trigger plumbing.
+### 4. Verify
+- Open `/monitoring` in preview, confirm console shows `actor_id = ..., fetched = 25+`.
+- Confirm the four cards render the YouTube / Yandex / Instagram / TikTok rows from the live API.
+- Republish; reload `claimmyface.com/monitoring`; confirm same.
+- Force a fetch failure (DevTools → block `api.claimmyface.com`) and confirm a destructive toast appears instead of silent zeros.
+
+No backend, schema, or edge function changes — this is frontend visibility only. The data is already there; we just need the UI to either show it or tell you exactly why it can't.
