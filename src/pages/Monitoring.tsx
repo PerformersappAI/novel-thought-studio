@@ -552,7 +552,7 @@ const Monitoring = () => {
 
     setFindings(data);
     return data.length;
-  }, [user]);
+  }, [user, toast]);
 
   // Always re-fetch fresh on mount — never use cached results
   useEffect(() => { loadMentions(); }, [loadMentions]);
