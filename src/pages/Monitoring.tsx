@@ -847,18 +847,28 @@ const Monitoring = () => {
                 )}
               </div>
             </div>
-            <Button
-              onClick={() => toast({
-                title: "Scan request received",
-                description: "Your scan request has been received. Results typically update within 24 hours.",
-              })}
-              size="lg"
-              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-            >
-              <RefreshCw className="w-4 h-4" /> Request New Scan
-            </Button>
+            <div className="flex flex-col items-stretch md:items-end gap-2 md:min-w-[260px]">
+              <Button
+                onClick={handleRequestScan}
+                disabled={requestingScan}
+                size="lg"
+                className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              >
+                <RefreshCw className={`w-4 h-4 ${requestingScan ? "animate-spin" : ""}`} />
+                {requestingScan ? "Scanning…" : "Request New Scan"}
+              </Button>
+              {requestingScan && (
+                <div className="w-full space-y-1">
+                  <Progress value={scanProgress} className="h-2" />
+                  <p className="text-xs text-muted-foreground text-center md:text-right">
+                    Scanning… this takes 2–3 minutes
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
+
 
         {/* ─── LIVE TERMINAL FEED (during scan) ─── */}
         <AnimatePresence>
