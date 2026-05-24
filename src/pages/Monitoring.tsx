@@ -429,7 +429,14 @@ const Monitoring = () => {
       (prof as any)?.full_name,
     ]));
 
-    const dbRows: MentionRow[] = [];
+    const { data: mentionRows, error: mentionError } = await supabase
+      .from("mentions")
+      .select("id, mention_type, title, url, found_at, status, confidence, category, media_type, thumbnail_url, audio_url, excerpt, match_label, folder_id")
+      .eq("user_id", user.id)
+      .order("found_at", { ascending: false });
+
+    if (mentionError) console.warn("Failed to fetch mentions:", mentionError);
+    const dbRows = ((mentionRows ?? []) as any[]) as MentionRow[];
 
     let externalRows: MentionRow[] = [];
     const externalActorId = (prof as any)?.external_actor_id;
@@ -545,7 +552,6 @@ const Monitoring = () => {
     const controller = new AbortController();
     scanAbortRef.current = controller;
 
-    let rotatingIndex = 0;
     let feedIndex = 0;
     const feedInterval = setInterval(() => {
       if (controller.signal.aborted) return;
@@ -554,9 +560,7 @@ const Monitoring = () => {
         if (feedIndex < visibleLines.length) {
           return [...prev, { ...visibleLines[feedIndex], id: `${visibleLines[feedIndex].id}-${feedIndex}` }];
         }
-        const line = SCAN_LINES[rotatingIndex % SCAN_LINES.length];
-        rotatingIndex++;
-        return [...prev.slice(-10), { ...line, id: `${line.id}-${Date.now()}` }];
+        return prev;
       });
       if (feedIndex < SCAN_LINES.length + findings.length) {
         feedIndex++;
@@ -567,7 +571,8 @@ const Monitoring = () => {
     try {
       const prevCount = findings.length;
       const scanPromise = supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
-      await Promise.allSettled([scanPromise, wait(3200)]);
+      await Promise.race([scanPromise, wait(12000)]);
+      await wait(3200);
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
       await loadMentions();
       if (controller.signal.aborted) { clearInterval(feedInterval); return; }
