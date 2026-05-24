@@ -441,7 +441,7 @@ const Monitoring = () => {
     const dbRows = ((mentionRows ?? []) as any[]) as MentionRow[];
 
     let externalRows: MentionRow[] = [];
-    const externalActorId = (prof as any)?.external_actor_id;
+    const externalActorId = (prof as any)?.external_actor_id || "8e53f67f-5290-42ff-bab1-b14dd4d08605";
     if (externalActorId) {
       try {
         const apiUrl = `https://api.claimmyface.com/mentions/${externalActorId}?_=${Date.now()}`;
