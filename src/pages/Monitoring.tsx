@@ -552,7 +552,6 @@ const Monitoring = () => {
     const controller = new AbortController();
     scanAbortRef.current = controller;
 
-    let rotatingIndex = 0;
     let feedIndex = 0;
     const feedInterval = setInterval(() => {
       if (controller.signal.aborted) return;
