@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, cache-control, pragma",
 };
 
-const EXTERNAL_API = "http://187.77.199.100:8000";
+const EXTERNAL_API = "http://187.77.199.100:8001";
 const VPS_SUPABASE_URL = "https://pozwmfmqapizeoctuais.supabase.co";
 
 async function fetchScanRunsFromRest(baseUrl: string, serviceKey: string, actorId: string | null) {
