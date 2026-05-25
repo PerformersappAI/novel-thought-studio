@@ -18,6 +18,10 @@ import {
   FileText,
   Gavel,
   Flag,
+  Video,
+  ScanFace,
+  Mic,
+  PenLine,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
