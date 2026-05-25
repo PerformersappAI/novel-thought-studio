@@ -12,7 +12,14 @@ import {
   Newspaper,
   ShieldCheck,
   AlertTriangle,
+  ThumbsUp,
+  ThumbsDown,
+  Eye,
+  FileText,
+  Gavel,
+  Flag,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,33 +58,151 @@ function iconFor(type: string) {
   return Globe;
 }
 
-function MentionRow({ m }: { m: Mention }) {
+type Verdict = "informational" | "legitimate" | "threat";
+
+const STORAGE_KEY = "monitoring.verdicts.v1";
+
+function loadVerdicts(): Record<string, Verdict> {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveVerdicts(v: Record<string, Verdict>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
+  } catch {
+    /* ignore */
+  }
+}
+
+function StatusBadge({ verdict }: { verdict: Verdict }) {
+  const map: Record<Verdict, { label: string; cls: string }> = {
+    informational: {
+      label: "Informational",
+      cls: "bg-muted/40 text-muted-foreground border-border",
+    },
+    legitimate: {
+      label: "Legitimate",
+      cls: "bg-emerald-500/15 text-emerald-500 border-emerald-500/40",
+    },
+    threat: {
+      label: "New Alert",
+      cls: "bg-destructive/15 text-destructive border-destructive/40",
+    },
+  };
+  const { label, cls } = map[verdict];
+  return (
+    <span
+      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${cls}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function MentionRow({
+  m,
+  verdict,
+  onVerdict,
+}: {
+  m: Mention;
+  verdict: Verdict;
+  onVerdict: (v: Verdict) => void;
+}) {
   const Icon = iconFor(m.mention_type);
   const domain = extractDomain(m.url);
+  const encodedUrl = encodeURIComponent(m.url || "");
+
   return (
-    <a
-      href={m.url || "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-start gap-3 px-4 py-3 rounded-lg border border-border/20 bg-background/30 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
-    >
-      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground leading-snug break-words">
-          {m.title || domain || "Untitled"}
-        </p>
-        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-          <span className="uppercase tracking-wider text-primary/80 text-[10px]">
-            {m.mention_type}
-          </span>
-          {domain && <span>· {domain}</span>}
-          <span>· {new Date(m.found_at).toLocaleDateString()}</span>
+    <div className="rounded-lg border border-border/20 bg-background/30 hover:border-primary/40 transition-colors">
+      <div className="flex items-start gap-3 px-4 py-3">
+        <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+          <Icon className="w-4 h-4 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground leading-snug break-words">
+            {m.title || domain || "Untitled"}
+          </p>
+          <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
+            <StatusBadge verdict={verdict} />
+            <span className="uppercase tracking-wider text-primary/80 text-[10px]">
+              {m.mention_type}
+            </span>
+            {domain && <span>· {domain}</span>}
+            <span>· {new Date(m.found_at).toLocaleDateString()}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`h-8 w-8 ${verdict === "legitimate" ? "text-emerald-500" : "text-muted-foreground"}`}
+            onClick={() => onVerdict(verdict === "legitimate" ? "informational" : "legitimate")}
+            title="Mark as legitimate"
+            aria-label="Mark as legitimate"
+          >
+            <ThumbsUp className="w-4 h-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`h-8 w-8 ${verdict === "threat" ? "text-destructive" : "text-muted-foreground"}`}
+            onClick={() => onVerdict(verdict === "threat" ? "informational" : "threat")}
+            title="Mark as threat"
+            aria-label="Mark as threat"
+          >
+            <ThumbsDown className="w-4 h-4" />
+          </Button>
+          {m.url && (
+            <Button
+              asChild
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-muted-foreground"
+              title="Preview source"
+              aria-label="Preview source"
+            >
+              <a href={m.url} target="_blank" rel="noopener noreferrer">
+                <Eye className="w-4 h-4" />
+              </a>
+            </Button>
+          )}
+          {m.url && (
+            <a
+              href={m.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex h-8 w-8 items-center justify-center text-muted-foreground/60 hover:text-primary"
+              title="Open"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
         </div>
       </div>
-      <ExternalLink className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary shrink-0 mt-1" />
-    </a>
+      {verdict === "threat" && (
+        <div className="border-t border-destructive/20 bg-destructive/5 px-4 py-3 flex flex-wrap gap-2">
+          <Button asChild size="sm" variant="destructive" className="gap-1.5">
+            <Link to={`/dashboard/dmca?url=${encodedUrl}`}>
+              <FileText className="w-3.5 h-3.5" /> Generate DMCA Notice
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline" className="gap-1.5">
+            <Link to={`/tools/contracts?type=cease-desist&url=${encodedUrl}`}>
+              <Gavel className="w-3.5 h-3.5" /> Cease & Desist
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline" className="gap-1.5">
+            <Link to={`/dashboard/violations?url=${encodedUrl}`}>
+              <Flag className="w-3.5 h-3.5" /> Report Violation
+            </Link>
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -85,10 +210,14 @@ function Section({
   title,
   items,
   Icon,
+  verdicts,
+  setVerdict,
 }: {
   title: string;
   items: Mention[];
   Icon: any;
+  verdicts: Record<string, Verdict>;
+  setVerdict: (id: string, v: Verdict) => void;
 }) {
   return (
     <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6">
@@ -108,7 +237,12 @@ function Section({
       ) : (
         <div className="space-y-2">
           {items.map((m) => (
-            <MentionRow key={m.id} m={m} />
+            <MentionRow
+              key={m.id}
+              m={m}
+              verdict={verdicts[m.id] || "informational"}
+              onVerdict={(v) => setVerdict(m.id, v)}
+            />
           ))}
         </div>
       )}
@@ -122,6 +256,15 @@ const Monitoring = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actorId, setActorId] = useState<string>(DEFAULT_ACTOR_ID);
+  const [verdicts, setVerdicts] = useState<Record<string, Verdict>>(() => loadVerdicts());
+
+  const setVerdict = useCallback((id: string, v: Verdict) => {
+    setVerdicts((prev) => {
+      const next = { ...prev, [id]: v };
+      saveVerdicts(next);
+      return next;
+    });
+  }, []);
 
   const fetchMentions = useCallback(async (id: string) => {
     setLoading(true);
@@ -242,9 +385,9 @@ const Monitoring = () => {
           </Button>
         </div>
 
-        <Section title="Photo Matches" items={photo} Icon={ImageIcon} />
-        <Section title="Social Media" items={social} Icon={Instagram} />
-        <Section title="Web Mentions" items={web} Icon={Globe} />
+        <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} />
       </div>
     </DashboardLayout>
   );
