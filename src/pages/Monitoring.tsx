@@ -144,30 +144,179 @@ function saveVerdicts(v: Record<string, Verdict>) {
   }
 }
 
-function StatusBadge({ verdict }: { verdict: Verdict }) {
-  const map: Record<Verdict, { label: string; cls: string }> = {
-    informational: {
-      label: "Informational",
-      cls: "bg-muted/40 text-muted-foreground border-border",
-    },
-    legitimate: {
-      label: "Legitimate",
-      cls: "bg-emerald-500/15 text-emerald-500 border-emerald-500/40",
-    },
-    threat: {
-      label: "New Alert",
-      cls: "bg-destructive/15 text-destructive border-destructive/40",
-    },
+// ---------- Identity context + relevance gate ----------
+
+interface Identity {
+  fullName: string;          // lowercased, e.g. "will roberts"
+  nameTokens: string[];      // ["will","roberts"]
+  lastName: string;          // "roberts"
+  akaNames: string[];        // lowercased
+  instagram: string;         // handle, no @, lowercased
+  tiktok: string;
+  youtube: string;
+  trustedDomains: Set<string>;   // imdb.com, owned youtube, etc.
+  profession: string;        // lowercased
+}
+
+function normalizeHandle(h?: string | null): string {
+  return (h || "").trim().replace(/^@/, "").toLowerCase();
+}
+
+function hostOf(u?: string | null): string {
+  if (!u) return "";
+  try { return new URL(u).hostname.replace(/^www\./, "").toLowerCase(); } catch { return ""; }
+}
+
+function buildIdentity(p: any): Identity {
+  const name = (p?.legal_name || p?.stage_name || p?.full_name || "").toLowerCase().trim();
+  const tokens = name.split(/\s+/).filter(Boolean);
+  const aka: string[] = Array.isArray(p?.aka_names)
+    ? p.aka_names.map((s: string) => (s || "").toLowerCase().trim()).filter(Boolean)
+    : [];
+  const trusted = new Set<string>();
+  const imdbHost = hostOf(p?.imdb_url);
+  if (imdbHost) trusted.add(imdbHost);
+  // Always trust the user's own owned platforms (handled per-platform below too).
+  return {
+    fullName: name,
+    nameTokens: tokens,
+    lastName: tokens[tokens.length - 1] || "",
+    akaNames: aka,
+    instagram: normalizeHandle(p?.instagram_handle),
+    tiktok: normalizeHandle(p?.tiktok_handle),
+    youtube: normalizeHandle(p?.youtube_handle),
+    trustedDomains: trusted,
+    profession: (p?.profession || "").toLowerCase().trim(),
   };
-  const { label, cls } = map[verdict];
+}
+
+function hasPersonaContext(haystack: string, id: Identity): boolean {
+  if (id.profession && haystack.includes(id.profession)) return true;
+  return PERSONA_KEYWORDS.some((k) => haystack.includes(k));
+}
+
+function hasFullName(haystack: string, id: Identity): boolean {
+  if (!id.fullName) return false;
+  if (haystack.includes(id.fullName)) return true;
+  return id.akaNames.some((a) => a && haystack.includes(a));
+}
+
+function gradeRelevance(m: Mention, id: Identity): { tag: RelevanceTag; reason: string } | null {
+  const url = (m.url || "").toLowerCase();
+  const title = (m.title || "").toLowerCase();
+  const host = hostOf(url);
+  const hay = `${title} ${url}`;
+
+  // No identity loaded yet — be permissive but mark as needs review.
+  if (!id.fullName && !id.instagram && !id.tiktok && !id.youtube) {
+    return { tag: "needs_review", reason: "No profile identity loaded" };
+  }
+
+  const type = m.mention_type;
+
+  // --- Instagram ---
+  if (type === "social_instagram") {
+    if (id.instagram) {
+      // URL form: instagram.com/<handle> or @<handle> in title
+      if (url.includes(`instagram.com/${id.instagram}`) || hay.includes(`@${id.instagram}`)) {
+        return { tag: "verified", reason: "Your saved Instagram handle" };
+      }
+    }
+    if (hasFullName(hay, id) && hasPersonaContext(hay, id)) {
+      return { tag: "likely", reason: "Name + actor context" };
+    }
+    return null; // drop unrelated same-name accounts
+  }
+
+  // --- TikTok ---
+  if (type === "social_tiktok") {
+    if (id.tiktok && (url.includes(`tiktok.com/@${id.tiktok}`) || hay.includes(`@${id.tiktok}`))) {
+      return { tag: "verified", reason: "Your saved TikTok handle" };
+    }
+    if (hasFullName(hay, id) && hasPersonaContext(hay, id)) {
+      return { tag: "likely", reason: "Name + actor context" };
+    }
+    return null;
+  }
+
+  // --- YouTube / video ---
+  if (type === "youtube") {
+    if (id.youtube && (url.includes(`/@${id.youtube}`) || url.includes(`youtube.com/${id.youtube}`))) {
+      return { tag: "verified", reason: "Your saved YouTube channel" };
+    }
+    if (hasFullName(hay, id) && hasPersonaContext(hay, id)) {
+      return { tag: "likely", reason: "Name + actor context" };
+    }
+    if (hasFullName(hay, id)) {
+      return { tag: "needs_review", reason: "Name match, weak context" };
+    }
+    return null;
+  }
+
+  // --- Photo matches (Yandex etc) ---
+  if (PHOTO_TYPES.has(type)) {
+    // Trusted reference hosts always pass.
+    const TRUSTED_IMG_HOSTS = ["imdb.com", "m.media-amazon.com", "wikipedia.org", "wikimedia.org"];
+    if (TRUSTED_IMG_HOSTS.some((d) => host === d || host.endsWith("." + d))) {
+      return { tag: "verified", reason: "Trusted photo source" };
+    }
+    if (id.trustedDomains.has(host)) {
+      return { tag: "verified", reason: "Your linked site" };
+    }
+    // Photo matches come from reverse-image search → keep for review.
+    return { tag: "needs_review", reason: "Image match — verify it's you" };
+  }
+
+  // --- Web / news ---
+  if (WEB_TYPES.has(type)) {
+    if (id.trustedDomains.has(host)) {
+      return { tag: "verified", reason: "Your linked site" };
+    }
+    if (hasFullName(hay, id) && hasPersonaContext(hay, id)) {
+      return { tag: "likely", reason: "Name + actor context" };
+    }
+    return null; // drop generic web noise
+  }
+
+  // --- Deepfake ---
+  if (DEEPFAKE_TYPES.has(type)) {
+    return { tag: "ai_alert", reason: "AI / deepfake signal" };
+  }
+
+  // Unknown types → needs review if there's any name match.
+  if (hasFullName(hay, id)) return { tag: "needs_review", reason: "Name match" };
+  return null;
+}
+
+function StatusBadge({ verdict, relevance }: { verdict: Verdict; relevance?: RelevanceTag }) {
+  // User verdict takes precedence
+  if (verdict !== "informational") {
+    const map: Record<"legitimate" | "threat", { label: string; cls: string }> = {
+      legitimate: { label: "Legitimate", cls: "bg-emerald-500/15 text-emerald-500 border-emerald-500/40" },
+      threat: { label: "New Alert", cls: "bg-destructive/15 text-destructive border-destructive/40" },
+    };
+    const { label, cls } = map[verdict as "legitimate" | "threat"];
+    return (
+      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${cls}`}>
+        {label}
+      </span>
+    );
+  }
+  const r = relevance || "needs_review";
+  const map: Record<RelevanceTag, { label: string; cls: string }> = {
+    verified: { label: "Verified Match", cls: "bg-emerald-500/15 text-emerald-500 border-emerald-500/40" },
+    likely: { label: "Likely You", cls: "bg-primary/15 text-primary border-primary/40" },
+    needs_review: { label: "Needs Review", cls: "bg-amber-500/15 text-amber-500 border-amber-500/40" },
+    ai_alert: { label: "AI/Deepfake Alert", cls: "bg-destructive/15 text-destructive border-destructive/40" },
+  };
+  const { label, cls } = map[r];
   return (
-    <span
-      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${cls}`}
-    >
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${cls}`}>
       {label}
     </span>
   );
 }
+
 
 function MentionRow({
   m,
