@@ -342,14 +342,18 @@ function MentionRow({
             {m.title || domain || "Untitled"}
           </p>
           <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
-            <StatusBadge verdict={verdict} />
+            <StatusBadge verdict={verdict} relevance={m.relevance} />
             <span className="uppercase tracking-wider text-primary/80 text-[10px]">
               {m.mention_type}
             </span>
             {domain && <span>· {domain}</span>}
             <span>· {new Date(m.found_at).toLocaleDateString()}</span>
+            {m.relevance_reason && (
+              <span className="text-muted-foreground/70">· {m.relevance_reason}</span>
+            )}
           </div>
         </div>
+
         <div className="flex items-center gap-1 shrink-0">
           <Button
             size="icon"
