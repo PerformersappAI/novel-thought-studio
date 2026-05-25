@@ -56,6 +56,45 @@ function extractDomain(url?: string | null) {
   }
 }
 
+// Domains that serve junk asset/CDN/icon results, not real mentions.
+const JUNK_DOMAINS = new Set([
+  "yastatic.net",
+  "gstatic.com",
+  "ssl.gstatic.com",
+  "encrypted-tbn0.gstatic.com",
+  "favicon.ico",
+  "googleusercontent.com",
+  "ytimg.com",
+  "fbsbx.com",
+  "fbcdn.net",
+]);
+
+const JUNK_PATH_PATTERNS = [
+  /\.svg($|\?)/i,
+  /\.ico($|\?)/i,
+  /\/favicon/i,
+  /sprite/i,
+  /placeholder/i,
+];
+
+function isJunkMention(m: { url: string | null; title: string | null }): boolean {
+  if (!m.url) return true;
+  const host = extractDomain(m.url);
+  if (!host) return true;
+  if (JUNK_DOMAINS.has(host)) return true;
+  // Drop URLs that are clearly static asset paths (svg/ico/favicons/sprites).
+  if (JUNK_PATH_PATTERNS.some((re) => re.test(m.url!))) return true;
+  // Drop entries with no title AND no real-looking path (just a hostname or root).
+  try {
+    const u = new URL(m.url);
+    const hasContent = u.pathname.length > 1 || u.search.length > 0;
+    if (!m.title && !hasContent) return true;
+  } catch {
+    return true;
+  }
+  return false;
+}
+
 function iconFor(type: string) {
   const t = type.toLowerCase();
   if (t === "youtube") return Youtube;
