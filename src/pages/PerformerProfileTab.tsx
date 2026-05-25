@@ -51,11 +51,13 @@ const PerformerProfileTab = () => {
         instagram_handle: data?.instagram_handle ?? "",
         tiktok_handle: data?.tiktok_handle ?? "",
         youtube_handle: data?.youtube_handle ?? "",
+        aka_names: Array.isArray(data?.aka_names) ? data.aka_names.join(", ") : "",
         is_discoverable: data?.is_discoverable ?? false,
         profession: data?.profession ?? "",
         signature_phrase: data?.signature_phrase ?? "",
         trademark_entity: data?.trademark_entity ?? "",
       });
+
 
       const paths = [data?.face_capture_front_url, data?.face_capture_left_url, data?.face_capture_right_url].filter(Boolean) as string[];
       if (paths.length) {
