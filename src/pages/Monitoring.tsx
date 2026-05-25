@@ -675,6 +675,8 @@ const Monitoring = () => {
   const deepfake = mentions.filter((m) => DEEPFAKE_TYPES.has(m.mention_type));
   const voice = mentions.filter((m) => VOICE_TYPES.has(m.mention_type));
   const writing = mentions.filter((m) => WRITING_TYPES.has(m.mention_type));
+  const impersonators = mentions.filter((m) => IMPERSONATION_TYPES.has(m.mention_type));
+
 
   return (
     <DashboardLayout>
