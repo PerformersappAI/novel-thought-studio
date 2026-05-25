@@ -398,8 +398,13 @@ const Monitoring = () => {
         </div>
 
         <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Social Media / Video" items={video} Icon={Video} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Deepfake Detection" items={deepfake} Icon={ScanFace} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Voice Clones" items={voice} Icon={Mic} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Writing Plagiarism" items={writing} Icon={PenLine} verdicts={verdicts} setVerdict={setVerdict} />
+
       </div>
     </DashboardLayout>
   );
