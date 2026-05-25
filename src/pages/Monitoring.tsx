@@ -56,6 +56,9 @@ const WEB_TYPES = new Set(["web", "news"]);
 const DEEPFAKE_TYPES = new Set(["deepfake"]);
 const VOICE_TYPES = new Set(["voice"]);
 const WRITING_TYPES = new Set(["writing"]);
+const IMPERSONATION_TYPES = new Set(["possible_impersonation"]);
+const SOCIAL_KNOWN_TYPES = new Set(["social_known"]);
+
 
 // Actor/persona context keywords — at least one must appear alongside the name
 // for a same-name result to be considered a real match.
