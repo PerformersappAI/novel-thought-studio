@@ -22,7 +22,9 @@ import {
   ScanFace,
   Mic,
   PenLine,
+  UserX,
 } from "lucide-react";
+
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +56,9 @@ const WEB_TYPES = new Set(["web", "news"]);
 const DEEPFAKE_TYPES = new Set(["deepfake"]);
 const VOICE_TYPES = new Set(["voice"]);
 const WRITING_TYPES = new Set(["writing"]);
+const IMPERSONATION_TYPES = new Set(["possible_impersonation"]);
+const SOCIAL_KNOWN_TYPES = new Set(["social_known"]);
+
 
 // Actor/persona context keywords — at least one must appear alongside the name
 // for a same-name result to be considered a real match.
@@ -283,10 +288,19 @@ function gradeRelevance(m: Mention, id: Identity): { tag: RelevanceTag; reason: 
     return { tag: "ai_alert", reason: "AI / deepfake signal" };
   }
 
+  // --- Impersonation (handle scanner) ---
+  if (IMPERSONATION_TYPES.has(type)) {
+    return { tag: "ai_alert", reason: "Account found on platform you haven't registered" };
+  }
+  if (SOCIAL_KNOWN_TYPES.has(type)) {
+    return { tag: "verified", reason: "Your registered handle" };
+  }
+
   // Unknown types → needs review if there's any name match.
   if (hasFullName(hay, id)) return { tag: "needs_review", reason: "Name match" };
   return null;
 }
+
 
 function StatusBadge({ verdict, relevance }: { verdict: Verdict; relevance?: RelevanceTag }) {
   // User verdict takes precedence
@@ -533,8 +547,43 @@ const Monitoring = () => {
       if (fnErr) throw fnErr;
       const rawList = normalize(data);
       const list = applyRelevance(rawList);
+
+      // Also pull handle-scanner results written directly to the mentions table
+      // by the VPS backend (mention_type: 'possible_impersonation' | 'social_known').
+      try {
+        if (user) {
+          const { data: dbRows } = await supabase
+            .from("mentions")
+            .select("id, mention_type, title, url, found_at, status")
+            .eq("user_id", user.id)
+            .in("mention_type", ["possible_impersonation", "social_known"])
+            .order("found_at", { ascending: false })
+            .limit(200);
+          if (Array.isArray(dbRows)) {
+            for (const r of dbRows) {
+              const tag: RelevanceTag = r.mention_type === "possible_impersonation" ? "ai_alert" : "verified";
+              list.push({
+                id: r.id,
+                mention_type: r.mention_type,
+                title: r.title,
+                url: r.url,
+                found_at: r.found_at,
+                status: r.status,
+                relevance: tag,
+                relevance_reason: tag === "ai_alert"
+                  ? "Account found on platform you haven't registered"
+                  : "Your registered handle",
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[Monitoring] handle-scanner fetch failed:", e);
+      }
+
       setMentions(list);
       console.log(`[Monitoring] ${rawList.length} raw → ${list.length} relevant for ${id}`);
+
 
       // Run Sightengine only on photos that already passed relevance.
       const photoUrls = list
@@ -578,7 +627,8 @@ const Monitoring = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
+
 
   // Resolve actor id + identity from profile, then fetch once.
   useEffect(() => {
@@ -625,6 +675,8 @@ const Monitoring = () => {
   const deepfake = mentions.filter((m) => DEEPFAKE_TYPES.has(m.mention_type));
   const voice = mentions.filter((m) => VOICE_TYPES.has(m.mention_type));
   const writing = mentions.filter((m) => WRITING_TYPES.has(m.mention_type));
+  const impersonators = mentions.filter((m) => IMPERSONATION_TYPES.has(m.mention_type));
+
 
   return (
     <DashboardLayout>
@@ -669,7 +721,62 @@ const Monitoring = () => {
           </Button>
         </div>
 
+        {impersonators.length > 0 && (
+          <div className="rounded-2xl border-2 border-destructive/50 bg-destructive/5 backdrop-blur-sm p-5 md:p-6 mb-6 shadow-[0_0_30px_-10px_hsl(var(--destructive)/0.4)]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <UserX className="w-5 h-5 text-destructive" />
+                <h2 className="font-display text-lg font-semibold text-destructive">
+                  Impersonator Accounts
+                </h2>
+              </div>
+              <span className="text-xs px-2 py-0.5 rounded-full border border-destructive/40 text-destructive bg-destructive/10 font-semibold uppercase tracking-wider">
+                {impersonators.length} flagged
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Accounts found on platforms where you haven't registered a handle. These may be impersonating you.
+            </p>
+            <div className="space-y-2">
+              {impersonators.map((m) => {
+                const platform = (m.mention_type === "possible_impersonation"
+                  ? (extractDomain(m.url) || m.title || "Unknown platform")
+                  : extractDomain(m.url));
+                return (
+                  <div
+                    key={m.id}
+                    className="rounded-lg border border-destructive/30 bg-background/40 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{platform}</p>
+                      {m.url && (
+                        <a
+                          href={m.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-muted-foreground hover:text-primary break-all inline-flex items-center gap-1"
+                        >
+                          {m.url} <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      )}
+                      <p className="text-[10px] text-muted-foreground/70 mt-1">
+                        Found {new Date(m.found_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Button asChild size="sm" variant="destructive" className="gap-1.5 shrink-0">
+                      <Link to={`/dashboard/violations?url=${encodeURIComponent(m.url || "")}`}>
+                        <Flag className="w-3.5 h-3.5" /> Report Violation
+                      </Link>
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} />
+
         <Section title="Social Media / Video" items={video} Icon={Video} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} />
