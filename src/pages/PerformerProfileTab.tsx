@@ -81,15 +81,22 @@ const PerformerProfileTab = () => {
       return;
     }
     setSaving(true);
+    const { aka_names, ...rest } = form;
+    const akaArray = (aka_names || "")
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter(Boolean);
     const { error } = await supabase
       .from("profiles")
       .update({
-        ...form,
+        ...rest,
+        aka_names: akaArray.length ? akaArray : null,
         full_name: form.legal_name,
         bio: (form.bio || "").slice(0, 250) || null,
       } as any)
       .eq("user_id", user.id);
     setSaving(false);
+
     if (error) {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
     } else {
