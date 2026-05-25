@@ -547,8 +547,43 @@ const Monitoring = () => {
       if (fnErr) throw fnErr;
       const rawList = normalize(data);
       const list = applyRelevance(rawList);
+
+      // Also pull handle-scanner results written directly to the mentions table
+      // by the VPS backend (mention_type: 'possible_impersonation' | 'social_known').
+      try {
+        if (user) {
+          const { data: dbRows } = await supabase
+            .from("mentions")
+            .select("id, mention_type, title, url, found_at, status")
+            .eq("user_id", user.id)
+            .in("mention_type", ["possible_impersonation", "social_known"])
+            .order("found_at", { ascending: false })
+            .limit(200);
+          if (Array.isArray(dbRows)) {
+            for (const r of dbRows) {
+              const tag: RelevanceTag = r.mention_type === "possible_impersonation" ? "ai_alert" : "verified";
+              list.push({
+                id: r.id,
+                mention_type: r.mention_type,
+                title: r.title,
+                url: r.url,
+                found_at: r.found_at,
+                status: r.status,
+                relevance: tag,
+                relevance_reason: tag === "ai_alert"
+                  ? "Account found on platform you haven't registered"
+                  : "Your registered handle",
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[Monitoring] handle-scanner fetch failed:", e);
+      }
+
       setMentions(list);
       console.log(`[Monitoring] ${rawList.length} raw → ${list.length} relevant for ${id}`);
+
 
       // Run Sightengine only on photos that already passed relevance.
       const photoUrls = list
