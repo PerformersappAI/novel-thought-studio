@@ -627,7 +627,8 @@ const Monitoring = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
+
 
   // Resolve actor id + identity from profile, then fetch once.
   useEffect(() => {
