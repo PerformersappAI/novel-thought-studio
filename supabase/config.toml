@@ -11,3 +11,6 @@ verify_jwt = true
 # stripe.webhooks.constructEventAsync(STRIPE_WEBHOOK_SECRET) inside the function.
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.mentions-proxy]
+verify_jwt = false

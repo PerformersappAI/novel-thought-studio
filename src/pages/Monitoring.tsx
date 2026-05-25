@@ -126,6 +126,13 @@ const Monitoring = () => {
   const fetchMentions = useCallback(async (id: string) => {
     setLoading(true);
     setError(null);
+
+    const parseList = (data: any): Mention[] =>
+      (Array.isArray(data?.mentions) && data.mentions) ||
+      (Array.isArray(data?.results) && data.results) ||
+      [];
+
+    // Attempt 1: direct fetch (fast path)
     try {
       const res = await fetch(
         `https://api.claimmyface.com/mentions/${id}?_=${Date.now()}`,
@@ -133,13 +140,23 @@ const Monitoring = () => {
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const list: Mention[] =
-        (Array.isArray(data?.mentions) && data.mentions) ||
-        (Array.isArray(data?.results) && data.results) ||
-        [];
-      setMentions(list);
+      setMentions(parseList(data));
+      setLoading(false);
+      return;
     } catch (err: any) {
-      console.error("[Monitoring] fetch failed:", err);
+      console.warn("[Monitoring] direct fetch failed, trying proxy:", err?.message);
+    }
+
+    // Attempt 2: proxy via Lovable Cloud (works around iOS Safari "Load failed")
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke(
+        "mentions-proxy",
+        { body: { actor: id } },
+      );
+      if (fnErr) throw fnErr;
+      setMentions(parseList(data));
+    } catch (err: any) {
+      console.error("[Monitoring] proxy fetch failed:", err);
       setError(err?.message || "Failed to load mentions");
       setMentions([]);
     } finally {
