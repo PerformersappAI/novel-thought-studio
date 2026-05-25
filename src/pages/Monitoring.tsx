@@ -127,34 +127,34 @@ const Monitoring = () => {
     setLoading(true);
     setError(null);
 
-    const parseList = (data: any): Mention[] =>
-      (Array.isArray(data?.mentions) && data.mentions) ||
-      (Array.isArray(data?.results) && data.results) ||
-      [];
+    const normalize = (raw: any): Mention[] => {
+      const list =
+        (Array.isArray(raw?.mentions) && raw.mentions) ||
+        (Array.isArray(raw?.results) && raw.results) ||
+        (Array.isArray(raw?.data) && raw.data) ||
+        (Array.isArray(raw) && raw) ||
+        [];
+      return list.map((m: any, i: number) => ({
+        id: m.id ?? m.uuid ?? `${i}-${m.url ?? m.link ?? Math.random()}`,
+        mention_type: m.mention_type ?? m.type ?? m.source ?? "web",
+        title: m.title ?? m.name ?? m.text ?? null,
+        url: m.url ?? m.link ?? null,
+        found_at: m.found_at ?? m.created_at ?? m.timestamp ?? new Date().toISOString(),
+        status: m.status ?? null,
+        actor_name: m.actor_name ?? null,
+      }));
+    };
 
-    // Attempt 1: direct fetch (fast path)
-    try {
-      const res = await fetch(
-        `https://api.claimmyface.com/mentions/${id}?_=${Date.now()}`,
-        { method: "GET", cache: "no-store" },
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setMentions(parseList(data));
-      setLoading(false);
-      return;
-    } catch (err: any) {
-      console.warn("[Monitoring] direct fetch failed, trying proxy:", err?.message);
-    }
-
-    // Attempt 2: proxy via Lovable Cloud (works around iOS Safari "Load failed")
+    // Use the edge function proxy — browser cannot call http:// from https://
     try {
       const { data, error: fnErr } = await supabase.functions.invoke(
         "mentions-proxy",
         { body: { actor: id } },
       );
       if (fnErr) throw fnErr;
-      setMentions(parseList(data));
+      const list = normalize(data);
+      setMentions(list);
+      console.log(`[Monitoring] loaded ${list.length} mentions for ${id}`);
     } catch (err: any) {
       console.error("[Monitoring] proxy fetch failed:", err);
       setError(err?.message || "Failed to load mentions");
