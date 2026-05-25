@@ -37,7 +37,15 @@ interface Mention {
   found_at: string;
   status?: string | null;
   actor_name?: string | null;
+  relevance?: RelevanceTag;
+  relevance_reason?: string;
 }
+
+type RelevanceTag =
+  | "verified"           // matches a saved handle / owned domain
+  | "likely"             // exact name + actor/persona context
+  | "needs_review"       // image match or weak signal
+  | "ai_alert";          // deepfake / AI-image flagged
 
 const PHOTO_TYPES = new Set(["image_yandex", "image"]);
 const VIDEO_TYPES = new Set(["youtube"]);
@@ -46,6 +54,17 @@ const WEB_TYPES = new Set(["web", "news"]);
 const DEEPFAKE_TYPES = new Set(["deepfake"]);
 const VOICE_TYPES = new Set(["voice"]);
 const WRITING_TYPES = new Set(["writing"]);
+
+// Actor/persona context keywords — at least one must appear alongside the name
+// for a same-name result to be considered a real match.
+const PERSONA_KEYWORDS = [
+  "actor", "actress", "actor's", "acting", "performer", "performance",
+  "voice over", "voiceover", "voice-over", "vo ", "demo reel", "headshot",
+  "imdb", "oppenheimer", "filmmaker", "film", "tv", "show", "movie", "cast",
+  "casting", "director", "producer", "screen", "stage", "comedian", "comedy",
+  "keynote", "speaker", "sag", "aftra", "union",
+];
+
 
 function extractDomain(url?: string | null) {
   if (!url) return "";
