@@ -7,10 +7,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, AlertTriangle, ExternalLink } from "lucide-react";
+import { Plus, AlertTriangle, ExternalLink, Send, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+// Auto-detect which platform a URL belongs to and provide its official
+// takedown form. This is what the user actually needs to do to get the
+// infringing content removed — our internal report alone won't do it.
+const PLATFORM_ROUTES: { match: RegExp; name: string; takedownUrl: string }[] = [
+  { match: /youtube\.com|youtu\.be/i, name: "YouTube", takedownUrl: "https://support.google.com/youtube/answer/2807622" },
+  { match: /instagram\.com/i, name: "Instagram", takedownUrl: "https://help.instagram.com/contact/552695131608132" },
+  { match: /tiktok\.com/i, name: "TikTok", takedownUrl: "https://www.tiktok.com/legal/report/Copyright" },
+  { match: /facebook\.com|fb\.com/i, name: "Facebook", takedownUrl: "https://www.facebook.com/help/intellectual_property" },
+  { match: /twitter\.com|x\.com/i, name: "X / Twitter", takedownUrl: "https://help.x.com/en/forms/ipi" },
+  { match: /reddit\.com/i, name: "Reddit", takedownUrl: "https://www.reddit.com/report" },
+  { match: /pinterest\.com/i, name: "Pinterest", takedownUrl: "https://www.pinterest.com/about/copyright/dmca-pin/" },
+  { match: /linkedin\.com/i, name: "LinkedIn", takedownUrl: "https://www.linkedin.com/help/linkedin/ask/TS-NFCRI" },
+];
+
+function detectPlatform(url: string) {
+  for (const p of PLATFORM_ROUTES) if (p.match.test(url)) return p;
+  return null;
+}
 
 const ReportViolation = () => {
   const { user } = useAuth();
