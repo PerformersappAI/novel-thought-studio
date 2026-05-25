@@ -277,7 +277,80 @@ const PerformerProfileTab = () => {
               />
               <p className="text-xs text-muted-foreground">Comma separated — every name people might know you by helps the scanner find you.</p>
             </div>
+
+            <div className="sm:col-span-2 space-y-2">
+              <Label className="flex items-center gap-2"><Camera className="w-4 h-4 text-primary" /> Your Professional Headshot</Label>
+              <p className="text-xs text-muted-foreground">Used to find unauthorized use of your image online.</p>
+              <div className="flex items-center gap-4">
+                {headshotPreview && (
+                  <div className="w-20 h-20 rounded-lg overflow-hidden border border-border bg-muted/20 shrink-0">
+                    <img src={headshotPreview} alt="Headshot" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <label className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingHeadshot}
+                    onChange={(e) => e.target.files?.[0] && uploadHeadshot(e.target.files[0])}
+                  />
+                  <div className="border border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/60 transition-colors">
+                    {uploadingHeadshot ? (
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                    ) : (
+                      <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                        <Upload className="w-4 h-4" /> {headshotPreview ? "Replace headshot" : "Upload headshot"}
+                      </p>
+                    )}
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="sm:col-span-2 space-y-2">
+              <Label className="flex items-center gap-2"><Mic className="w-4 h-4 text-primary" /> Your Voice Sample</Label>
+              <p className="text-xs text-muted-foreground">Used to detect unauthorized voice clones. MP3 or WAV, under 2 minutes.</p>
+              {voicePreview && (
+                <audio controls src={voicePreview} className="w-full h-10" />
+              )}
+              <label className="block">
+                <input
+                  type="file"
+                  accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,.mp3,.wav"
+                  className="hidden"
+                  disabled={uploadingVoice}
+                  onChange={(e) => e.target.files?.[0] && uploadVoice(e.target.files[0])}
+                />
+                <div className="border border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/60 transition-colors">
+                  {uploadingVoice ? (
+                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  ) : (
+                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Upload className="w-4 h-4" /> {voicePreview ? "Replace voice sample" : "Upload voice sample"}
+                    </p>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            <div className="sm:col-span-2 space-y-2">
+              <Label className="flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Your Writing Sample</Label>
+              <p className="text-xs text-muted-foreground">
+                Used to detect plagiarism of your content. Minimum 100 words.{" "}
+                <span className={((form.writing_sample || "").trim().split(/\s+/).filter(Boolean).length >= 100) ? "text-green-500" : "text-muted-foreground"}>
+                  ({(form.writing_sample || "").trim().split(/\s+/).filter(Boolean).length} words)
+                </span>
+              </p>
+              <Textarea
+                rows={6}
+                placeholder="Paste a sample of your writing here — a blog post, article, or social caption you've written."
+                value={form.writing_sample || ""}
+                onChange={(e) => update("writing_sample", e.target.value)}
+              />
+            </div>
           </div>
+
 
 
 
