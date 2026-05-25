@@ -288,10 +288,19 @@ function gradeRelevance(m: Mention, id: Identity): { tag: RelevanceTag; reason: 
     return { tag: "ai_alert", reason: "AI / deepfake signal" };
   }
 
+  // --- Impersonation (handle scanner) ---
+  if (IMPERSONATION_TYPES.has(type)) {
+    return { tag: "ai_alert", reason: "Account found on platform you haven't registered" };
+  }
+  if (SOCIAL_KNOWN_TYPES.has(type)) {
+    return { tag: "verified", reason: "Your registered handle" };
+  }
+
   // Unknown types → needs review if there's any name match.
   if (hasFullName(hay, id)) return { tag: "needs_review", reason: "Name match" };
   return null;
 }
+
 
 function StatusBadge({ verdict, relevance }: { verdict: Verdict; relevance?: RelevanceTag }) {
   // User verdict takes precedence
