@@ -216,6 +216,9 @@ const PerformerProfileTab = () => {
               />
               <p className="text-xs text-muted-foreground">Comma separated — every name people might know you by helps the scanner find you.</p>
             </div>
+          </div>
+
+
 
 
           <div className="rounded-xl border border-primary/30 bg-card/40 p-5 space-y-3">
