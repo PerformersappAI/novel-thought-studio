@@ -31,6 +31,59 @@ const PerformerProfileTab = () => {
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState<any>({});
   const [thumbs, setThumbs] = useState<string[]>([]);
+  const [headshotPreview, setHeadshotPreview] = useState<string | null>(null);
+  const [voicePreview, setVoicePreview] = useState<string | null>(null);
+  const [uploadingHeadshot, setUploadingHeadshot] = useState(false);
+  const [uploadingVoice, setUploadingVoice] = useState(false);
+
+  const uploadHeadshot = async (file: File) => {
+    if (!user) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image too large (max 10MB)", variant: "destructive" });
+      return;
+    }
+    setUploadingHeadshot(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${user.id}/headshot-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("headshots").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploadingHeadshot(false);
+      toast({ title: "Upload failed", description: upErr.message, variant: "destructive" });
+      return;
+    }
+    const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
+    const url = pub.publicUrl;
+    await supabase.from("profiles").update({ headshot_url: url } as any).eq("user_id", user.id);
+    setHeadshotPreview(url);
+    setUploadingHeadshot(false);
+    toast({ title: "Headshot uploaded" });
+  };
+
+  const uploadVoice = async (file: File) => {
+    if (!user) return;
+    if (!/^audio\/(mpeg|mp3|wav|x-wav|wave)$/i.test(file.type) && !/\.(mp3|wav)$/i.test(file.name)) {
+      toast({ title: "Use MP3 or WAV format", variant: "destructive" });
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      toast({ title: "File too large (max 25MB)", variant: "destructive" });
+      return;
+    }
+    setUploadingVoice(true);
+    const ext = file.name.split(".").pop() || "mp3";
+    const path = `${user.id}/voice_sample-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("voice-prints").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploadingVoice(false);
+      toast({ title: "Upload failed", description: upErr.message, variant: "destructive" });
+      return;
+    }
+    await supabase.from("profiles").update({ voice_print_url: path } as any).eq("user_id", user.id);
+    const { data: signed } = await supabase.storage.from("voice-prints").createSignedUrl(path, 600);
+    setVoicePreview(signed?.signedUrl ?? null);
+    setUploadingVoice(false);
+    toast({ title: "Voice sample uploaded" });
+  };
 
   useEffect(() => {
     if (!user) return;
