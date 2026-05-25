@@ -7,10 +7,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, AlertTriangle, ExternalLink } from "lucide-react";
+import { Plus, AlertTriangle, ExternalLink, Send, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+// Auto-detect which platform a URL belongs to and provide its official
+// takedown form. This is what the user actually needs to do to get the
+// infringing content removed — our internal report alone won't do it.
+const PLATFORM_ROUTES: { match: RegExp; name: string; takedownUrl: string }[] = [
+  { match: /youtube\.com|youtu\.be/i, name: "YouTube", takedownUrl: "https://support.google.com/youtube/answer/2807622" },
+  { match: /instagram\.com/i, name: "Instagram", takedownUrl: "https://help.instagram.com/contact/552695131608132" },
+  { match: /tiktok\.com/i, name: "TikTok", takedownUrl: "https://www.tiktok.com/legal/report/Copyright" },
+  { match: /facebook\.com|fb\.com/i, name: "Facebook", takedownUrl: "https://www.facebook.com/help/intellectual_property" },
+  { match: /twitter\.com|x\.com/i, name: "X / Twitter", takedownUrl: "https://help.x.com/en/forms/ipi" },
+  { match: /reddit\.com/i, name: "Reddit", takedownUrl: "https://www.reddit.com/report" },
+  { match: /pinterest\.com/i, name: "Pinterest", takedownUrl: "https://www.pinterest.com/about/copyright/dmca-pin/" },
+  { match: /linkedin\.com/i, name: "LinkedIn", takedownUrl: "https://www.linkedin.com/help/linkedin/ask/TS-NFCRI" },
+];
+
+function detectPlatform(url: string) {
+  for (const p of PLATFORM_ROUTES) if (p.match.test(url)) return p;
+  return null;
+}
 
 const ReportViolation = () => {
   const { user } = useAuth();
@@ -93,9 +112,29 @@ const ReportViolation = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    This report is logged in your ClaimMyFace account for our team to review.
+                    To actually get the content removed, you'll also need to file directly with the
+                    platform — we'll show you the right link as soon as you paste the URL.
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label>Infringing URL</Label>
                   <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/infringing-content" required />
+                  {url && detectPlatform(url) && (
+                    <div className="mt-2 rounded-lg border border-accent/30 bg-accent/5 p-3 flex items-center justify-between gap-3">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Detected: <span className="text-accent font-semibold">{detectPlatform(url)!.name}</span> — file an official IP report directly with them for fastest removal.
+                      </p>
+                      <Button asChild size="sm" variant="outline" className="shrink-0">
+                        <a href={detectPlatform(url)!.takedownUrl} target="_blank" rel="noopener noreferrer">
+                          Open {detectPlatform(url)!.name} form <ExternalLink className="w-3 h-3 ml-1" />
+                        </a>
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Description</Label>
@@ -107,6 +146,7 @@ const ReportViolation = () => {
                 </div>
                 <div className="flex gap-3">
                   <Button type="submit" disabled={submitting} className="font-display">
+                    <Send className="w-4 h-4 mr-1" />
                     {submitting ? "Submitting..." : "Submit Report"}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
