@@ -39,9 +39,13 @@ interface Mention {
   actor_name?: string | null;
 }
 
-const PHOTO_TYPES = new Set(["image_yandex"]);
-const SOCIAL_TYPES = new Set(["social_instagram", "social_tiktok", "youtube"]);
+const PHOTO_TYPES = new Set(["image_yandex", "image"]);
+const VIDEO_TYPES = new Set(["youtube"]);
+const SOCIAL_TYPES = new Set(["social_instagram", "social_tiktok"]);
 const WEB_TYPES = new Set(["web", "news"]);
+const DEEPFAKE_TYPES = new Set(["deepfake"]);
+const VOICE_TYPES = new Set(["voice"]);
+const WRITING_TYPES = new Set(["writing"]);
 
 function extractDomain(url?: string | null) {
   if (!url) return "";
