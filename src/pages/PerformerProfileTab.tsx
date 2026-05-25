@@ -150,6 +150,8 @@ const PerformerProfileTab = () => {
       .update({
         ...rest,
         aka_names: akaArray.length ? akaArray : null,
+        profession: form.profession || null,
+        writing_sample: form.writing_sample?.trim() || null,
         full_name: form.legal_name,
         bio: (form.bio || "").slice(0, 250) || null,
       } as any)
