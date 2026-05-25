@@ -342,9 +342,9 @@ const Monitoring = () => {
         { body: { actor: id } },
       );
       if (fnErr) throw fnErr;
-      const list = normalize(data);
+      const list = normalize(data).filter((m) => !isJunkMention(m));
       setMentions(list);
-      console.log(`[Monitoring] loaded ${list.length} mentions for ${id}`);
+      console.log(`[Monitoring] loaded ${list.length} mentions for ${id} (filtered)`);
     } catch (err: any) {
       console.error("[Monitoring] proxy fetch failed:", err);
       setError(err?.message || "Failed to load mentions");
