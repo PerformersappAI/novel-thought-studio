@@ -385,9 +385,9 @@ const Monitoring = () => {
           </Button>
         </div>
 
-        <Section title="Photo Matches" items={photo} Icon={ImageIcon} />
-        <Section title="Social Media" items={social} Icon={Instagram} />
-        <Section title="Web Mentions" items={web} Icon={Globe} />
+        <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} />
       </div>
     </DashboardLayout>
   );
