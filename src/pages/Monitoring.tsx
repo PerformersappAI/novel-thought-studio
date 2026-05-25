@@ -186,17 +186,17 @@ function MentionRow({
       {verdict === "threat" && (
         <div className="border-t border-destructive/20 bg-destructive/5 px-4 py-3 flex flex-wrap gap-2">
           <Button asChild size="sm" variant="destructive" className="gap-1.5">
-            <Link to={`/dashboard/dmca-takedown?url=${encodedUrl}`}>
+            <Link to={`/dashboard/dmca?url=${encodedUrl}`}>
               <FileText className="w-3.5 h-3.5" /> Generate DMCA Notice
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline" className="gap-1.5">
-            <Link to={`/dashboard/contract-generator?type=cease-desist&url=${encodedUrl}`}>
+            <Link to={`/tools/contracts?type=cease-desist&url=${encodedUrl}`}>
               <Gavel className="w-3.5 h-3.5" /> Cease & Desist
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline" className="gap-1.5">
-            <Link to={`/dashboard/report-violation?url=${encodedUrl}`}>
+            <Link to={`/dashboard/violations?url=${encodedUrl}`}>
               <Flag className="w-3.5 h-3.5" /> Report Violation
             </Link>
           </Button>
