@@ -345,6 +345,40 @@ const Monitoring = () => {
       const list = normalize(data).filter((m) => !isJunkMention(m));
       setMentions(list);
       console.log(`[Monitoring] loaded ${list.length} mentions for ${id} (filtered)`);
+
+      // Run Sightengine deepfake / AI-generated detection on photo results.
+      const photoUrls = list
+        .filter((m) => PHOTO_TYPES.has(m.mention_type) && m.url)
+        .map((m) => m.url as string)
+        .slice(0, 25);
+      if (photoUrls.length > 0) {
+        supabase.functions
+          .invoke("deepfake-batch", { body: { urls: photoUrls } })
+          .then(({ data: dfData, error: dfErr }) => {
+            if (dfErr || !dfData?.results) return;
+            const flagged = (dfData.results as any[]).filter((r) => r.flagged);
+            if (flagged.length === 0) return;
+            const byUrl = new Map(list.map((m) => [m.url, m]));
+            const deepfakeMentions: Mention[] = flagged.map((r, i) => {
+              const src = byUrl.get(r.url);
+              const score = Math.round(Math.max(r.deepfakeScore, r.aiGenScore) * 100);
+              return {
+                id: `deepfake-${i}-${r.url}`,
+                mention_type: "deepfake",
+                title: src?.title
+                  ? `${src.title} — ${score}% AI/deepfake match`
+                  : `Possible deepfake (${score}% confidence)`,
+                url: r.url,
+                found_at: new Date().toISOString(),
+                status: "New Alert",
+                actor_name: src?.actor_name ?? null,
+              };
+            });
+            console.log(`[Monitoring] flagged ${deepfakeMentions.length} deepfakes via Sightengine`);
+            setMentions((prev) => [...prev, ...deepfakeMentions]);
+          })
+          .catch((e) => console.warn("[Monitoring] deepfake-batch failed:", e));
+      }
     } catch (err: any) {
       console.error("[Monitoring] proxy fetch failed:", err);
       setError(err?.message || "Failed to load mentions");
