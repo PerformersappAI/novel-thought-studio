@@ -256,6 +256,15 @@ const Monitoring = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actorId, setActorId] = useState<string>(DEFAULT_ACTOR_ID);
+  const [verdicts, setVerdicts] = useState<Record<string, Verdict>>(() => loadVerdicts());
+
+  const setVerdict = useCallback((id: string, v: Verdict) => {
+    setVerdicts((prev) => {
+      const next = { ...prev, [id]: v };
+      saveVerdicts(next);
+      return next;
+    });
+  }, []);
 
   const fetchMentions = useCallback(async (id: string) => {
     setLoading(true);
