@@ -721,7 +721,62 @@ const Monitoring = () => {
           </Button>
         </div>
 
+        {impersonators.length > 0 && (
+          <div className="rounded-2xl border-2 border-destructive/50 bg-destructive/5 backdrop-blur-sm p-5 md:p-6 mb-6 shadow-[0_0_30px_-10px_hsl(var(--destructive)/0.4)]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <UserX className="w-5 h-5 text-destructive" />
+                <h2 className="font-display text-lg font-semibold text-destructive">
+                  Impersonator Accounts
+                </h2>
+              </div>
+              <span className="text-xs px-2 py-0.5 rounded-full border border-destructive/40 text-destructive bg-destructive/10 font-semibold uppercase tracking-wider">
+                {impersonators.length} flagged
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Accounts found on platforms where you haven't registered a handle. These may be impersonating you.
+            </p>
+            <div className="space-y-2">
+              {impersonators.map((m) => {
+                const platform = (m.mention_type === "possible_impersonation"
+                  ? (extractDomain(m.url) || m.title || "Unknown platform")
+                  : extractDomain(m.url));
+                return (
+                  <div
+                    key={m.id}
+                    className="rounded-lg border border-destructive/30 bg-background/40 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{platform}</p>
+                      {m.url && (
+                        <a
+                          href={m.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-muted-foreground hover:text-primary break-all inline-flex items-center gap-1"
+                        >
+                          {m.url} <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      )}
+                      <p className="text-[10px] text-muted-foreground/70 mt-1">
+                        Found {new Date(m.found_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Button asChild size="sm" variant="destructive" className="gap-1.5 shrink-0">
+                      <Link to={`/dashboard/violations?url=${encodeURIComponent(m.url || "")}`}>
+                        <Flag className="w-3.5 h-3.5" /> Report Violation
+                      </Link>
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} />
+
         <Section title="Social Media / Video" items={video} Icon={Video} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} />
