@@ -659,7 +659,7 @@ const Monitoring = () => {
             </div>
           </div>
           <Button
-            onClick={() => fetchMentions(actorId)}
+            onClick={() => fetchMentions(actorId, identity)}
             disabled={loading}
             size="lg"
             className="gap-2"
