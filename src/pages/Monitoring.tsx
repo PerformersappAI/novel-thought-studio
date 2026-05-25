@@ -469,12 +469,19 @@ function Section({
   );
 }
 
+const EMPTY_IDENTITY: Identity = {
+  fullName: "", nameTokens: [], lastName: "", akaNames: [],
+  instagram: "", tiktok: "", youtube: "",
+  trustedDomains: new Set(), profession: "",
+};
+
 const Monitoring = () => {
   const { user } = useAuth();
   const [mentions, setMentions] = useState<Mention[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actorId, setActorId] = useState<string>(DEFAULT_ACTOR_ID);
+  const [identity, setIdentity] = useState<Identity>(EMPTY_IDENTITY);
   const [verdicts, setVerdicts] = useState<Record<string, Verdict>>(() => loadVerdicts());
 
   const setVerdict = useCallback((id: string, v: Verdict) => {
@@ -485,7 +492,7 @@ const Monitoring = () => {
     });
   }, []);
 
-  const fetchMentions = useCallback(async (id: string) => {
+  const fetchMentions = useCallback(async (id: string, ident: Identity) => {
     setLoading(true);
     setError(null);
 
@@ -507,18 +514,29 @@ const Monitoring = () => {
       }));
     };
 
-    // Use the edge function proxy — browser cannot call http:// from https://
+    const applyRelevance = (raw: Mention[]): Mention[] => {
+      const out: Mention[] = [];
+      for (const m of raw) {
+        if (isJunkMention(m)) continue;
+        const grade = gradeRelevance(m, ident);
+        if (!grade) continue; // drop irrelevant
+        out.push({ ...m, relevance: grade.tag, relevance_reason: grade.reason });
+      }
+      return out;
+    };
+
     try {
       const { data, error: fnErr } = await supabase.functions.invoke(
         "mentions-proxy",
         { body: { actor: id } },
       );
       if (fnErr) throw fnErr;
-      const list = normalize(data).filter((m) => !isJunkMention(m));
+      const rawList = normalize(data);
+      const list = applyRelevance(rawList);
       setMentions(list);
-      console.log(`[Monitoring] loaded ${list.length} mentions for ${id} (filtered)`);
+      console.log(`[Monitoring] ${rawList.length} raw → ${list.length} relevant for ${id}`);
 
-      // Run Sightengine deepfake / AI-generated detection on photo results.
+      // Run Sightengine only on photos that already passed relevance.
       const photoUrls = list
         .filter((m) => PHOTO_TYPES.has(m.mention_type) && m.url)
         .map((m) => m.url as string)
@@ -544,6 +562,8 @@ const Monitoring = () => {
                 found_at: new Date().toISOString(),
                 status: "New Alert",
                 actor_name: src?.actor_name ?? null,
+                relevance: "ai_alert",
+                relevance_reason: `${score}% confidence`,
               };
             });
             console.log(`[Monitoring] flagged ${deepfakeMentions.length} deepfakes via Sightengine`);
@@ -560,36 +580,43 @@ const Monitoring = () => {
     }
   }, []);
 
-  // Resolve actor id from profile (fallback to default), then fetch once.
+  // Resolve actor id + identity from profile, then fetch once.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       let id = DEFAULT_ACTOR_ID;
+      let ident: Identity = EMPTY_IDENTITY;
       try {
         const params = new URLSearchParams(window.location.search);
         const override = params.get("actor");
-        if (override) {
-          id = override;
-        } else if (user) {
+        if (override) id = override;
+        if (user) {
           const { data } = await supabase
             .from("profiles")
-            .select("external_actor_id")
+            .select(
+              "external_actor_id, legal_name, stage_name, full_name, aka_names, instagram_handle, tiktok_handle, youtube_handle, imdb_url, profession",
+            )
             .eq("user_id", user.id)
             .maybeSingle();
-          const profileId = (data as any)?.external_actor_id;
-          if (profileId) id = profileId;
+          if (data) {
+            ident = buildIdentity(data);
+            const profileId = (data as any).external_actor_id;
+            if (!override && profileId) id = profileId;
+          }
         }
       } catch {
-        /* fall through to default */
+        /* fall through to defaults */
       }
       if (cancelled) return;
       setActorId(id);
-      fetchMentions(id);
+      setIdentity(ident);
+      fetchMentions(id, ident);
     })();
     return () => {
       cancelled = true;
     };
   }, [user, fetchMentions]);
+
 
   const photo = mentions.filter((m) => PHOTO_TYPES.has(m.mention_type));
   const video = mentions.filter((m) => VIDEO_TYPES.has(m.mention_type));
