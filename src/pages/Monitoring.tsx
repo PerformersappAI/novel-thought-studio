@@ -1,1374 +1,234 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import ImpersonatorDetection from "@/components/monitoring/ImpersonatorDetection";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import {
-  Eye, AlertTriangle, Radar, Music2, Instagram, Facebook, Youtube, Twitter,
-  Linkedin, Search, Globe, Newspaper, Bot, ExternalLink,
-  Copy, Check, Trash2, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag,
-  ShieldCheck, RefreshCw, FileText, FolderPlus, Folder, FolderOpen, Plus, X,
-  Image as ImageIcon, Video, Mic, UserX, PenLine,
+  RefreshCw,
+  ExternalLink,
+  ImageIcon,
+  Youtube,
+  Instagram,
+  Music2,
+  Globe,
+  Newspaper,
+  ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  FILTER_TABS, STATUS_STYLES, type Finding, type FindingCategory,
-} from "@/components/monitoring/findings";
-import { ShieldAlert } from "lucide-react";
 
-/* ─── Section grouping by mention_type ─── */
-const IDENTITY_TYPES = new Set(["image", "image_yandex", "web", "youtube", "news"]);
-const THREAT_TYPES = new Set([
-  "deepfake", "voice_clone", "fake_profile", "social_tiktok", "social_instagram",
-]);
+const DEFAULT_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
 
-const IDENTITY_TABS: { key: string; label: string }[] = [
-  { key: "All", label: "All" },
-  { key: "image", label: "Images" },
-  { key: "web", label: "Web" },
-  { key: "youtube", label: "YouTube" },
-  { key: "news", label: "News" },
-];
-const THREAT_TABS: { key: string; label: string }[] = [
-  { key: "All", label: "All" },
-  { key: "deepfake", label: "Deepfakes" },
-  { key: "voice_clone", label: "Voice Clones" },
-  { key: "fake_profile", label: "Fake Profiles" },
-  { key: "social_tiktok", label: "TikTok" },
-  { key: "social_instagram", label: "Instagram" },
-];
+interface Mention {
+  id: string;
+  mention_type: string;
+  title: string | null;
+  url: string | null;
+  found_at: string;
+  status?: string | null;
+  actor_name?: string | null;
+}
 
-const buildNameTokens = (names: (string | null | undefined)[]): string[] => {
-  const tokens = new Set<string>();
-  for (const n of names) {
-    if (!n) continue;
-    const lower = n.toLowerCase().trim().replace(/\s+/g, " ");
-    if (lower.length < 3) continue;
-    const parts = lower.split(" ").filter(Boolean);
-    if (parts.length >= 2) {
-      tokens.add(parts.join(" "));
-      tokens.add(parts.join("-"));
-      tokens.add(parts.join("_"));
-      tokens.add(parts.join(""));
-      // Also accept individual name parts (≥4 chars) so variants like
-      // "William Roberts" still match a "Will Roberts" identity via "roberts".
-      for (const p of parts) {
-        if (p.length >= 4) tokens.add(p);
-      }
-    } else {
-      tokens.add(lower);
-    }
+const PHOTO_TYPES = new Set(["image_yandex"]);
+const SOCIAL_TYPES = new Set(["social_instagram", "social_tiktok", "youtube"]);
+const WEB_TYPES = new Set(["web", "news"]);
+
+function extractDomain(url?: string | null) {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
   }
-  return [...tokens];
-};
-import { useToast } from "@/hooks/use-toast";
+}
 
-/* ─── Platform icon map ─── */
-const PLATFORM_ICONS: Record<string, any> = {
-  "Web": Globe, "Instagram": Instagram, "YouTube": Youtube, "Facebook": Facebook,
-  "X / Twitter": Twitter, "Twitter": Twitter, "TikTok": Music2, "LinkedIn": Linkedin,
-  "Google": Search, "News": Newspaper, "news": Newspaper, "AI": Bot, "Reddit": Globe,
-};
-function getPlatformIcon(type: string) {
-  for (const [key, Icon] of Object.entries(PLATFORM_ICONS)) {
-    if (type.toLowerCase().includes(key.toLowerCase())) return Icon;
-  }
+function iconFor(type: string) {
+  const t = type.toLowerCase();
+  if (t === "youtube") return Youtube;
+  if (t === "social_instagram") return Instagram;
+  if (t === "social_tiktok") return Music2;
+  if (t === "image_yandex") return ImageIcon;
+  if (t === "news") return Newspaper;
   return Globe;
 }
 
-/* ─── URL → domain / category / title helpers ─── */
-function extractDomain(url?: string | null): string {
-  if (!url) return "";
-  try {
-    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
-    return u.hostname.replace(/^www\./, "");
-  } catch {
-    return "";
-  }
-}
-function extractPath(url?: string | null): string {
-  if (!url) return "";
-  try {
-    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
-    return (u.pathname + u.search).replace(/\/$/, "") || "/";
-  } catch {
-    return "";
-  }
-}
-function classifyByDomain(url?: string | null, title?: string | null, snippet?: string | null): FindingCategory {
-  const d = extractDomain(url).toLowerCase();
-  const text = `${title || ""} ${snippet || ""}`.toLowerCase();
-  if (/(deepfake|ai generated|ai-generated|cloned|clone of)/.test(text)) return "Deepfakes";
-  if (/(instagram|tiktok|facebook|twitter|x\.com|linkedin|youtube|threads\.net|reddit)/.test(d)) return "Social Media";
-  if (/(actorsaccess|backstage|castingnetworks|imdb|lacasting|nycasting|castingfrontier)/.test(d)) return "Casting Platforms";
-  if (/(variety|deadline|hollywoodreporter|people|tmz|ew\.com|nytimes|bbc|cnn|guardian|reuters|forbes|vulture)/.test(d)) return "News & Articles";
-  if (/(shutterstock|gettyimages|adobe|istockphoto|alamy|doubleclick|googlesyndication|ads)/.test(d)) return "Ads & Commercial";
-  return "News & Articles";
-}
-function isGenericTitle(title?: string | null): boolean {
-  if (!title) return true;
-  const t = title.trim().toLowerCase();
-  return t === "" || t.startsWith("web result for") || t.startsWith("result for") || t === "untitled";
-}
-function deriveTitle(rawTitle: string | null | undefined, url: string | null | undefined): string {
-  if (!isGenericTitle(rawTitle)) return rawTitle as string;
-  const d = extractDomain(url);
-  return d || rawTitle || "Untitled result";
-}
-function deriveExcerpt(
-  rawExcerpt: string | null | undefined,
-  url: string | null | undefined,
-  mentionType?: string | null,
-): string {
-  const e = (rawExcerpt || "").trim();
-  if (e) return e;
-  const d = extractDomain(url);
-  const p = extractPath(url);
-  const typeLabel: Record<string, string> = {
-    image: "Image result",
-    web: "Web page",
-    youtube: "YouTube video",
-    deepfake: "Possible deepfake content",
-    voice_clone: "Possible voice clone",
-    fake_profile: "Possible fake profile",
-    social_tiktok: "TikTok profile or post",
-    social_instagram: "Instagram profile or post",
-  };
-  const label = typeLabel[(mentionType || "").toLowerCase()] || "Online mention";
-  if (d) return `${label} found on ${d}${p && p !== "/" ? p : ""}`;
-  return label;
-}
-function faviconUrl(url?: string | null): string {
-  const d = extractDomain(url);
-  if (!d) return "";
-  return `https://www.google.com/s2/favicons?domain=${d}&sz=64`;
-}
-
-/* ─── Radar SVG animation ─── */
-const RadarGraphic = ({ active }: { active: boolean }) => (
-  <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto">
-    {[1, 2, 3].map((r) => (
-      <div
-        key={r}
-        className="absolute inset-0 rounded-full border border-primary/20"
-        style={{
-          margin: `${r * 28}px`,
-          animation: active ? `pulse 2s ease-out ${r * 0.3}s infinite` : undefined,
-        }}
-      />
-    ))}
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className={`w-4 h-4 rounded-full bg-primary shadow-[0_0_20px_4px] shadow-primary/60 ${active ? "animate-pulse" : ""}`} />
-    </div>
-    {active && (
-      <div className="absolute inset-0 origin-center" style={{ animation: "spin 3s linear infinite" }}>
-        <div className="absolute left-1/2 top-0 h-1/2 w-0.5" style={{ background: "linear-gradient(to top, hsl(var(--primary)), transparent)", transformOrigin: "bottom center" }} />
-      </div>
-    )}
-    {active && <div className="absolute inset-0 rounded-full bg-primary/5 animate-pulse" />}
-  </div>
-);
-
-/* ─── Terminal feed line ─── */
-const TerminalLine = ({ finding, index }: { finding: Finding; index: number }) => {
-  const PIcon = getPlatformIcon(finding.platform);
+function MentionRow({ m }: { m: Mention }) {
+  const Icon = iconFor(m.mention_type);
+  const domain = extractDomain(m.url);
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.08 }}
-      className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-background/40 border border-border/20 hover:border-primary/30 transition-colors group"
+    <a
+      href={m.url || "#"}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-start gap-3 px-4 py-3 rounded-lg border border-border/20 bg-background/30 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
     >
-      <PIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-foreground font-medium whitespace-normal break-words leading-snug">{finding.finding}</p>
-        {finding.url && finding.url !== "#" && (
-          <a href={finding.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary mt-0.5 inline-flex items-center gap-1 truncate max-w-full" onClick={(e) => e.stopPropagation()}>
-            {finding.url.replace(/^https?:\/\//, "").substring(0, 50)}
-            <ExternalLink className="w-3 h-3 shrink-0" />
-          </a>
-        )}
+        <p className="text-sm font-medium text-foreground leading-snug break-words">
+          {m.title || domain || "Untitled"}
+        </p>
+        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+          <span className="uppercase tracking-wider text-primary/80 text-[10px]">
+            {m.mention_type}
+          </span>
+          {domain && <span>· {domain}</span>}
+          <span>· {new Date(m.found_at).toLocaleDateString()}</span>
+        </div>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-[10px] text-muted-foreground font-mono">{new Date(finding.date).toLocaleDateString()}</span>
-        <span className={`w-2 h-2 rounded-full ${finding.status === "New Alert" ? "bg-primary shadow-[0_0_6px] shadow-primary/60" : "bg-emerald-500"}`} />
-      </div>
-    </motion.div>
+      <ExternalLink className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary shrink-0 mt-1" />
+    </a>
   );
-};
+}
 
-/* ─── Types ─── */
-interface MentionRow {
-  id: string;
-  mention_type: string;
+function Section({
+  title,
+  items,
+  Icon,
+}: {
   title: string;
-  url: string | null;
-  found_at: string;
-  status: string;
-  confidence: number | null;
-  category: string | null;
-  media_type: string | null;
-  thumbnail_url: string | null;
-  audio_url: string | null;
-  excerpt: string | null;
-  match_label: string | null;
-  folder_id?: string | null;
+  items: Mention[];
+  Icon: any;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4 text-primary" />
+          <h2 className="font-display text-lg font-semibold">{title}</h2>
+        </div>
+        <span className="text-xs px-2 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5">
+          {items.length}
+        </span>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          No results in this category.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {items.map((m) => (
+            <MentionRow key={m.id} m={m} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
-
-interface MentionFolder {
-  id: string;
-  name: string;
-  color: string;
-}
-
-const FOLDER_COLORS = ["#C41230", "#D4A843", "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899"];
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const LEGITIMATE_DOMAINS = [
-  "actorwillroberts.com",
-  "imdb.com",
-  "imdb.me",
-  "sagaftra.org",
-  "backstage.com",
-  "wikipedia.org",
-];
-
-const isLegitimateDomain = (url?: string | null): boolean => {
-  if (!url) return false;
-  try {
-    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
-    return LEGITIMATE_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`));
-  } catch {
-    return false;
-  }
-};
-
-const normalizeStatus = (
-  status?: string | null,
-  mentionType?: string | null,
-  url?: string | null,
-): Finding["status"] => {
-  const value = (status || "").toLowerCase();
-  const mt = (mentionType || "").toLowerCase();
-
-  // Explicit resolved/takedown states win
-  if (value.includes("resolved") || value.includes("dismiss")) return "Resolved";
-  if (value.includes("takedown") || value.includes("filed")) return "Takedown Filed";
-
-  // Known legitimate sources are always informational
-  if (value === "face_legitimate" || value.includes("legitimate") || isLegitimateDomain(url)) {
-    return "Informational";
-  }
-
-  // Real threats: explicit threat status, pending review, or inherently-malicious mention types
-  const threatTypes = ["deepfake", "voice_clone", "fake_profile"];
-  if (value === "face_threat" || value === "pending" || threatTypes.includes(mt)) {
-    return "New Alert";
-  }
-
-  if (value.includes("review")) return "Under Review";
-  if (value.includes("info")) return "Informational";
-
-  // Social media defaults to informational unless flagged as a threat above
-  const socialTypes = ["social_instagram", "social_tiktok", "youtube", "tiktok", "instagram"];
-  if (socialTypes.includes(mt)) return "Informational";
-
-  if (value === "new" && (mt === "youtube" || mt === "image_yandex")) return "Informational";
-  return "New Alert";
-};
-
-
-const MENTION_TYPE_TO_CATEGORY: Record<string, FindingCategory> = {
-  youtube: "Social Media",
-  tiktok: "Social Media",
-  social_tiktok: "Social Media",
-  social_instagram: "Social Media",
-  fake_profile: "Fake Profiles",
-  casting: "Casting Platforms",
-  casting_platform: "Casting Platforms",
-  deepfake: "Deepfakes",
-  face_match: "Deepfakes",
-  ads_commercial: "Ads & Commercial",
-  news: "News & Articles",
-  voice_clone: "Voice Clones",
-  image: "Deepfakes",
-  web: "News & Articles",
-};
-
-const normalizeCategory = (mentionType?: string | null, category?: string | null): FindingCategory => {
-  if (mentionType && MENTION_TYPE_TO_CATEGORY[mentionType]) {
-    return MENTION_TYPE_TO_CATEGORY[mentionType];
-  }
-  const valid = FILTER_TABS.filter((tab) => tab !== "All") as FindingCategory[];
-  return valid.includes(category as FindingCategory) ? (category as FindingCategory) : "News & Articles";
-};
-
-const MENTION_TYPE_TO_MEDIA: Record<string, Finding["mediaType"]> = {
-  youtube: "video",
-  tiktok: "video",
-  social_tiktok: "image",
-  social_instagram: "image",
-  deepfake: "video",
-  face_match: "image",
-  image: "image",
-  fake_profile: "image",
-  casting: "image",
-  casting_platform: "image",
-  ads_commercial: "image",
-  voice_clone: "audio",
-  news: "article",
-  web: "article",
-};
-
-const normalizeMediaType = (mediaType?: string | null, mentionType?: string | null): Finding["mediaType"] => {
-  if (mediaType === "image" || mediaType === "video" || mediaType === "audio" || mediaType === "article") return mediaType;
-  if (mentionType && MENTION_TYPE_TO_MEDIA[mentionType]) return MENTION_TYPE_TO_MEDIA[mentionType];
-  return "article";
-};
-
-const createScanLine = (id: string, platform: string, finding: string): Finding => ({
-  id,
-  platform,
-  finding,
-  category: "News & Articles",
-  date: new Date().toISOString(),
-  lastSeen: new Date().toISOString(),
-  status: "Under Review",
-  url: "#",
-  confidence: 100,
-  recommended: "Report to Platform",
-  mediaType: "article",
-});
-
-const SCAN_LINES: Finding[] = [
-  createScanLine("scan-web", "Web", "Booting identity radar and checking public web indexes…"),
-  createScanLine("scan-social", "Social", "Scanning social platforms for image, name, and profile matches…"),
-  createScanLine("scan-ai", "AI", "Checking AI databases, synthetic media signals, and clone markers…"),
-  createScanLine("scan-news", "News", "Cross-referencing articles, casting listings, and commercial usage…"),
-];
 
 const Monitoring = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const [mentions, setMentions] = useState<Mention[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actorId, setActorId] = useState<string>(DEFAULT_ACTOR_ID);
 
-  const [findings, setFindings] = useState<Finding[]>([]);
-  const [mentions, setMentions] = useState<MentionRow[]>([]);
-  const [filter, setFilter] = useState<(typeof FILTER_TABS)[number]>("All");
-  const [identityFilter, setIdentityFilter] = useState<string>("All");
-  const [threatFilter, setThreatFilter] = useState<string>("All");
-  const [showUnfilteredIdentity, setShowUnfilteredIdentity] = useState(false);
-  const [showUnfilteredThreats, setShowUnfilteredThreats] = useState(false);
-  const [nameTokens, setNameTokens] = useState<string[]>([]);
-  const [searchQ, setSearchQ] = useState("");
-  const [categoryView, setCategoryView] = useState<"All" | "photo" | "social" | "web" | "threats">("All");
-  const [selected, setSelected] = useState<Finding | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const [scanDone, setScanDone] = useState(false);
-  const [liveFeed, setLiveFeed] = useState<Finding[]>([]);
-  const [requestingScan, setRequestingScan] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const scanAbortRef = useRef<AbortController | null>(null);
-  const feedRef = useRef<HTMLDivElement>(null);
-
-  // Multi-select
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const toggleExpanded = (id: string) =>
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-
-  // Folders
-  const [folders, setFolders] = useState<MentionFolder[]>([]);
-  const [activeFolder, setActiveFolder] = useState<string | null>(null); // null = "All", or folder id
-  const [showNewFolder, setShowNewFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [newFolderColor, setNewFolderColor] = useState(FOLDER_COLORS[0]);
-
-  /* ─── Load folders ─── */
-  const loadFolders = useCallback(async () => {
-    if (!user) return;
-    const { data } = await supabase.from("mention_folders").select("*").eq("user_id", user.id).order("created_at");
-    setFolders((data as any[]) ?? []);
-  }, [user]);
-
-  useEffect(() => { loadFolders(); }, [loadFolders]);
-
-  /* ─── Load mentions (always fresh, no cache) ─── */
-  const loadMentions = useCallback(async () => {
-    if (!user) return;
-
-    // Clear any stale state immediately so old results never linger
-    setMentions([]);
-    setFindings([]);
-
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("stage_name, legal_name, full_name, external_actor_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    setNameTokens(buildNameTokens([
-      (prof as any)?.stage_name,
-      (prof as any)?.legal_name,
-      (prof as any)?.full_name,
-    ]));
-
-    const { data: mentionRows, error: mentionError } = await supabase
-      .from("mentions")
-      .select("id, mention_type, title, url, found_at, status, confidence, category, media_type, thumbnail_url, audio_url, excerpt, match_label, folder_id")
-      .eq("user_id", user.id)
-      .order("found_at", { ascending: false });
-
-    if (mentionError) console.warn("Failed to fetch mentions:", mentionError);
-    const dbRows = ((mentionRows ?? []) as any[]) as MentionRow[];
-
-    let externalRows: MentionRow[] = [];
-    const urlParams = new URLSearchParams(window.location.search);
-    const actorOverride = urlParams.get("actor");
-    const externalActorId =
-      actorOverride || (prof as any)?.external_actor_id || "8e53f67f-5290-42ff-bab1-b14dd4d08605";
-    console.log("[Monitoring] using externalActorId:", externalActorId, "profile had:", (prof as any)?.external_actor_id);
-    if (externalActorId) {
-      try {
-        const apiUrl = `https://api.claimmyface.com/mentions/${externalActorId}?_=${Date.now()}`;
-        const res = await fetch(apiUrl, { method: "GET", cache: "no-store" });
-        console.log("[Monitoring] VPS fetch status:", res.status, apiUrl);
-        if (!res.ok) {
-          throw new Error(`Scanner returned HTTP ${res.status}`);
-        }
-        const extData = await res.json();
-        console.log("[Monitoring] extData keys:", Object.keys(extData || {}));
-        const extMentions = extData?.mentions || extData?.results || extData?.data?.mentions || extData?.data || [];
-        const extCount = Array.isArray(extMentions) ? extMentions.length : 0;
-        console.log("[Monitoring] extMentions count:", extCount);
-        if (extCount === 0 && dbRows.length === 0) {
-          toast({
-            title: "Scanner returned 0 results",
-            description: `actor_id ${externalActorId.slice(0, 8)}… has no mentions yet. Click "Request New Scan".`,
-          });
-        }
-        if (Array.isArray(extMentions)) {
-          externalRows = extMentions.map((m: any, i: number) => ({
-            id: m.id || `ext-${i}`,
-            mention_type: m.mention_type || m.platform || "web",
-            title: m.title || m.finding || "",
-            url: m.url || null,
-            found_at: m.found_at || m.date || new Date().toISOString(),
-            status: m.status || "New Alert",
-            confidence: m.confidence ?? 90,
-            category: m.category || null,
-            media_type: m.media_type || null,
-            thumbnail_url: m.thumbnail_url || null,
-            audio_url: m.audio_url || null,
-            excerpt: m.excerpt || null,
-            match_label: m.match_label || null,
-            folder_id: null,
-          }));
-        }
-
-        // Fetch real YouTube titles via oEmbed in parallel
-        const ytRows = externalRows.filter(
-          (r) => (r.mention_type || "").toLowerCase() === "youtube" && r.url
-        );
-        if (ytRows.length > 0) {
-          await Promise.all(
-            ytRows.map(async (r) => {
-              try {
-                const res = await fetch(
-                  `https://www.youtube.com/oembed?url=${encodeURIComponent(r.url!)}&format=json`
-                );
-                if (res.ok) {
-                  const json = await res.json();
-                  r.title = json?.title || "YouTube video";
-                } else {
-                  r.title = "YouTube video";
-                }
-              } catch {
-                r.title = "YouTube video";
-              }
-            })
-          );
-        }
-      } catch (err: any) {
-        console.error("[Monitoring] Failed to fetch external mentions:", err);
-        toast({
-          title: "Could not reach scanner",
-          description: err?.message || "Network error contacting api.claimmyface.com",
-          variant: "destructive",
-        });
-      }
-    }
-
-
-
-    const dbUrls = new Set(dbRows.map(r => r.url).filter(Boolean));
-    const merged = [...dbRows, ...externalRows.filter(r => !r.url || !dbUrls.has(r.url))];
-    setMentions(merged);
-
-    const data: Finding[] = merged.map((m) => {
-      const enrichedTitle = deriveTitle(m.title, m.url);
-      const enrichedExcerpt = deriveExcerpt(m.excerpt, m.url, m.mention_type);
-      const dbCategory = normalizeCategory(m.mention_type, m.category);
-      const isGeneric = isGenericTitle(m.title);
-      const finalCategory = isGeneric || dbCategory === "News & Articles"
-        ? classifyByDomain(m.url, enrichedTitle, enrichedExcerpt)
-        : dbCategory;
-      return {
-        id: m.id,
-        platform: m.mention_type,
-        finding: enrichedTitle,
-        category: finalCategory,
-        date: m.found_at,
-        lastSeen: m.found_at,
-        status: normalizeStatus(m.status, m.mention_type, m.url),
-        url: m.url || "#",
-        confidence: m.confidence ?? 90,
-        recommended: "Report to Platform" as const,
-        mediaType: normalizeMediaType(m.media_type, m.mention_type),
-        thumbnailUrl: m.thumbnail_url ?? undefined,
-        audioUrl: m.audio_url ?? undefined,
-        excerpt: enrichedExcerpt || undefined,
-        matchLabel: m.match_label ?? undefined,
-      };
-    });
-
-    setFindings(data);
-    return data.length;
-  }, [user, toast]);
-
-  // Always re-fetch fresh on mount — never use cached results
-  useEffect(() => { loadMentions(); }, [loadMentions]);
-
-  /* ─── Run scan ─── */
-  const runScan = async () => {
-    if (scanning) {
-      scanAbortRef.current?.abort();
-      scanAbortRef.current = null;
-      setScanning(false);
-      toast({ title: "Scan stopped" });
-      return;
-    }
-    setScanning(true);
-    setScanDone(false);
-    setLiveFeed([]);
-    setSelectedIds(new Set());
-    const controller = new AbortController();
-    scanAbortRef.current = controller;
-
-    let feedIndex = 0;
-    const feedInterval = setInterval(() => {
-      if (controller.signal.aborted) return;
-      setLiveFeed(prev => {
-        const visibleLines = [...SCAN_LINES, ...findings];
-        if (feedIndex < visibleLines.length) {
-          return [...prev, { ...visibleLines[feedIndex], id: `${visibleLines[feedIndex].id}-${feedIndex}` }];
-        }
-        return prev;
-      });
-      if (feedIndex < SCAN_LINES.length + findings.length) {
-        feedIndex++;
-      }
-      if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
-    }, 400);
-
+  const fetchMentions = useCallback(async (id: string) => {
+    setLoading(true);
+    setError(null);
     try {
-      const prevCount = findings.length;
-      const scanPromise = supabase.functions.invoke("actor-registry?action=scan", { method: "POST" });
-      await Promise.race([scanPromise, wait(12000)]);
-      await wait(3200);
-      if (controller.signal.aborted) { clearInterval(feedInterval); return; }
-      await loadMentions();
-      if (controller.signal.aborted) { clearInterval(feedInterval); return; }
-      await wait(500);
-      setScanDone(true);
-      // Read latest count from state via functional setState trick
-      setFindings((curr) => {
-        const newCount = curr.length;
-        if (newCount === prevCount) {
-          toast({ title: "Scan complete", description: `No new results since last check (showing ${newCount} existing).` });
-        } else if (newCount > prevCount) {
-          toast({ title: "Scan complete", description: `${newCount - prevCount} new result${newCount - prevCount === 1 ? "" : "s"} found.` });
-        } else {
-          toast({ title: "Scan complete", description: `Showing ${newCount} result${newCount === 1 ? "" : "s"}.` });
-        }
-        return curr;
-      });
-    } catch (err: any) {
-      if (err.name === "AbortError") { clearInterval(feedInterval); return; }
-      setScanDone(true);
-      toast({ title: "Scan finished", description: "Showing available results." });
-    } finally {
-      clearInterval(feedInterval);
-      setScanning(false);
-      scanAbortRef.current = null;
-    }
-  };
-
-  /* ─── Section partitioning ─── */
-  const matchesQuery = (f: Finding) => {
-    const q = searchQ.trim().toLowerCase();
-    return !q || f.platform.toLowerCase().includes(q) || f.finding.toLowerCase().includes(q);
-  };
-  const hasNameMatch = (f: Finding) => {
-    if (nameTokens.length === 0) return false;
-    const autoPassTypes = ["youtube", "social_tiktok", "social_instagram", "image_yandex", "image"];
-    if (autoPassTypes.includes((f.platform || "").toLowerCase())) return true;
-    const hay = `${f.url || ""} ${f.finding || ""}`.toLowerCase().replace(/%20/g, " ");
-    return nameTokens.some((t) => hay.includes(t));
-  };
-
-  const identityFindings = useMemo(() => {
-    return findings.filter((f) => {
-      const t = (f.platform || "").toLowerCase();
-      if (!IDENTITY_TYPES.has(t)) return false;
-      if (!showUnfilteredIdentity && !hasNameMatch(f)) return false;
-      if (identityFilter !== "All" && t !== identityFilter) return false;
-      return matchesQuery(f);
-    });
-  }, [findings, identityFilter, searchQ, nameTokens, showUnfilteredIdentity]);
-
-  const threatFindings = useMemo(() => {
-    return findings.filter((f) => {
-      const t = (f.platform || "").toLowerCase();
-      if (!THREAT_TYPES.has(t)) return false;
-      if (!showUnfilteredThreats && !hasNameMatch(f)) return false;
-      if (threatFilter !== "All" && t !== threatFilter) return false;
-      return matchesQuery(f);
-    });
-  }, [findings, threatFilter, searchQ, nameTokens, showUnfilteredThreats]);
-
-  // Raw VPS counts per section (independent of name-match filter) for status lines.
-  const identityRawCount = useMemo(
-    () => findings.filter((f) => IDENTITY_TYPES.has((f.platform || "").toLowerCase())).length,
-    [findings]
-  );
-  const threatRawCount = useMemo(
-    () => findings.filter((f) => THREAT_TYPES.has((f.platform || "").toLowerCase())).length,
-    [findings]
-  );
-
-  // Legacy `filtered` kept for any remaining references (folders/bulk panel).
-  const filtered = useMemo(() => [...identityFindings, ...threatFindings], [identityFindings, threatFindings]);
-
-  /* ─── Selection helpers ─── */
-  const allSelected = filtered.length > 0 && filtered.every(f => selectedIds.has(f.id));
-  const someSelected = selectedIds.size > 0;
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
-  const toggleAll = () => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filtered.map(f => f.id)));
-    }
-  };
-
-  /* ─── Actions ─── */
-  const handleDismiss = async (f: Finding) => {
-    await supabase.from("mentions").update({ status: "Resolved" } as any).eq("id", f.id);
-    setFindings(prev => prev.map(x => x.id === f.id ? { ...x, status: "Resolved" as const } : x));
-    toast({ title: "Dismissed — That's you, no action needed." });
-  };
-
-  const deleteFinding = async (f: Finding) => {
-    const { error } = await supabase.from("mentions").delete().eq("id", f.id);
-    if (error) { toast({ title: "Failed to delete", variant: "destructive" }); return; }
-    setFindings(prev => prev.filter(x => x.id !== f.id));
-    setMentions(prev => prev.filter(x => x.id !== f.id));
-    setSelectedIds(prev => { const n = new Set(prev); n.delete(f.id); return n; });
-    if (selected?.id === f.id) setSelected(null);
-    toast({ title: "Deleted" });
-  };
-
-  const bulkDelete = async () => {
-    const ids = Array.from(selectedIds);
-    if (ids.length === 0) return;
-    const { error } = await supabase.from("mentions").delete().in("id", ids);
-    if (error) { toast({ title: "Failed to delete some items", variant: "destructive" }); return; }
-    setFindings(prev => prev.filter(x => !selectedIds.has(x.id)));
-    setMentions(prev => prev.filter(x => !selectedIds.has(x.id)));
-    setSelectedIds(new Set());
-    toast({ title: `Deleted ${ids.length} item${ids.length > 1 ? "s" : ""}` });
-  };
-
-  const bulkMoveToFolder = async (folderId: string) => {
-    const ids = Array.from(selectedIds);
-    if (ids.length === 0) return;
-    const { error } = await supabase.from("mentions").update({ folder_id: folderId } as any).in("id", ids);
-    if (error) { toast({ title: "Failed to move items", variant: "destructive" }); return; }
-    setMentions(prev => prev.map(m => ids.includes(m.id) ? { ...m, folder_id: folderId } : m));
-    setSelectedIds(new Set());
-    const folder = folders.find(f => f.id === folderId);
-    toast({ title: `Moved ${ids.length} item${ids.length > 1 ? "s" : ""} to "${folder?.name}"` });
-  };
-
-  const createFolder = async () => {
-    if (!user || !newFolderName.trim()) return;
-    const { data, error } = await supabase.from("mention_folders").insert({
-      user_id: user.id,
-      name: newFolderName.trim(),
-      color: newFolderColor,
-    } as any).select().single();
-    if (error || !data) { toast({ title: "Failed to create folder", variant: "destructive" }); return; }
-    setFolders(prev => [...prev, data as any]);
-    setNewFolderName("");
-    setShowNewFolder(false);
-    toast({ title: `Folder "${(data as any).name}" created` });
-  };
-
-  const deleteFolder = async (folderId: string) => {
-    await supabase.from("mentions").update({ folder_id: null } as any).eq("folder_id", folderId);
-    await supabase.from("mention_folders").delete().eq("id", folderId);
-    setFolders(prev => prev.filter(f => f.id !== folderId));
-    setMentions(prev => prev.map(m => m.folder_id === folderId ? { ...m, folder_id: null } : m));
-    if (activeFolder === folderId) setActiveFolder(null);
-    toast({ title: "Folder deleted, items moved back to All" });
-  };
-
-  const copyUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  // Count alerts only among items actually visible in the sections below,
-  // so the hero banner can't disagree with what the user sees.
-  const visibleFindings = useMemo(
-    () => [...identityFindings, ...threatFindings],
-    [identityFindings, threatFindings]
-  );
-  const alertCount = visibleFindings.filter(f => f.status === "New Alert").length;
-
-  // Coverage strip — shows which categories the scanner is actively protecting,
-  // with a live count of results returned for each.
-  const coverageCounts = useMemo(() => {
-    const c = { image: 0, video: 0, voice: 0, deepfake: 0, writing: 0 };
-    for (const f of findings) {
-      const t = (f.platform || "").toLowerCase();
-      if (t === "image" || t === "image_yandex" || t === "social_instagram") c.image++;
-      else if (t === "video") c.video++;
-      else if (t === "voice_clone") c.voice++;
-      else if (t === "deepfake") c.deepfake++;
-      else if (t === "web") c.writing++;
-    }
-    return c;
-  }, [findings]);
-
-  /* ─── Trigger a real scan on the external scanner ─── */
-  const handleRequestScan = useCallback(async () => {
-    if (requestingScan) return;
-    setRequestingScan(true);
-    setScanProgress(0);
-
-    const baselineCount = findings.length;
-
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "actor-registry?action=scan",
-        { method: "POST", body: {} },
+      const res = await fetch(
+        `https://api.claimmyface.com/mentions/${id}?_=${Date.now()}`,
+        { method: "GET", cache: "no-store" },
       );
-      if (error || (data && (data as any).error)) {
-        throw new Error(error?.message || (data as any).error || "Scan failed to start");
-      }
-    } catch (err) {
-      console.warn("Failed to trigger scan:", err);
-      toast({
-        title: "Scan failed to start",
-        description: err instanceof Error ? err.message : "Could not reach the scanner.",
-        variant: "destructive",
-      });
-      setRequestingScan(false);
-      setScanProgress(0);
-      return;
-    }
-
-    toast({
-      title: "Scan started",
-      description: "Scanning… this takes up to 3 minutes.",
-    });
-
-    const TOTAL_MS = 240_000; // 4 min ceiling
-    const POLL_MS = 10_000;
-    const start = Date.now();
-    let finalCount = baselineCount;
-    let foundNew = false;
-
-    const progressInterval = setInterval(() => {
-      const pct = Math.min(99, ((Date.now() - start) / TOTAL_MS) * 100);
-      setScanProgress(pct);
-    }, 1000);
-
-    try {
-      while (Date.now() - start < TOTAL_MS) {
-        await new Promise((r) => setTimeout(r, POLL_MS));
-        try {
-          const count = await loadMentions();
-          if (typeof count === "number") finalCount = count;
-          if (typeof count === "number" && count > baselineCount) {
-            foundNew = true;
-            break;
-          }
-        } catch (err) {
-          console.warn("Poll loadMentions failed:", err);
-        }
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const list: Mention[] =
+        (Array.isArray(data?.mentions) && data.mentions) ||
+        (Array.isArray(data?.results) && data.results) ||
+        [];
+      setMentions(list);
+    } catch (err: any) {
+      console.error("[Monitoring] fetch failed:", err);
+      setError(err?.message || "Failed to load mentions");
+      setMentions([]);
     } finally {
-      clearInterval(progressInterval);
-      setScanProgress(100);
-      if (foundNew) {
-        toast({
-          title: "Scan complete",
-          description: `${finalCount - baselineCount} new result${finalCount - baselineCount === 1 ? "" : "s"} found.`,
-        });
-      } else {
-        toast({
-          title: "Scan complete",
-          description: `No new results (showing ${finalCount}).`,
-        });
-      }
-      setRequestingScan(false);
-      setTimeout(() => setScanProgress(0), 1500);
+      setLoading(false);
     }
-  }, [requestingScan, toast, loadMentions, findings.length]);
+  }, []);
 
+  // Resolve actor id from profile (fallback to default), then fetch once.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let id = DEFAULT_ACTOR_ID;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const override = params.get("actor");
+        if (override) {
+          id = override;
+        } else if (user) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("external_actor_id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          const profileId = (data as any)?.external_actor_id;
+          if (profileId) id = profileId;
+        }
+      } catch {
+        /* fall through to default */
+      }
+      if (cancelled) return;
+      setActorId(id);
+      fetchMentions(id);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, fetchMentions]);
 
+  const photo = mentions.filter((m) => PHOTO_TYPES.has(m.mention_type));
+  const social = mentions.filter((m) => SOCIAL_TYPES.has(m.mention_type));
+  const web = mentions.filter((m) => WEB_TYPES.has(m.mention_type));
 
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto">
-        {/* ─── HERO HEADER ─── */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+        <div className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-2">
             The <span className="text-primary">Scanner</span>
           </h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
-            What we found across the web and social media for your mapped identity — face, voice, videos, names.
+            What we found across the web and social media for your mapped
+            identity.
           </p>
-        </motion.div>
+        </div>
 
-        {/* ─── LAST SCAN STATUS CARD ─── */}
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-6 md:p-8 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">Last Scan</p>
-                <p className="text-lg font-semibold text-foreground">
-                  {mentions[0]?.found_at
-                    ? new Date(mentions[0].found_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
-                    : "No scans yet"}
-                </p>
-                {alertCount > 0 && (
-                  <p className="text-sm text-primary mt-1 flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    {alertCount} alert{alertCount > 1 ? "s" : ""} need your attention
-                  </p>
-                )}
-              </div>
+        <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-primary" />
             </div>
-            <div className="flex flex-col items-stretch md:items-end gap-2 md:min-w-[260px]">
-              <Button
-                onClick={handleRequestScan}
-                disabled={requestingScan}
-                size="lg"
-                className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-              >
-                <RefreshCw className={`w-4 h-4 ${requestingScan ? "animate-spin" : ""}`} />
-                {requestingScan ? "Scanning…" : "Request New Scan"}
-              </Button>
-              {requestingScan && (
-                <div className="w-full space-y-1">
-                  <Progress value={scanProgress} className="h-2" />
-                  <p className="text-xs text-muted-foreground text-center md:text-right">
-                    Scanning… this takes 2–3 minutes
-                  </p>
-                </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                Live Results
+              </p>
+              <p className="text-lg font-semibold">
+                {loading ? "Loading…" : `${mentions.length} mention${mentions.length === 1 ? "" : "s"}`}
+              </p>
+              {error && (
+                <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                  <AlertTriangle className="w-3 h-3" /> {error}
+                </p>
               )}
             </div>
           </div>
-        </motion.div>
+          <Button
+            onClick={() => fetchMentions(actorId)}
+            disabled={loading}
+            size="lg"
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
 
-
-        {/* ─── LIVE TERMINAL FEED (during scan) ─── */}
-        <AnimatePresence>
-          {scanning && liveFeed.length > 0 && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-8">
-              <div className="rounded-2xl border border-primary/20 bg-[hsl(var(--background))]/80 backdrop-blur-sm overflow-hidden">
-                <div className="px-4 py-3 border-b border-border/20 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-xs font-mono text-primary uppercase tracking-wider">Live Feed</span>
-                  <span className="text-xs text-muted-foreground font-mono ml-auto">{liveFeed.length} found</span>
-                </div>
-                <div ref={feedRef} className="max-h-72 overflow-y-auto p-3 space-y-1.5 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
-                  {liveFeed.map((f, i) => (
-                    <TerminalLine key={f.id + "-feed-" + i} finding={f} index={i} />
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ─── COVERAGE STRIP ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-          className="mb-6 rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-4"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-              What we protect &amp; scan for
-            </p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {[
-              { key: "image", label: "Image", Icon: ImageIcon, count: coverageCounts.image },
-              { key: "video", label: "Video", Icon: Video, count: coverageCounts.video },
-              { key: "voice", label: "Voice", Icon: Mic, count: coverageCounts.voice },
-              { key: "deepfake", label: "Deepfake", Icon: UserX, count: coverageCounts.deepfake },
-              { key: "writing", label: "Writing", Icon: PenLine, count: coverageCounts.writing },
-            ].map(({ key, label, Icon, count }) => (
-              <div
-                key={key}
-                className="flex flex-col items-center gap-1 rounded-xl border border-border/30 bg-background/30 p-3 hover:border-primary/40 transition-colors"
-              >
-                <Icon className="w-4 h-4 text-primary" />
-                <p className="text-[11px] font-semibold text-foreground">{label}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {count} found
-                </p>
-              </div>
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground/70 mt-3 text-center">
-            Coverage is active across all categories — counts update with each scan.
-          </p>
-        </motion.div>
-
-        {/* ─── SHARED SEARCH ─── */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-4 flex items-center gap-2">
-          <Search className="w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search across all results…"
-            value={searchQ}
-            onChange={(e) => setSearchQ(e.target.value)}
-            className="max-w-md bg-background/40 border-border/30"
-          />
-        </motion.div>
-
-        {(() => {
-          const renderRow = (f: Finding) => {
-            const PIcon = getPlatformIcon(f.platform);
-            const s = STATUS_STYLES[f.status] ?? STATUS_STYLES["New Alert"];
-            const isYandex = (f.platform || "").toLowerCase() === "image_yandex";
-            const isImage = !isYandex && (f.mediaType === "image" || (f.platform || "").toLowerCase().includes("image"));
-            const previewSrc = isYandex ? undefined : (f.thumbnailUrl || (isImage ? f.url : undefined));
-            const expanded = expandedIds.has(f.id);
-            return (
-              <div key={f.id} className="border-b border-border/10 last:border-b-0">
-              <div
-                className="flex items-start gap-3 px-5 py-4 hover:bg-primary/5 transition-colors group cursor-pointer"
-                onClick={() => {
-                  if (f.url && f.url !== "#") {
-                    window.open(f.url, "_blank", "noopener,noreferrer");
-                  } else if (isImage && previewSrc) {
-                    toggleExpanded(f.id);
-                  } else {
-                    setSelected(f);
-                  }
-                }}
-              >
-                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
-                  {f.url && f.url !== "#" && faviconUrl(f.url) ? (
-                    <img
-                      src={faviconUrl(f.url)}
-                      alt=""
-                      className="w-5 h-5 rounded-sm"
-                      onError={(e) => {
-                        const img = e.currentTarget;
-                        img.style.display = "none";
-                        const sib = img.nextElementSibling as HTMLElement | null;
-                        if (sib) sib.style.display = "block";
-                      }}
-                    />
-                  ) : null}
-                  <PIcon className="w-4 h-4 text-primary" style={{ display: f.url && f.url !== "#" && faviconUrl(f.url) ? "none" : "block" }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      {isImage && previewSrc ? (
-                        <HoverCard openDelay={150} closeDelay={80}>
-                          <HoverCardTrigger asChild>
-                            <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
-                          </HoverCardTrigger>
-                          <HoverCardContent side="right" className="w-64 p-2">
-                            <img
-                              src={previewSrc}
-                              alt={f.finding}
-                              className="w-full h-auto max-h-64 object-contain rounded"
-                              loading="lazy"
-                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                            />
-                            <p className="text-[10px] text-muted-foreground mt-1 truncate">{extractDomain(f.url)}</p>
-                          </HoverCardContent>
-                        </HoverCard>
-                      ) : (
-                        <p className="text-sm font-medium text-foreground whitespace-normal break-words leading-snug">{f.finding}</p>
-                      )}
-                      {f.excerpt && (
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{f.excerpt}</p>
-                      )}
-                      {f.url && f.url !== "#" && (
-                        <a
-                          href={f.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="block mt-1 text-xs text-blue-400 hover:text-blue-300 hover:underline truncate"
-                        >
-                          {f.url}
-                        </a>
-                      )}
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/30 text-primary/80 bg-primary/5 uppercase tracking-wider">
-                          {f.platform}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{extractDomain(f.url) || f.platform}</span>
-                        <span className="text-[10px] text-muted-foreground/50">•</span>
-                        <span className="text-xs text-muted-foreground font-mono">{new Date(f.date).toLocaleDateString()}</span>
-                        {f.url && f.url !== "#" && (
-                          <>
-                            <span className="text-[10px] text-muted-foreground/50">•</span>
-                            {isImage && previewSrc ? (
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); toggleExpanded(f.id); }}
-                                className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5"
-                              >
-                                {expanded ? "Hide preview" : "Preview"} <ImageIcon className="w-3 h-3" />
-                              </button>
-                            ) : (
-                              <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary/70 hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-                                {isYandex ? "View Image" : "Source"} <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${s.pill}`}>{s.label}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-emerald-500 hover:bg-emerald-500/10" onClick={() => handleDismiss(f)} title="That's me — dismiss">
-                    <ThumbsUp className="w-4 h-4" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" title="Not me — take action">
-                        <ThumbsDown className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to="/tools/dmca" className="flex items-center gap-2"><Gavel className="w-4 h-4" /> File DMCA Notice</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/tools/contracts" className="flex items-center gap-2"><FileWarning className="w-4 h-4" /> Cease & Desist</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/dashboard/violations" className="flex items-center gap-2"><Flag className="w-4 h-4" /> Report to Platform</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive focus:text-destructive flex items-center gap-2" onClick={() => deleteFinding(f)}>
-                        <Trash2 className="w-4 h-4" /> Delete permanently
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-primary hover:bg-primary/10" onClick={() => setSelected(f)} title="View details">
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-              {isImage && previewSrc && expanded && (
-                <div className="px-5 pb-4 -mt-1">
-                  <div className="rounded-lg border border-border/30 bg-background/40 p-3 flex flex-col items-center">
-                    <img
-                      src={previewSrc}
-                      alt={f.finding}
-                      className="max-h-80 w-auto object-contain rounded"
-                      loading="lazy"
-                      onError={(e) => {
-                        const el = e.currentTarget as HTMLImageElement;
-                        el.replaceWith(Object.assign(document.createElement("p"), { textContent: "Preview unavailable", className: "text-xs text-muted-foreground" }));
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-              </div>
-            );
-          };
-
-          // Category buckets keyed off mention_type (stored in f.platform).
-          const CATEGORY_DEFS: {
-            key: "photo" | "social" | "web" | "threats";
-            label: string;
-            description: string;
-            accent: string;
-            types: string[];
-          }[] = [
-            {
-              key: "photo",
-              label: "Photo Matches",
-              description: "Images and face matches found across the web.",
-              accent: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-              types: ["image", "image_yandex"],
-            },
-            {
-              key: "social",
-              label: "Social Media",
-              description: "Instagram, TikTok, and YouTube appearances.",
-              accent: "border-blue-500/40 text-blue-400 bg-blue-500/10",
-              types: ["social_instagram", "social_tiktok", "youtube"],
-            },
-            {
-              key: "web",
-              label: "Web Mentions",
-              description: "General web pages mentioning you.",
-              accent: "border-amber-500/40 text-amber-400 bg-amber-500/10",
-              types: ["web", "news"],
-            },
-            {
-              key: "threats",
-              label: "Threats",
-              description: "Deepfakes, voice clones, and impersonation profiles.",
-              accent: "border-primary/40 text-primary bg-primary/10",
-              types: ["deepfake", "voice_clone", "fake_profile"],
-            },
-          ];
-
-          const bucketFor = (f: Finding) => {
-            const t = f.platform || "";
-            return CATEGORY_DEFS.find((c) => c.types.includes(t));
-          };
-
-          const buckets: Record<string, Finding[]> = {
-            photo: [], social: [], web: [], threats: [],
-          };
-          for (const f of findings) {
-            const b = bucketFor(f);
-            if (!b) continue;
-            buckets[b.key].push(f);
-          }
-
-          const TABS = [
-            { key: "All" as const, label: "All", count: findings.length },
-            ...CATEGORY_DEFS.map((c) => ({
-              key: c.key, label: c.label, count: buckets[c.key].length,
-            })),
-          ];
-
-          const renderSection = (def: typeof CATEGORY_DEFS[number]) => {
-            const items = buckets[def.key];
-            return (
-              <motion.div
-                key={def.key}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm mb-6"
-              >
-                <div className="px-5 py-4 border-b border-border/20 flex items-center gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-display text-lg font-semibold">{def.label}</h2>
-                      <Badge variant="outline" className={`text-xs ${def.accent}`}>
-                        {items.length}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{def.description}</p>
-                  </div>
-                </div>
-                <div className="divide-y divide-border/10">
-                  {items.length === 0 ? (
-                    <div className="py-8 text-center text-sm text-muted-foreground">
-                      No results yet
-                    </div>
-                  ) : (
-                    items.map(renderRow)
-                  )}
-                </div>
-              </motion.div>
-            );
-          };
-
-          return (
-            <>
-              {/* ─── CATEGORY TABS ─── */}
-              <div className="mb-6 flex flex-wrap gap-2">
-                {TABS.map((t) => (
-                  <button
-                    key={t.key}
-                    onClick={() => setCategoryView(t.key)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                      categoryView === t.key
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-secondary/30 text-muted-foreground border-border/30 hover:text-foreground hover:border-border"
-                    }`}
-                  >
-                    {t.label}
-                    <span className="text-[10px] opacity-70">{t.count}</span>
-                  </button>
-                ))}
-              </div>
-
-              {categoryView === "All"
-                ? CATEGORY_DEFS.map(renderSection)
-                : renderSection(CATEGORY_DEFS.find((c) => c.key === categoryView)!)}
-            </>
-          );
-        })()}
-
-        {/* ─── SOCIAL IMPERSONATION DETECTION ─── */}
-        <ImpersonatorDetection />
-
-        {/* ─── QUICK ACTIONS ─── */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid sm:grid-cols-3 gap-3 mb-8">
-          <Link to="/tools/dmca">
-            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"><Gavel className="w-4 h-4" /> Generate DMCA Notice</Button>
-          </Link>
-          <Link to="/tools/contracts">
-            <Button variant="outline" className="w-full gap-2"><FileWarning className="w-4 h-4" /> Cease & Desist</Button>
-          </Link>
-          <Link to="/dashboard/violations">
-            <Button variant="outline" className="w-full gap-2"><Flag className="w-4 h-4" /> Report Violation</Button>
-          </Link>
-        </motion.div>
+        <Section title="Photo Matches" items={photo} Icon={ImageIcon} />
+        <Section title="Social Media" items={social} Icon={Instagram} />
+        <Section title="Web Mentions" items={web} Icon={Globe} />
       </div>
-
-      {/* ─── DETAIL DIALOG ─── */}
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-lg">
-          {selected && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-display text-xl">{selected.platform}</DialogTitle>
-                <DialogDescription className="whitespace-normal break-words">{selected.finding}</DialogDescription>
-              </DialogHeader>
-
-              {/* Compact source preview */}
-              {selected.url && selected.url !== "#" && (
-                <div className="space-y-2">
-                  {selected.thumbnailUrl && (selected.platform || "").toLowerCase() !== "image_yandex" ? (
-                    <a
-                      href={selected.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block rounded-lg overflow-hidden border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors"
-                    >
-                      <img
-                        src={selected.thumbnailUrl}
-                        alt={selected.finding}
-                        className="w-full max-h-40 object-contain bg-black/40"
-                        loading="lazy"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                      />
-                    </a>
-                  ) : null}
-                  <a
-                    href={selected.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-lg border border-border/40 bg-secondary/20 hover:border-primary/40 transition-colors p-3"
-                  >
-                    {faviconUrl(selected.url) ? (
-                      <img src={faviconUrl(selected.url)} alt="" className="w-6 h-6 rounded-sm shrink-0" />
-                    ) : (
-                      <Globe className="w-6 h-6 text-primary shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{extractDomain(selected.url) || "Source"}</p>
-                      <p className="text-xs text-muted-foreground truncate">{selected.url}</p>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-primary shrink-0" />
-                  </a>
-                </div>
-              )}
-
-
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-muted-foreground">URL</span>
-                  <div className="flex items-center gap-2 max-w-[60%]">
-                    <a href={selected.url} target="_blank" rel="noreferrer" className="truncate text-foreground hover:text-primary inline-flex items-center gap-1">
-                      {selected.url} <ExternalLink className="w-3 h-3 shrink-0" />
-                    </a>
-                    <button onClick={() => copyUrl(selected.url)} className="text-muted-foreground hover:text-foreground" aria-label="Copy URL">
-                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date detected</span>
-                  <span className="text-foreground">{new Date(selected.date).toLocaleDateString()}</span>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-muted-foreground">AI confidence</span>
-                    <span className="text-foreground font-medium">{selected.confidence}%</span>
-                  </div>
-                  <Progress value={selected.confidence} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1" onClick={() => { handleDismiss(selected); setSelected(null); }}>
-                  <ThumbsUp className="w-4 h-4" /> That's Me
-                </Button>
-                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1">
-                  <Link to="/tools/dmca"><Gavel className="w-4 h-4" /> File DMCA</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/tools/contracts"><FileWarning className="w-4 h-4 mr-1" /> Cease & Desist</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/dashboard/violations"><Flag className="w-4 h-4 mr-1" /> Report</Link>
-                </Button>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   );
 };
