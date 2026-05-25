@@ -56,7 +56,13 @@ const PerformerProfileTab = () => {
         profession: data?.profession ?? "",
         signature_phrase: data?.signature_phrase ?? "",
         trademark_entity: data?.trademark_entity ?? "",
+        writing_sample: data?.writing_sample ?? "",
       });
+      setHeadshotPreview(data?.headshot_url ?? null);
+      if (data?.voice_print_url) {
+        const { data: signedVoice } = await supabase.storage.from("voice-prints").createSignedUrl(data.voice_print_url, 600);
+        setVoicePreview(signedVoice?.signedUrl ?? null);
+      }
 
 
       const paths = [data?.face_capture_front_url, data?.face_capture_left_url, data?.face_capture_right_url].filter(Boolean) as string[];
