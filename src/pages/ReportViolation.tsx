@@ -112,9 +112,29 @@ const ReportViolation = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    This report is logged in your ClaimMyFace account for our team to review.
+                    To actually get the content removed, you'll also need to file directly with the
+                    platform — we'll show you the right link as soon as you paste the URL.
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label>Infringing URL</Label>
                   <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/infringing-content" required />
+                  {url && detectPlatform(url) && (
+                    <div className="mt-2 rounded-lg border border-accent/30 bg-accent/5 p-3 flex items-center justify-between gap-3">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Detected: <span className="text-accent font-semibold">{detectPlatform(url)!.name}</span> — file an official IP report directly with them for fastest removal.
+                      </p>
+                      <Button asChild size="sm" variant="outline" className="shrink-0">
+                        <a href={detectPlatform(url)!.takedownUrl} target="_blank" rel="noopener noreferrer">
+                          Open {detectPlatform(url)!.name} form <ExternalLink className="w-3 h-3 ml-1" />
+                        </a>
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Description</Label>
@@ -126,6 +146,7 @@ const ReportViolation = () => {
                 </div>
                 <div className="flex gap-3">
                   <Button type="submit" disabled={submitting} className="font-display">
+                    <Send className="w-4 h-4 mr-1" />
                     {submitting ? "Submitting..." : "Submit Report"}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
