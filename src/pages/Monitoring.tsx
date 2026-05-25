@@ -18,6 +18,10 @@ import {
   FileText,
   Gavel,
   Flag,
+  Video,
+  ScanFace,
+  Mic,
+  PenLine,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,9 +39,13 @@ interface Mention {
   actor_name?: string | null;
 }
 
-const PHOTO_TYPES = new Set(["image_yandex"]);
-const SOCIAL_TYPES = new Set(["social_instagram", "social_tiktok", "youtube"]);
+const PHOTO_TYPES = new Set(["image_yandex", "image"]);
+const VIDEO_TYPES = new Set(["youtube"]);
+const SOCIAL_TYPES = new Set(["social_instagram", "social_tiktok"]);
 const WEB_TYPES = new Set(["web", "news"]);
+const DEEPFAKE_TYPES = new Set(["deepfake"]);
+const VOICE_TYPES = new Set(["voice"]);
+const WRITING_TYPES = new Set(["writing"]);
 
 function extractDomain(url?: string | null) {
   if (!url) return "";
@@ -339,8 +347,12 @@ const Monitoring = () => {
   }, [user, fetchMentions]);
 
   const photo = mentions.filter((m) => PHOTO_TYPES.has(m.mention_type));
+  const video = mentions.filter((m) => VIDEO_TYPES.has(m.mention_type));
   const social = mentions.filter((m) => SOCIAL_TYPES.has(m.mention_type));
   const web = mentions.filter((m) => WEB_TYPES.has(m.mention_type));
+  const deepfake = mentions.filter((m) => DEEPFAKE_TYPES.has(m.mention_type));
+  const voice = mentions.filter((m) => VOICE_TYPES.has(m.mention_type));
+  const writing = mentions.filter((m) => WRITING_TYPES.has(m.mention_type));
 
   return (
     <DashboardLayout>
@@ -386,8 +398,13 @@ const Monitoring = () => {
         </div>
 
         <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Social Media / Video" items={video} Icon={Video} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} />
         <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Deepfake Detection" items={deepfake} Icon={ScanFace} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Voice Clones" items={voice} Icon={Mic} verdicts={verdicts} setVerdict={setVerdict} />
+        <Section title="Writing Plagiarism" items={writing} Icon={PenLine} verdicts={verdicts} setVerdict={setVerdict} />
+
       </div>
     </DashboardLayout>
   );
