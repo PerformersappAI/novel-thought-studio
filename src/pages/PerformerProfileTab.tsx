@@ -189,19 +189,34 @@ const PerformerProfileTab = () => {
               <Label>Agency / Manager Website</Label>
               <LinkPreviewInput type="url" placeholder="agency.com" value={form.agency_name} onChange={(v) => update("agency_name", v)} />
             </div>
-            <div className="space-y-2">
-              <Label>Instagram</Label>
-              <LinkPreviewInput type="instagram" placeholder="@handle" value={form.instagram_handle} onChange={(v) => update("instagram_handle", v)} />
+            <div className="sm:col-span-2 rounded-xl border border-border/60 bg-card/40 p-4 flex gap-3 items-start">
+              <Shield className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                To find you accurately across the web, we need your real handles and names. We can only monitor platforms you're on — but we can also flag accounts on platforms you're NOT on that may be impersonating you. The more you fill in, the better we protect you. We never sell your data, share it, or use it to train AI. Ever.
+              </p>
             </div>
             <div className="space-y-2">
-              <Label>TikTok</Label>
-              <LinkPreviewInput type="tiktok" placeholder="@handle" value={form.tiktok_handle} onChange={(v) => update("tiktok_handle", v)} />
+              <Label>Your Instagram Handle</Label>
+              <LinkPreviewInput type="instagram" placeholder="@yourhandle" value={form.instagram_handle} onChange={(v) => update("instagram_handle", v)} />
             </div>
             <div className="space-y-2">
-              <Label>YouTube</Label>
-              <LinkPreviewInput type="youtube" placeholder="@handle" value={form.youtube_handle} onChange={(v) => update("youtube_handle", v)} />
+              <Label>Your TikTok Handle</Label>
+              <LinkPreviewInput type="tiktok" placeholder="@yourhandle" value={form.tiktok_handle} onChange={(v) => update("tiktok_handle", v)} />
             </div>
-          </div>
+            <div className="space-y-2">
+              <Label>Your YouTube Channel</Label>
+              <LinkPreviewInput type="youtube" placeholder="@yourchannel" value={form.youtube_handle} onChange={(v) => update("youtube_handle", v)} />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Known As / Nicknames</Label>
+              <Input
+                placeholder="Will Roberts, William Roberts, Wild Will"
+                value={form.aka_names}
+                onChange={(e) => update("aka_names", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Comma separated — every name people might know you by helps the scanner find you.</p>
+            </div>
+
 
           <div className="rounded-xl border border-primary/30 bg-card/40 p-5 space-y-3">
             <div className="flex items-start justify-between gap-4">
