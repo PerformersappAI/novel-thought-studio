@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Loader2, Lock, RefreshCw, Shield, Stamp, ArrowRight } from "lucide-react";
+import { Loader2, Lock, RefreshCw, Shield, Stamp, ArrowRight, Mic, FileText, Camera, Upload } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import TrustBanner from "@/components/onboarding/TrustBanner";
 import DashboardTrustFooter from "@/components/dashboard/DashboardTrustFooter";
@@ -31,6 +31,59 @@ const PerformerProfileTab = () => {
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState<any>({});
   const [thumbs, setThumbs] = useState<string[]>([]);
+  const [headshotPreview, setHeadshotPreview] = useState<string | null>(null);
+  const [voicePreview, setVoicePreview] = useState<string | null>(null);
+  const [uploadingHeadshot, setUploadingHeadshot] = useState(false);
+  const [uploadingVoice, setUploadingVoice] = useState(false);
+
+  const uploadHeadshot = async (file: File) => {
+    if (!user) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image too large (max 10MB)", variant: "destructive" });
+      return;
+    }
+    setUploadingHeadshot(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${user.id}/headshot-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("headshots").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploadingHeadshot(false);
+      toast({ title: "Upload failed", description: upErr.message, variant: "destructive" });
+      return;
+    }
+    const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
+    const url = pub.publicUrl;
+    await supabase.from("profiles").update({ headshot_url: url } as any).eq("user_id", user.id);
+    setHeadshotPreview(url);
+    setUploadingHeadshot(false);
+    toast({ title: "Headshot uploaded" });
+  };
+
+  const uploadVoice = async (file: File) => {
+    if (!user) return;
+    if (!/^audio\/(mpeg|mp3|wav|x-wav|wave)$/i.test(file.type) && !/\.(mp3|wav)$/i.test(file.name)) {
+      toast({ title: "Use MP3 or WAV format", variant: "destructive" });
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      toast({ title: "File too large (max 25MB)", variant: "destructive" });
+      return;
+    }
+    setUploadingVoice(true);
+    const ext = file.name.split(".").pop() || "mp3";
+    const path = `${user.id}/voice_sample-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("voice-prints").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploadingVoice(false);
+      toast({ title: "Upload failed", description: upErr.message, variant: "destructive" });
+      return;
+    }
+    await supabase.from("profiles").update({ voice_print_url: path } as any).eq("user_id", user.id);
+    const { data: signed } = await supabase.storage.from("voice-prints").createSignedUrl(path, 600);
+    setVoicePreview(signed?.signedUrl ?? null);
+    setUploadingVoice(false);
+    toast({ title: "Voice sample uploaded" });
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -56,7 +109,13 @@ const PerformerProfileTab = () => {
         profession: data?.profession ?? "",
         signature_phrase: data?.signature_phrase ?? "",
         trademark_entity: data?.trademark_entity ?? "",
+        writing_sample: data?.writing_sample ?? "",
       });
+      setHeadshotPreview(data?.headshot_url ?? null);
+      if (data?.voice_print_url) {
+        const { data: signedVoice } = await supabase.storage.from("voice-prints").createSignedUrl(data.voice_print_url, 600);
+        setVoicePreview(signedVoice?.signedUrl ?? null);
+      }
 
 
       const paths = [data?.face_capture_front_url, data?.face_capture_left_url, data?.face_capture_right_url].filter(Boolean) as string[];
@@ -91,6 +150,8 @@ const PerformerProfileTab = () => {
       .update({
         ...rest,
         aka_names: akaArray.length ? akaArray : null,
+        profession: form.profession || null,
+        writing_sample: form.writing_sample?.trim() || null,
         full_name: form.legal_name,
         bio: (form.bio || "").slice(0, 250) || null,
       } as any)
@@ -216,7 +277,80 @@ const PerformerProfileTab = () => {
               />
               <p className="text-xs text-muted-foreground">Comma separated — every name people might know you by helps the scanner find you.</p>
             </div>
+
+            <div className="sm:col-span-2 space-y-2">
+              <Label className="flex items-center gap-2"><Camera className="w-4 h-4 text-primary" /> Your Professional Headshot</Label>
+              <p className="text-xs text-muted-foreground">Used to find unauthorized use of your image online.</p>
+              <div className="flex items-center gap-4">
+                {headshotPreview && (
+                  <div className="w-20 h-20 rounded-lg overflow-hidden border border-border bg-muted/20 shrink-0">
+                    <img src={headshotPreview} alt="Headshot" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <label className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingHeadshot}
+                    onChange={(e) => e.target.files?.[0] && uploadHeadshot(e.target.files[0])}
+                  />
+                  <div className="border border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/60 transition-colors">
+                    {uploadingHeadshot ? (
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                    ) : (
+                      <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                        <Upload className="w-4 h-4" /> {headshotPreview ? "Replace headshot" : "Upload headshot"}
+                      </p>
+                    )}
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="sm:col-span-2 space-y-2">
+              <Label className="flex items-center gap-2"><Mic className="w-4 h-4 text-primary" /> Your Voice Sample</Label>
+              <p className="text-xs text-muted-foreground">Used to detect unauthorized voice clones. MP3 or WAV, under 2 minutes.</p>
+              {voicePreview && (
+                <audio controls src={voicePreview} className="w-full h-10" />
+              )}
+              <label className="block">
+                <input
+                  type="file"
+                  accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,.mp3,.wav"
+                  className="hidden"
+                  disabled={uploadingVoice}
+                  onChange={(e) => e.target.files?.[0] && uploadVoice(e.target.files[0])}
+                />
+                <div className="border border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/60 transition-colors">
+                  {uploadingVoice ? (
+                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  ) : (
+                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Upload className="w-4 h-4" /> {voicePreview ? "Replace voice sample" : "Upload voice sample"}
+                    </p>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            <div className="sm:col-span-2 space-y-2">
+              <Label className="flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Your Writing Sample</Label>
+              <p className="text-xs text-muted-foreground">
+                Used to detect plagiarism of your content. Minimum 100 words.{" "}
+                <span className={((form.writing_sample || "").trim().split(/\s+/).filter(Boolean).length >= 100) ? "text-green-500" : "text-muted-foreground"}>
+                  ({(form.writing_sample || "").trim().split(/\s+/).filter(Boolean).length} words)
+                </span>
+              </p>
+              <Textarea
+                rows={6}
+                placeholder="Paste a sample of your writing here — a blog post, article, or social caption you've written."
+                value={form.writing_sample || ""}
+                onChange={(e) => update("writing_sample", e.target.value)}
+              />
+            </div>
           </div>
+
 
 
 
