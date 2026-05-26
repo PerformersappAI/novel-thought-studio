@@ -43,7 +43,15 @@ const CertificateCard = ({ profile }: Props) => {
     profile?.stage_name || profile?.full_name || profile?.legal_name || "Performer";
   const legalName = profile?.legal_name || profile?.full_name || "";
 
-  if (!profile?.face_registered_at) return null;
+  const hasName = !!(profile?.legal_name || profile?.full_name || profile?.stage_name);
+  const hasIdentityAnchor = !!(
+    profile?.face_registered_at ||
+    profile?.face_descriptor ||
+    profile?.voice_print_url ||
+    profile?.writing_sample ||
+    assetsCount > 0
+  );
+  if (!hasName || !hasIdentityAnchor) return null;
 
   const downloadPdf = async () => {
     setDownloading(true);
