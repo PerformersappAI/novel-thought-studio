@@ -190,7 +190,7 @@ const PerformerProfileTab = () => {
 
         <div>
           <h1 className="font-display text-3xl font-bold">Profile</h1>
-          <p className="text-sm text-muted-foreground">Manage your performer profile and face registration.</p>
+          <p className="text-sm text-muted-foreground">Manage your performer profile and headshot registration.</p>
         </div>
 
         <div className="glass-card rounded-2xl p-6 space-y-5">
@@ -365,7 +365,7 @@ const PerformerProfileTab = () => {
             </div>
             <div className="flex gap-2 items-start text-xs text-muted-foreground border-t border-border/40 pt-3">
               <Lock className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-              <p>Your personal data and face captures are never shared — only your name, performance type, and market.</p>
+              <p>Your personal data and headshot are never shared — only your name, performance type, and market.</p>
             </div>
           </div>
 
@@ -377,51 +377,37 @@ const PerformerProfileTab = () => {
         <div className="glass-card rounded-2xl p-6 space-y-5">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Face Registration
+              <Shield className="w-5 h-5 text-primary" /> Headshot Registration
             </h2>
             <Button asChild variant="outline" size="sm">
-              <Link to="/onboarding/face-capture"><RefreshCw className="w-3.5 h-3.5 mr-1" /> Update Face Registration</Link>
+              <Link to="/onboarding/face-capture"><RefreshCw className="w-3.5 h-3.5 mr-1" /> Update Headshot</Link>
             </Button>
           </div>
 
-          {profile?.face_registered_at ? (
-            <>
-              <div className="grid grid-cols-3 gap-3">
-                {thumbs.map((url, i) => (
-                  <div key={i} className="space-y-1">
-                    <div className="aspect-square rounded-lg overflow-hidden border border-border bg-muted/20">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground text-center">
-                      {new Date(profile.face_registered_at).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="grid sm:grid-cols-2 gap-3 text-sm">
+          {headshotPreview ? (
+            <div className="flex flex-col sm:flex-row gap-5 items-start">
+              <img
+                src={headshotPreview}
+                alt="Registered headshot"
+                className="w-40 h-40 rounded-xl object-cover border-2 border-primary/30"
+              />
+              <div className="grid grid-cols-1 gap-3 text-sm flex-1">
                 <div className="rounded-lg border border-border/60 bg-card/40 p-3">
                   <p className="text-xs text-muted-foreground">Registered On</p>
-                  <p className="font-mono">{new Date(profile.face_registered_at).toLocaleString()}</p>
+                  <p className="font-mono">
+                    {profile?.face_registered_at ? new Date(profile.face_registered_at).toLocaleString() : "—"}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-border/60 bg-card/40 p-3">
-                  <p className="text-xs text-muted-foreground">Face Hash</p>
-                  <p className="font-mono text-xs break-all">{descriptorPreview}</p>
+                  <p className="text-xs text-muted-foreground">Reference URL</p>
+                  <p className="font-mono text-xs break-all">{headshotPreview}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Registration History</p>
-                <div className="border-l-2 border-primary/40 pl-4 space-y-2">
-                  <div>
-                    <p className="text-sm">Face baseline registered</p>
-                    <p className="text-xs text-muted-foreground">{new Date(profile.face_registered_at).toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-            </>
+            </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border p-6 text-center">
-              <p className="text-sm text-muted-foreground mb-3">You haven't registered your face yet.</p>
-              <Button asChild><Link to="/onboarding/face-capture">Start Face Registration</Link></Button>
+              <p className="text-sm text-muted-foreground mb-3">You haven't uploaded a headshot yet.</p>
+              <Button asChild><Link to="/onboarding/face-capture">Upload Headshot</Link></Button>
             </div>
           )}
         </div>
