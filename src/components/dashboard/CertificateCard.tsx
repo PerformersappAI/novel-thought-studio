@@ -16,6 +16,27 @@ const CertificateCard = ({ profile }: Props) => {
   const [assetsCount, setAssetsCount] = useState(0);
   const [registryId, setRegistryId] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [sha256, setSha256] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const payload = JSON.stringify({
+        u: user?.id,
+        n: profile?.legal_name || profile?.full_name || profile?.stage_name || "",
+        s: profile?.stage_name || "",
+        face: profile?.face_descriptor ?? null,
+        voice: profile?.voice_print_url ?? null,
+        writing: (profile?.writing_sample || "").slice(0, 2000),
+        registered: profile?.face_registered_at ?? null,
+      });
+      const buf = new TextEncoder().encode(payload);
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      const hex = Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      setSha256(hex);
+    })();
+  }, [user, profile]);
 
   useEffect(() => {
     if (!user) return;
