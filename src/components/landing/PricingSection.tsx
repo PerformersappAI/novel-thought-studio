@@ -277,11 +277,12 @@ const PricingSection = () => {
               </span>
             </div>
             <div className="p-4 font-display font-semibold text-sm text-foreground text-center border-l border-white/[0.08]">
-              Stay Protected
+              Pro Shield
               <span className="block text-[11px] font-body font-normal text-muted-foreground">
-                $9.99/mo
+                $19.99 + $9.99/mo
               </span>
             </div>
+
           </div>
           {compareRows.map(([feature, a, b], idx) => (
             <div
