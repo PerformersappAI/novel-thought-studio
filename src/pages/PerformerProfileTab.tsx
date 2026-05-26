@@ -430,6 +430,9 @@ const PerformerProfileTab = () => {
           )}
         </div>
 
+        {/* Ownership Certificate */}
+        <CertificateCard profile={profile} />
+
         {/* Trademark Protection */}
         <div className="glass-card rounded-2xl p-6 space-y-5">
           <div className="flex items-center justify-between gap-4 flex-wrap">
