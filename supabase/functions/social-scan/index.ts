@@ -10,7 +10,7 @@ const corsHeaders = {
 const APIFY_TOKEN = Deno.env.get("APIFY_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const EXACT_NAME_QUERY = "Will Roberts";
+
 
 interface ScanRequest {
   user_id: string;
@@ -40,10 +40,10 @@ async function hashUrl(url: string): Promise<string> {
     .join("");
 }
 
-function scoreResult(displayName: string, bio: string) {
+function scoreResult(displayName: string, bio: string, query: string) {
   const lower = `${displayName} ${bio}`.toLowerCase();
   let confidence = 45;
-  if (lower.includes(EXACT_NAME_QUERY.toLowerCase())) confidence += 35;
+  if (query && lower.includes(query.toLowerCase())) confidence += 35;
   if (lower.includes("official") || lower.includes("actor") || lower.includes("performer")) confidence += 10;
   if (lower.includes("fan") || lower.includes("parody") || lower.includes("backup")) confidence -= 10;
   confidence = Math.max(10, Math.min(95, confidence));
@@ -176,22 +176,33 @@ Deno.serve(async (req) => {
       });
     }
 
-    const query = EXACT_NAME_QUERY;
-    console.log("Running social-scan exact query:", query);
+    // Derive query and actor identity from authenticated user's profile (server-side)
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("legal_name, stage_name, full_name, external_actor_id")
+      .eq("user_id", user_id)
+      .maybeSingle();
+    const query = (profile?.stage_name || profile?.legal_name || profile?.full_name || "").trim();
+    if (!query) {
+      return new Response(
+        JSON.stringify({ error: "No name on profile to scan. Add a stage or legal name first." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    console.log("Running social-scan query for user:", user_id);
 
     const [instagram, tiktok] = await Promise.all([
       searchInstagram(query),
       searchTikTok(query),
     ]);
     const allResults = [...instagram, ...tiktok];
-    console.log(`Exact query "${query}" → Instagram:${instagram.length} TikTok:${tiktok.length}`);
-
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    console.log(`Query "${query}" → Instagram:${instagram.length} TikTok:${tiktok.length}`);
 
     const VPS_SUPABASE_URL = "https://pozwmfmqapizeoctuais.supabase.co";
     const VPS_SERVICE_KEY = Deno.env.get("VPS_SUPABASE_SERVICE_ROLE_KEY");
-    const VPS_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
-    const vpsSupabase = VPS_SERVICE_KEY ? createClient(VPS_SUPABASE_URL, VPS_SERVICE_KEY) : null;
+    const VPS_ACTOR_ID = profile?.external_actor_id || null;
+    const vpsSupabase = VPS_SERVICE_KEY && VPS_ACTOR_ID ? createClient(VPS_SUPABASE_URL, VPS_SERVICE_KEY) : null;
 
     const seen = new Set<string>();
     let savedCount = 0;
@@ -204,7 +215,7 @@ Deno.serve(async (req) => {
       if (seen.has(urlHash)) continue;
       seen.add(urlHash);
 
-      const { confidence, risk } = scoreResult(result.display_name || "", result.bio_snippet || "");
+      const { confidence, risk } = scoreResult(result.display_name || "", result.bio_snippet || "", query);
 
       const { error } = await supabaseAdmin
         .from("social_scans")
