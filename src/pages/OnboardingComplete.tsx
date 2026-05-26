@@ -60,11 +60,7 @@ const OnboardingComplete = () => {
     })();
   }, [user]);
 
-  const descriptorPreview = (() => {
-    const d = profile?.face_descriptor as number[] | undefined;
-    if (!d || !Array.isArray(d)) return "[ pending ]";
-    return "[" + d.slice(0, 6).map((n) => n.toFixed(2)).join(", ") + "…]";
-  })();
+  // descriptor preview removed
 
   if (loading) {
     return (

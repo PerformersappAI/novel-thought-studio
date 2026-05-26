@@ -282,7 +282,7 @@ const OnboardingVoice = () => {
   return (
     <div className="min-h-screen bg-[hsl(var(--cmf-deep-bg))] text-foreground py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
-        <OnboardingBackButton to="/onboarding/face-capture" label="Back to Face Capture" />
+        <OnboardingBackButton to="/onboarding/face-capture" label="Back to Headshot" />
         <OnboardingProgress step={3} />
 
         <motion.div
