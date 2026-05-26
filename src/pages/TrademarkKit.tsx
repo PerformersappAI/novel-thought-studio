@@ -162,24 +162,6 @@ const TrademarkKit = () => {
               </CardContent>
             </Card>
 
-            {/* Card 3 — Attorney Match (coming soon) */}
-            <Card className="glass-card border-border/30 flex flex-col opacity-50 pointer-events-none select-none">
-              <CardContent className="p-5 flex flex-col flex-1 space-y-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-display font-semibold text-base">Attorney Match</h3>
-                  <Badge variant="outline" className="text-[10px] border-accent/40 text-accent">
-                    Pro+
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground flex-1">
-                  Get matched with a trademark attorney who specializes in entertainment and
-                  performer rights.
-                </p>
-                <Button variant="outline" size="sm" className="w-full font-display" disabled>
-                  <Lock className="w-3.5 h-3.5 mr-1.5" /> Coming Soon
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

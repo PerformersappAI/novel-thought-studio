@@ -27,7 +27,7 @@ import ContractGenerator from "./pages/ContractGenerator";
 import InvoiceBuilder from "./pages/InvoiceBuilder";
 import DMCATakedown from "./pages/DMCATakedown";
 import MediaKitBuilder from "./pages/MediaKitBuilder";
-import AvatarCreator from "./pages/AvatarCreator";
+
 import LikenessMonitor from "./pages/LikenessMonitor";
 import Monitoring from "./pages/Monitoring";
 import ClaimScanner from "./pages/ClaimScanner";
@@ -100,7 +100,7 @@ const App = () => (
             <Route path="/tools/invoices" element={<InvoiceBuilder />} />
             <Route path="/tools/dmca" element={<DMCATakedown />} />
             <Route path="/tools/media-kit" element={<MediaKitBuilder />} />
-            <Route path="/tools/avatar" element={<AvatarCreator />} />
+            
             <Route path="/tools/face-claim" element={<FaceClaimWizard />} />
             <Route path="/tools/contract-checker" element={<ContractChecker />} />
             <Route path="/onboarding/why" element={<ProtectedRoute><OnboardingWhy /></ProtectedRoute>} />

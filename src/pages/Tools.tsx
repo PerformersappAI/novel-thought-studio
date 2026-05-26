@@ -44,13 +44,6 @@ const tools = [
     status: "active" as const,
   },
   {
-    icon: User,
-    title: "Avatar Creator",
-    description: "Generate AI-safe digital avatars from your registered likeness assets.",
-    link: "/tools/avatar",
-    status: "beta" as const,
-  },
-  {
     icon: Wand2,
     title: "Face Claim Wizard",
     description: "3-step guided flow to generate DMCA notices, cease & desist letters, and platform reports — pre-filled with your registered data.",
