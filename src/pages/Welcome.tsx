@@ -108,27 +108,42 @@ const Welcome = () => {
 
   // Bail out if already onboarded
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("onboarding_complete, stage_name, profession, instagram_handle, youtube_handle, headshot_url")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (data?.onboarding_complete) {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
-      setForm({
-        stage_name: data?.stage_name ?? "",
-        profession: (data as any)?.profession ?? "Actor",
-        instagram_handle: data?.instagram_handle ?? "",
-        youtube_handle: data?.youtube_handle ?? "",
-      });
-      if (data?.headshot_url) setHeadshotPreview(data.headshot_url);
+    if (authLoading) return;
+    if (!user) {
       setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("onboarding_complete, stage_name, profession, instagram_handle, youtube_handle, headshot_url")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (error) console.warn("Welcome profile fetch error:", error);
+        if (data?.onboarding_complete) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+        setForm({
+          stage_name: data?.stage_name ?? "",
+          profession: (data as any)?.profession ?? "Actor",
+          instagram_handle: data?.instagram_handle ?? "",
+          youtube_handle: data?.youtube_handle ?? "",
+        });
+        if (data?.headshot_url) setHeadshotPreview(data.headshot_url);
+      } catch (e) {
+        console.error("Welcome init failed:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
-  }, [user, navigate]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading, navigate]);
 
   const handleHeadshot = (file: File | null) => {
     setHeadshotFile(file);
