@@ -582,7 +582,8 @@ const Monitoring = () => {
       }
 
       setMentions(list);
-      console.log(`[Monitoring] ${rawList.length} raw → ${list.length} relevant for ${id}`);
+
+
 
 
       // Run Sightengine only on photos that already passed relevance.
@@ -615,8 +616,8 @@ const Monitoring = () => {
                 relevance_reason: `${score}% confidence`,
               };
             });
-            console.log(`[Monitoring] flagged ${deepfakeMentions.length} deepfakes via Sightengine`);
             setMentions((prev) => [...prev, ...deepfakeMentions]);
+            return;
           })
           .catch((e) => console.warn("[Monitoring] deepfake-batch failed:", e));
       }

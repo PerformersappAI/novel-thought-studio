@@ -251,21 +251,6 @@ const PerformerDashboard = () => {
     }
   };
 
-  const handleScanSocialMedia = () => {
-    const externalActorId = (profile as any)?.external_actor_id;
-    if (!externalActorId) {
-      toast({ title: "Profile not linked", description: "Your account is not linked to the scanner.", variant: "destructive" });
-      return;
-    }
-    fetch("https://api.claimmyface.com/scan-social", {
-      method: "POST",
-      mode: "cors",
-      body: JSON.stringify({ actor_id: externalActorId }),
-    }).catch((err) => {
-      console.error("Social scan failed:", err);
-    });
-    toast({ title: "Social scan started." });
-  };
 
   /* Check if URL likely contains an image */
   const urlHasImage = (url: string | null) => {
