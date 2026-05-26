@@ -127,6 +127,9 @@ const LikenessMonitor = () => {
           <p className="text-muted-foreground mt-1">Search for unauthorized use of your name or face online.</p>
         </div>
 
+        <DetectionPanels />
+
+
         <Tabs defaultValue="image" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="image" className="gap-2"><ImageIcon className="w-4 h-4" /> Image Search</TabsTrigger>
