@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScanHistory from "@/components/likeness/ScanHistory";
 import BiometricConsentModal from "@/components/BiometricConsentModal";
 import { useBiometricConsent } from "@/hooks/useBiometricConsent";
+import DetectionPanels from "@/components/dashboard/DetectionPanels";
 
 const LikenessMonitor = () => {
   const { user } = useAuth();
