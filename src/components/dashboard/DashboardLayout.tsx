@@ -19,6 +19,7 @@ const performerLinks = [
   { to: "/dashboard/contract-scanner", icon: FileSearch, label: "Contract Scanner" },
   { to: "/dashboard/incident-report", icon: AlertTriangle, label: "Report Violation", indicator: true },
   { to: "/dashboard/emergency", icon: Siren, label: "Emergency Response", emergency: true },
+  { to: "/dashboard/secure-checklist", icon: CheckSquare, label: "Secure Checklist" },
   { to: "/dashboard/profile", icon: UserCircle, label: "My Profile" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
