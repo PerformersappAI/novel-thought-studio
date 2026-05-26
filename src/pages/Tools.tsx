@@ -86,9 +86,7 @@ const Tools = () => {
                       <div className="p-3 rounded-lg bg-primary/10">
                         <tool.icon className="w-6 h-6 text-primary" />
                       </div>
-                      {tool.status === "beta" ? (
-                        <Badge className="bg-accent text-accent-foreground text-xs">Beta</Badge>
-                      ) : tool.status === "pro" ? (
+                      {tool.status === "pro" ? (
                         <Badge className="bg-[#C0392B] text-white text-xs">Pro</Badge>
                       ) : (
                         <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
