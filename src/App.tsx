@@ -58,6 +58,7 @@ import CeaseDesistAction from "./pages/actions/CeaseDesistAction";
 import ReportPlatformAction from "./pages/actions/ReportPlatformAction";
 import RemovalAction from "./pages/actions/RemovalAction";
 import NotFound from "./pages/NotFound";
+import Welcome from "./pages/Welcome";
 
 const queryClient = new QueryClient();
 
