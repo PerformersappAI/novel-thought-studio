@@ -78,7 +78,7 @@ const PerformerDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
-  const [thumbs, setThumbs] = useState<string[]>([]);
+  // thumbs removed — single headshot shown via profile.headshot_url
   const [registryId, setRegistryId] = useState<string | null>(null);
   const [hasCertificate, setHasCertificate] = useState(false);
   const [monitoringActive, setMonitoringActive] = useState(false);
@@ -159,11 +159,7 @@ const PerformerDashboard = () => {
       setMentions(rows);
       setAlertCount(rows.filter(m => m.status === "New Alert").length);
 
-      const paths = [prof?.face_capture_front_url, prof?.face_capture_left_url, prof?.face_capture_right_url].filter(Boolean) as string[];
-      if (paths.length) {
-        const { data: signed } = await supabase.storage.from("face-captures").createSignedUrls(paths, 60 * 10);
-        setThumbs((signed ?? []).map(s => s.signedUrl).filter(Boolean) as string[]);
-      }
+      // headshot is shown directly via profile.headshot_url; no face-capture thumbnails needed
 
       if ((prof as any)?.external_actor_id) {
         try {
@@ -192,16 +188,15 @@ const PerformerDashboard = () => {
   };
 
   const profileComplete = !!(profile?.legal_name && profile?.stage_name);
-  const faceCaptured = !!profile?.face_registered_at;
+  const faceCaptured = !!profile?.headshot_url;
   const voiceRegistered = !!profile?.voice_registered_at;
 
   const hasHeadshot = !!profile?.headshot_url;
 
   const vaultItems = [
     { label: "Profile complete (legal name & stage name)", done: profileComplete, points: 20, linkTo: "/dashboard/profile", linkLabel: "Complete" },
-    { label: "Headshot uploaded", done: hasHeadshot, points: 15, linkTo: "/dashboard/profile", linkLabel: "Upload" },
-    { label: "Face capture photos taken", done: faceCaptured, points: 15, linkTo: "/register", linkLabel: "Capture" },
-    { label: "Voice recording uploaded", done: voiceRegistered, points: 15, linkTo: "/register", linkLabel: "Record" },
+    { label: "Headshot uploaded", done: hasHeadshot, points: 30, linkTo: "/onboarding/face-capture", linkLabel: "Upload" },
+    { label: "Voice recording uploaded", done: voiceRegistered, points: 15, linkTo: "/onboarding/voice", linkLabel: "Record" },
     { label: "Scan run at least once", done: hasRunScan, points: 15, linkTo: "/dashboard/monitoring", linkLabel: "Scan" },
     { label: "Contract scanner used", done: hasUsedContractScanner, points: 10, linkTo: "/dashboard/contract-scanner", linkLabel: "Scan" },
     { label: "Evidence packet generated", done: hasGeneratedEvidence, points: 10, linkTo: "/dashboard/evidence-packet", linkLabel: "Generate" },
@@ -209,16 +204,16 @@ const PerformerDashboard = () => {
 
   let score = 0;
   if (profileComplete) score += 25;
-  if (faceCaptured) score += 25;
+  if (hasHeadshot) score += 25;
   if (hasCertificate) score += 20;
   if (monitoringActive) score += 30;
 
   const firstName = (profile?.stage_name || profile?.legal_name || profile?.full_name || user?.email || "there").split(" ")[0].replace(/@.*/, "");
 
   const getNextStep = () => {
-    if (!faceCaptured) return { title: "Register Your Face", description: "Capture 3 quick photos to create your timestamped claim.", cta: "Start Face Capture", to: "/register" };
-    if (!profileComplete) return { title: "Complete Your Profile", description: "Add your stage name and details.", cta: "Complete Profile", to: "/register" };
-    if (!hasCertificate) return { title: "Download Your Certificate", description: "Get your official Face Registration Certificate.", cta: "Get Certificate", to: "/dashboard/certificate" };
+    if (!hasHeadshot) return { title: "Upload Your Headshot", description: "A clear, well-lit photo of your face becomes your registered reference.", cta: "Upload Headshot", to: "/onboarding/face-capture" };
+    if (!profileComplete) return { title: "Complete Your Profile", description: "Add your stage name and details.", cta: "Complete Profile", to: "/dashboard/profile" };
+    if (!hasCertificate) return { title: "Download Your Certificate", description: "Get your official Identity Credential Certificate.", cta: "Get Certificate", to: "/dashboard/certificate" };
     if (!monitoringActive) return { title: "Switch On the Scanner", description: "Start watching the web for your mapped identity.", cta: "Activate", to: "/onboarding/monitoring" };
     if (alertCount > 0) return { title: "Review Matches", description: `${alertCount} potential match${alertCount > 1 ? "es" : ""} found.`, cta: "View Results", to: "/dashboard/monitoring" };
     return null;
@@ -325,7 +320,7 @@ const PerformerDashboard = () => {
 
         <DetectionPanels mentions={mentions} />
 
-        <FacePanel thumbs={thumbs} registryId={registryId} registeredAt={profile?.face_registered_at} />
+        <FacePanel headshotUrl={profile?.headshot_url} registryId={registryId} registeredAt={profile?.face_registered_at} />
 
 
 

@@ -44,10 +44,9 @@ import DmcaGeneratorPage from "./pages/DmcaGeneratorPage";
 import EmergencyResponsePage from "./pages/EmergencyResponsePage";
 import ReportViolation from "./pages/ReportViolation";
 import PerformerProfile from "./pages/PerformerProfile";
-import Register from "./pages/Register";
 import OnboardingWhy from "./pages/OnboardingWhy";
 import OnboardingProfile from "./pages/OnboardingProfile";
-import OnboardingFaceCapture from "./pages/OnboardingFaceCapture";
+import OnboardingHeadshot from "./pages/OnboardingHeadshot";
 import OnboardingVoice from "./pages/OnboardingVoice";
 import OnboardingCertified from "./pages/OnboardingCertified";
 import OnboardingMonitoring from "./pages/OnboardingMonitoring";
@@ -76,7 +75,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Signup />} />
             <Route path="/performer/:slug" element={<PerformerProfile />} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><PerformerDashboard /></ProtectedRoute>} />
@@ -111,7 +110,8 @@ const App = () => (
             <Route path="/tools/contract-checker" element={<ContractChecker />} />
             <Route path="/onboarding/why" element={<ProtectedRoute><OnboardingWhy /></ProtectedRoute>} />
             <Route path="/onboarding/profile" element={<ProtectedRoute><OnboardingProfile /></ProtectedRoute>} />
-            <Route path="/onboarding/face-capture" element={<ProtectedRoute><OnboardingFaceCapture /></ProtectedRoute>} />
+            <Route path="/onboarding/face-capture" element={<ProtectedRoute><OnboardingHeadshot /></ProtectedRoute>} />
+            <Route path="/onboarding/headshot" element={<ProtectedRoute><OnboardingHeadshot /></ProtectedRoute>} />
             <Route path="/onboarding/voice" element={<ProtectedRoute><OnboardingVoice /></ProtectedRoute>} />
             <Route path="/onboarding/certified" element={<ProtectedRoute><OnboardingCertified /></ProtectedRoute>} />
             <Route path="/onboarding/monitoring" element={<ProtectedRoute><OnboardingMonitoring /></ProtectedRoute>} />

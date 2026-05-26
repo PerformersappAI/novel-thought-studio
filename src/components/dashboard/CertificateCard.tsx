@@ -61,7 +61,7 @@ const CertificateCard = ({ profile }: Props) => {
 
   const performerName = profile?.stage_name || profile?.full_name || profile?.legal_name || "Performer";
   const legalName = profile?.legal_name || profile?.full_name || "";
-  const headshotUrl: string | null = profile?.headshot_url || profile?.avatar_url || profile?.face_capture_front_url || null;
+  const headshotUrl: string | null = profile?.headshot_url || profile?.avatar_url || null;
   const voiceUrl: string | null = profile?.voice_print_url || profile?.voice_print_demo_url || null;
 
   const hasMinimum = !!(performerName && headshotUrl);

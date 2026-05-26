@@ -1,69 +1,66 @@
 import { Link } from "react-router-dom";
-import { RefreshCw, ScanFace } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Camera, RefreshCw, ImageIcon } from "lucide-react";
 
 interface Props {
-  thumbs: string[];
+  headshotUrl?: string | null;
   registryId?: string | null;
   registeredAt?: string | null;
+  /** legacy prop — ignored */
+  thumbs?: any;
 }
 
-const labels = ["Front", "Left Profile", "Right Profile"];
-
-const FacePanel = ({ thumbs, registryId, registeredAt }: Props) => {
+const FacePanel = ({ headshotUrl, registryId, registeredAt }: Props) => {
   return (
-    <section>
-      <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-        <h2 className="font-display text-xl md:text-2xl font-bold">Your Registered Face</h2>
-        {registeredAt && (
-          <Button asChild size="sm" variant="outline">
+    <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-card to-card/70 p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-accent">Headshot Registration</p>
+          <h3 className="font-display text-lg">Your reference photo</h3>
+        </div>
+        {headshotUrl && (
+          <Button size="sm" variant="ghost" asChild>
             <Link to="/onboarding/face-capture">
-              <RefreshCw className="w-3.5 h-3.5 mr-1" /> Update Face Registration
+              <RefreshCw className="w-3.5 h-3.5 mr-1" /> Update headshot
             </Link>
           </Button>
         )}
       </div>
 
-      {registeredAt ? (
-        <div className="rounded-xl border border-border/30 bg-card/40 p-5">
-          <div className="grid grid-cols-3 gap-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="space-y-1">
-                <div className="aspect-square rounded-lg overflow-hidden border border-border/40 bg-muted/20">
-                  {thumbs[i] ? (
-                    <img src={thumbs[i]} alt={labels[i]} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      <ScanFace className="w-6 h-6 opacity-40" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-[10px] text-muted-foreground text-center">{labels[i]}</p>
-                <p className="text-[10px] text-muted-foreground/70 text-center font-mono">
-                  {new Date(registeredAt).toLocaleDateString()}
-                </p>
+      {headshotUrl ? (
+        <div className="flex gap-4 items-center">
+          <img
+            src={headshotUrl}
+            alt="Registered headshot"
+            className="w-24 h-24 rounded-xl object-cover border-2 border-accent/40"
+          />
+          <div className="text-xs space-y-1">
+            {registryId && (
+              <div>
+                <p className="text-muted-foreground uppercase tracking-wider">Registry ID</p>
+                <p className="font-mono text-foreground">{registryId}</p>
               </div>
-            ))}
+            )}
+            {registeredAt && (
+              <div>
+                <p className="text-muted-foreground uppercase tracking-wider">Registered</p>
+                <p className="font-mono text-foreground">{new Date(registeredAt).toLocaleDateString()}</p>
+              </div>
+            )}
           </div>
-          {registryId && (
-            <div className="mt-4 pt-4 border-t border-border/30 text-xs text-muted-foreground flex items-center justify-between">
-              <span>Registry ID</span>
-              <span className="font-mono text-foreground">{registryId}</span>
-            </div>
-          )}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-border/50 p-8 text-center bg-card/20">
-          <ScanFace className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mb-4">
-            You haven't registered your face yet.
-          </p>
-          <Button asChild>
-            <Link to="/onboarding/face-capture">Start Face Registration</Link>
+        <div className="text-center py-6 space-y-3 border-2 border-dashed border-border rounded-xl">
+          <ImageIcon className="w-10 h-10 text-muted-foreground mx-auto" />
+          <p className="text-sm text-muted-foreground">No headshot uploaded yet.</p>
+          <Button asChild size="sm">
+            <Link to="/onboarding/face-capture">
+              <Camera className="w-3.5 h-3.5 mr-1" /> Upload Headshot
+            </Link>
           </Button>
         </div>
       )}
-    </section>
+    </div>
   );
 };
 

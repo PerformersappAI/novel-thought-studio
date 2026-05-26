@@ -32,12 +32,8 @@ const OnboardingComplete = () => {
         .maybeSingle();
       setProfile(data);
 
-      // Signed URLs for the 3 captures
-      const paths = [data?.face_capture_front_url, data?.face_capture_left_url, data?.face_capture_right_url].filter(Boolean) as string[];
-      if (paths.length) {
-        const { data: signed } = await supabase.storage.from("face-captures").createSignedUrls(paths, 60 * 10);
-        setThumbs((signed ?? []).map((s) => s.signedUrl).filter(Boolean) as string[]);
-      }
+      // Headshot used directly from profile.headshot_url
+      if (data?.headshot_url) setThumbs([data.headshot_url]);
 
       const year = new Date().getFullYear();
       const suffix = String(Math.floor(Math.random() * 100000)).padStart(5, "0");
@@ -64,11 +60,7 @@ const OnboardingComplete = () => {
     })();
   }, [user]);
 
-  const descriptorPreview = (() => {
-    const d = profile?.face_descriptor as number[] | undefined;
-    if (!d || !Array.isArray(d)) return "[ pending ]";
-    return "[" + d.slice(0, 6).map((n) => n.toFixed(2)).join(", ") + "…]";
-  })();
+  // descriptor preview removed
 
   if (loading) {
     return (
@@ -125,18 +117,14 @@ const OnboardingComplete = () => {
           </div>
 
           {thumbs.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
-              {thumbs.map((url, i) => (
-                <div key={i} className="aspect-square rounded-lg overflow-hidden border border-border bg-muted/20">
-                  <img src={url} alt={`capture ${i}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
+            <div className="flex justify-center">
+              <img src={thumbs[0]} alt="headshot" className="w-40 h-40 rounded-2xl object-cover border-2 border-accent/40" />
             </div>
           )}
 
           <div className="rounded-lg border border-border/60 bg-card/40 p-3 max-w-md mx-auto text-left">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Face Hash</p>
-            <p className="font-mono text-xs break-all">{descriptorPreview}</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Headshot Registered</p>
+            <p className="font-mono text-xs">{profile?.face_registered_at ? new Date(profile.face_registered_at).toLocaleString() : "—"}</p>
           </div>
 
           <p className="text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">

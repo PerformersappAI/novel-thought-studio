@@ -9,7 +9,7 @@ interface OnboardingProgressProps {
 
 const STEPS = [
   { n: 1, label: "Profile" },
-  { n: 2, label: "Face Capture" },
+  { n: 2, label: "Headshot" },
   { n: 3, label: "Voice Print" },
   { n: 4, label: "Certificate" },
   { n: 5, label: "Monitoring" },

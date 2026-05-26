@@ -68,7 +68,7 @@ const RiskScoreCard = ({ monitoringActive, hasCertificate, faceCaptured, profile
   let priority = "You're fully protected. Share your verified badge.";
   if (!monitoringActive) priority = "Activate Pro Shield monitoring — your face is being scanned without protection";
   else if (!hasCertificate) priority = "Download your certificate — establish your legal timestamp today";
-  else if (!faceCaptured) priority = "Complete face capture — your registration is incomplete";
+  else if (!faceCaptured) priority = "Upload your headshot — your registration is incomplete";
   else if (!profileComplete) priority = "Complete your profile — required for full protection";
   else if (!voiceRegistered) priority = "Add your voice print — protect against AI voice cloning";
 
