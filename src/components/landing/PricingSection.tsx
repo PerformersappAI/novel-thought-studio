@@ -125,7 +125,7 @@ const compareRows: Array<[string, boolean, boolean]> = [
 const faqs = [
   {
     q: "Do I need to pay monthly or can I just register once?",
-    a: "You can register once for $19.99 and keep your certificate and badge forever. The $9.99/mo adds active monitoring — we watch the web for you 24/7. Without monitoring you'd need to search manually.",
+    a: "You can register once for $19.99 and keep your certificate and badge forever — no recurring charges. Pro Shield adds 24/7 monitoring: a $19.99 one-time sign-up, then $9.99/month. Without monitoring you'd need to search manually.",
   },
   {
     q: "Can I cancel the monthly plan anytime?",
