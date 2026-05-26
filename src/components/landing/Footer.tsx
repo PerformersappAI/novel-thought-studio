@@ -104,7 +104,7 @@ const Footer = () => {
 
           <div className="border-t border-white/[0.08] pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground/80 font-body leading-relaxed text-center md:text-left">
-              Proud supporter of performer IP rights. Aligned with SAG-AFTRA AI protection principles.
+              Built to support performers in the age of AI — inspired by the growing movement to protect every creator's identity, voice, and likeness.
             </p>
             <div className="flex items-center gap-3">
               <span className="text-[10px] text-muted-foreground/60 font-body uppercase tracking-wider">

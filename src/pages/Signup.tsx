@@ -166,7 +166,7 @@ const Signup = () => {
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="non-union">Non-Union</SelectItem>
-                            <SelectItem value="sag-aftra">SAG-AFTRA</SelectItem>
+                            <SelectItem value="union-member">Union Member</SelectItem>
                             <SelectItem value="fi-core">Fi-Core</SelectItem>
                             <SelectItem value="aea">AEA (Actors' Equity)</SelectItem>
                             <SelectItem value="actra">ACTRA</SelectItem>

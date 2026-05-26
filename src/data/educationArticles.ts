@@ -229,7 +229,6 @@ export const educationArticles: EducationArticle[] = [
     relatedSlugs: [
       "no-fakes-act-explained",
       "ai-consent-clause",
-      "sag-aftra-ai-protections",
     ],
   },
   {
@@ -469,60 +468,6 @@ export const educationArticles: EducationArticle[] = [
     relatedSlugs: [
       "personality-theft",
       "ai-consent-clause",
-      "sag-aftra-ai-protections",
-    ],
-  },
-  {
-    slug: "sag-aftra-ai-protections",
-    title: "What SAG-AFTRA AI Protections Mean for Non-Union Actors",
-    subtitle: "The contract floor union members got — and why it matters even if you're not in.",
-    category: "Industry",
-    readTime: "7 min read",
-    author: AUTHOR,
-    publishDate: "2024-12-20",
-    excerpt:
-      "The 2023 SAG-AFTRA contract created groundbreaking AI protections for union members. Non-union performers can — and should — adopt the same standards in their own contracts.",
-    sections: [
-      {
-        heading: "What the Union Won",
-        body: [
-          "Mandatory consent for digital replicas, separate compensation for replica use, restrictions on training AI models with members' performances, and notice requirements when synthetic performers are used.",
-        ],
-      },
-      {
-        heading: "Why Non-Union Performers Should Care",
-        body: [
-          "Producers now know what 'reasonable' AI terms look like. If you negotiate for the same protections, you're not asking for something exotic — you're asking for industry standard.",
-        ],
-      },
-      {
-        heading: "How to Translate Union Language Into Your Rider",
-        body: [
-          "Adopt the consent, compensation, and use-restriction structure verbatim where possible. ClaimMyFace's Contract Generator includes a SAG-AFTRA-aligned AI rider you can drop in.",
-        ],
-      },
-    ],
-    faqs: [
-      {
-        question: "Do non-union producers have to follow SAG-AFTRA terms?",
-        answer:
-          "No, but many do voluntarily for non-union projects to attract talent and reduce legal risk.",
-      },
-      {
-        question: "Can I cite SAG-AFTRA terms even if I'm not a member?",
-        answer:
-          "Absolutely. Citing them as the industry standard is a powerful negotiating posture.",
-      },
-      {
-        question: "What about background performers?",
-        answer:
-          "Background performer protections were a major focus of the 2023 deal. Non-union background actors have historically had the weakest protection and should be especially vigilant.",
-      },
-    ],
-    relatedSlugs: [
-      "ai-consent-clause",
-      "what-is-digital-replica",
-      "mcconaughey-trademark-strategy",
     ],
   },
   {
@@ -689,11 +634,10 @@ export const educationArticles: EducationArticle[] = [
       {
         question: "Do I need a lawyer to write this?",
         answer:
-          "ClaimMyFace's Contract Generator produces a SAG-AFTRA-aligned starting point. For high-value deals, have an entertainment attorney review.",
+          "ClaimMyFace's Contract Generator produces an industry-aligned starting point. For high-value deals, have an entertainment attorney review.",
       },
     ],
     relatedSlugs: [
-      "sag-aftra-ai-protections",
       "what-is-digital-replica",
       "protect-voice-and-likeness-from-ai",
     ],
