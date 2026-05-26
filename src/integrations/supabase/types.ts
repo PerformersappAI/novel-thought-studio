@@ -1273,6 +1273,33 @@ export type Database = {
       }
     }
     Views: {
+      credentials_public: {
+        Row: {
+          certificate_id: string | null
+          created_at: string | null
+          id: string | null
+          is_valid: boolean | null
+          issued_at: string | null
+          stage_name: string | null
+        }
+        Insert: {
+          certificate_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_valid?: boolean | null
+          issued_at?: string | null
+          stage_name?: string | null
+        }
+        Update: {
+          certificate_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_valid?: boolean | null
+          issued_at?: string | null
+          stage_name?: string | null
+        }
+        Relationships: []
+      }
       public_profiles: {
         Row: {
           account_type: string | null
