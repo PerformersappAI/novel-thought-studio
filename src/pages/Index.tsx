@@ -123,27 +123,12 @@ const Index = () => {
             transition={{ delay: 0.8 }}
             className="mt-10"
           >
-            <Button
-              asChild
-              size="lg"
-              className="font-display text-lg font-semibold px-10 h-16 glow-red"
-            >
+            <Button asChild size="lg" className="font-display text-base font-semibold px-8 h-14 glow-red">
               <Link to="/register">
-                <Shield className="w-5 h-5 mr-2" />
-                Register Your Identity — $19.99 one-time + $9.99/mo
-                <ArrowRight className="w-5 h-5 ml-2" />
+                Start Protecting Yourself <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
           </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="text-xs text-muted-foreground mt-6 font-body"
-          >
-            One-time registration. Lifetime monitoring across the web.
-          </motion.p>
 
           {/* 4 core protections strip */}
           <motion.div
@@ -170,6 +155,29 @@ const Index = () => {
                 <span className="font-body text-sm font-medium text-foreground">{p.label}</span>
               </div>
             ))}
+          </motion.div>
+
+          {/* Big Register banner — moved below detection boxes */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-14 w-full max-w-3xl"
+          >
+            <Button
+              asChild
+              size="lg"
+              className="w-full font-display text-lg font-semibold px-10 h-16 glow-red"
+            >
+              <Link to="/register">
+                <Shield className="w-5 h-5 mr-2" />
+                Register Your Identity — $19.99 one-time + $9.99/mo
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
+            </Button>
+            <p className="text-xs text-muted-foreground mt-4 font-body text-center">
+              One-time registration. Lifetime monitoring across the web.
+            </p>
           </motion.div>
         </div>
       </section>
@@ -220,18 +228,6 @@ const Index = () => {
             ))}
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <Button asChild size="lg" className="font-display text-base font-semibold px-8 h-14 glow-red">
-              <Link to="/register">
-                Start Protecting Yourself <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
-          </motion.div>
         </div>
       </section>
 
