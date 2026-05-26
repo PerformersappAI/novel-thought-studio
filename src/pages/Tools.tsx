@@ -44,13 +44,6 @@ const tools = [
     status: "active" as const,
   },
   {
-    icon: User,
-    title: "Avatar Creator",
-    description: "Generate AI-safe digital avatars from your registered likeness assets.",
-    link: "/tools/avatar",
-    status: "beta" as const,
-  },
-  {
     icon: Wand2,
     title: "Face Claim Wizard",
     description: "3-step guided flow to generate DMCA notices, cease & desist letters, and platform reports — pre-filled with your registered data.",
@@ -93,9 +86,7 @@ const Tools = () => {
                       <div className="p-3 rounded-lg bg-primary/10">
                         <tool.icon className="w-6 h-6 text-primary" />
                       </div>
-                      {tool.status === "beta" ? (
-                        <Badge className="bg-accent text-accent-foreground text-xs">Beta</Badge>
-                      ) : tool.status === "pro" ? (
+                      {tool.status === "pro" ? (
                         <Badge className="bg-[#C0392B] text-white text-xs">Pro</Badge>
                       ) : (
                         <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
