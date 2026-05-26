@@ -14,6 +14,8 @@ type Plan = {
   label: string;
   price: string;
   period?: string;
+  setupFee?: string;
+  setupNote?: string;
   subtitle: string;
   features: string[];
   cta: string;
@@ -25,7 +27,7 @@ type Plan = {
 
 const plans: Plan[] = [
   {
-    name: "Register Your Face",
+    name: "Register & Scan",
     label: "Start Here",
     price: "$19.99",
     period: "one-time",
@@ -42,17 +44,19 @@ const plans: Plan[] = [
     ],
     cta: "Register My Face — $19.99 →",
     href: `/signup?plan=registration&price=${import.meta.env.VITE_REGISTRATION_PRICE_ID ?? ""}`,
-    note: "One-time fee. No subscription required to register.",
+    note: "One-time fee. No subscription. No recurring charges.",
     variant: "default",
   },
   {
-    name: "Stay Protected",
+    name: "Pro Shield",
     label: "Keep Watching",
     price: "$9.99",
     period: "/mo",
+    setupFee: "$19.99",
+    setupNote: "one-time sign-up",
     subtitle: "We keep watching. You keep working.",
     features: [
-      "Everything in Register",
+      "Everything in Register & Scan",
       "24/7 monitoring across 7 platforms",
       "Real-time face detection alerts",
       "Voice clone detection",
@@ -61,12 +65,13 @@ const plans: Plan[] = [
       "AI Consent Contract Checker",
       "Priority support",
     ],
-    cta: "Activate Monitoring — $9.99/mo →",
+    cta: "Activate Pro Shield →",
     href: `/signup?plan=monthly&price=${import.meta.env.VITE_MONTHLY_PRICE_ID ?? ""}`,
-    note: "Cancel anytime. No contracts.",
+    note: "$19.99 one-time sign-up, then $9.99/mo. Cancel anytime.",
     variant: "default",
     highlight: true,
   },
+
   {
     name: "Annual Shield",
     label: "Best Value",
@@ -120,7 +125,7 @@ const compareRows: Array<[string, boolean, boolean]> = [
 const faqs = [
   {
     q: "Do I need to pay monthly or can I just register once?",
-    a: "You can register once for $19.99 and keep your certificate and badge forever. The $9.99/mo adds active monitoring — we watch the web for you 24/7. Without monitoring you'd need to search manually.",
+    a: "You can register once for $19.99 and keep your certificate and badge forever — no recurring charges. Pro Shield adds 24/7 monitoring: a $19.99 one-time sign-up, then $9.99/month. Without monitoring you'd need to search manually.",
   },
   {
     q: "Can I cancel the monthly plan anytime?",
@@ -192,10 +197,18 @@ const PricingSection = () => {
                     </span>
                   )}
                 </div>
+                {plan.setupFee && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1">
+                    <span className="text-xs font-body font-semibold text-foreground">
+                      + {plan.setupFee} {plan.setupNote}
+                    </span>
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground mt-3 font-body italic min-h-[40px]">
                   {plan.subtitle}
                 </p>
               </div>
+
               <ul className="space-y-2.5 mb-6 flex-1">
                 {plan.features.map((f) => (
                   <li
@@ -264,11 +277,12 @@ const PricingSection = () => {
               </span>
             </div>
             <div className="p-4 font-display font-semibold text-sm text-foreground text-center border-l border-white/[0.08]">
-              Stay Protected
+              Pro Shield
               <span className="block text-[11px] font-body font-normal text-muted-foreground">
-                $9.99/mo
+                $19.99 + $9.99/mo
               </span>
             </div>
+
           </div>
           {compareRows.map(([feature, a, b], idx) => (
             <div
