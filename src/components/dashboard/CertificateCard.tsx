@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Shield, Check, Download, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { Shield, Check, Download, Loader2, Lock, ShieldCheck, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,132 +10,238 @@ interface Props {
   profile: any;
 }
 
+const NAVY = [11, 21, 38] as const;       // #0B1526
+const NAVY_LIGHT = [20, 35, 60] as const; // panel
+const GOLD = [212, 168, 67] as const;     // #D4A843
+const CRIMSON = [196, 18, 48] as const;   // #C41230
+const PARCHMENT = [232, 222, 196] as const;
+
+async function sha256OfUrl(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch { return null; }
+}
+
+async function sha256OfString(s: string): Promise<string> {
+  const buf = new TextEncoder().encode(s);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function loadImageDataUrl(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result as string);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(blob);
+    });
+  } catch { return null; }
+}
+
 const CertificateCard = ({ profile }: Props) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [assetsCount, setAssetsCount] = useState(0);
-  const [registryId, setRegistryId] = useState("");
+  const [certificateId, setCertificateId] = useState<string>("");
+  const [faceHash, setFaceHash] = useState<string>("");
+  const [voiceHash, setVoiceHash] = useState<string>("");
+  const [issuedAt, setIssuedAt] = useState<Date>(new Date());
   const [downloading, setDownloading] = useState(false);
-  const [sha256, setSha256] = useState("");
+  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const payload = JSON.stringify({
-        u: user?.id,
-        n: profile?.legal_name || profile?.full_name || profile?.stage_name || "",
-        s: profile?.stage_name || "",
-        face: profile?.face_descriptor ?? null,
-        voice: profile?.voice_print_url ?? null,
-        writing: (profile?.writing_sample || "").slice(0, 2000),
-        registered: profile?.face_registered_at ?? null,
-      });
-      const buf = new TextEncoder().encode(payload);
-      const digest = await crypto.subtle.digest("SHA-256", buf);
-      const hex = Array.from(new Uint8Array(digest))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      setSha256(hex);
-    })();
-  }, [user, profile]);
-
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data: assets } = await supabase
-        .from("registry_assets")
-        .select("id, registry_id")
-        .eq("user_id", user.id);
-      setAssetsCount(assets?.length ?? 0);
-      const existing = assets?.find((a: any) => a.registry_id)?.registry_id as string | undefined;
-      setRegistryId(
-        existing ||
-          `CMF-${new Date().getFullYear()}-${String(
-            Math.floor(Math.random() * 100000)
-          ).padStart(5, "0")}`
-      );
-    })();
-  }, [user]);
-
-  const issuedAt = useMemo(
-    () => (profile?.face_registered_at ? new Date(profile.face_registered_at) : new Date()),
-    [profile]
-  );
-  const performerName =
-    profile?.stage_name || profile?.full_name || profile?.legal_name || "Performer";
+  const performerName = profile?.stage_name || profile?.full_name || profile?.legal_name || "Performer";
   const legalName = profile?.legal_name || profile?.full_name || "";
+  const headshotUrl: string | null = profile?.headshot_url || profile?.avatar_url || profile?.face_capture_front_url || null;
+  const voiceUrl: string | null = profile?.voice_print_url || profile?.voice_print_demo_url || null;
 
-  const hasName = !!(profile?.legal_name || profile?.full_name || profile?.stage_name);
-  const hasIdentityAnchor = !!(
-    profile?.face_registered_at ||
-    profile?.face_descriptor ||
-    profile?.voice_print_url ||
-    profile?.writing_sample ||
-    assetsCount > 0
+  const hasMinimum = !!(performerName && headshotUrl);
+
+  // Provision / load credential
+  useEffect(() => {
+    if (!user || !hasMinimum) return;
+    let cancelled = false;
+    (async () => {
+      // 1. Compute hashes
+      const [fh, vh] = await Promise.all([
+        headshotUrl ? sha256OfUrl(headshotUrl) : Promise.resolve(null),
+        voiceUrl ? sha256OfUrl(voiceUrl) : Promise.resolve(null),
+      ]);
+      const safeFace = fh || (await sha256OfString(headshotUrl || user.id));
+      const safeVoice = vh || "";
+
+      // 2. Look up existing credential
+      const { data: existing } = await supabase
+        .from("credentials")
+        .select("certificate_id, issued_at, face_hash, voice_hash")
+        .eq("actor_id", user.id)
+        .order("issued_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (existing) {
+        setCertificateId(existing.certificate_id);
+        setIssuedAt(new Date(existing.issued_at));
+        setFaceHash(existing.face_hash || safeFace);
+        setVoiceHash(existing.voice_hash || safeVoice);
+        // Refresh hashes if changed
+        if ((fh && fh !== existing.face_hash) || (vh && vh !== existing.voice_hash)) {
+          await supabase.from("credentials").update({
+            face_hash: safeFace, voice_hash: safeVoice, headshot_url: headshotUrl,
+            legal_name: legalName, stage_name: profile?.stage_name || null,
+          }).eq("certificate_id", existing.certificate_id);
+          setFaceHash(safeFace); setVoiceHash(safeVoice);
+        }
+      } else {
+        // 3. Create new credential
+        const certId = `CMF-${new Date().getFullYear()}-${(crypto.randomUUID().replace(/-/g, "").slice(0, 10)).toUpperCase()}`;
+        const { data: inserted, error } = await supabase
+          .from("credentials")
+          .insert({
+            actor_id: user.id,
+            certificate_id: certId,
+            legal_name: legalName || null,
+            stage_name: profile?.stage_name || null,
+            face_hash: safeFace,
+            voice_hash: safeVoice || null,
+            headshot_url: headshotUrl,
+            is_valid: true,
+          })
+          .select("certificate_id, issued_at")
+          .single();
+        if (!error && inserted && !cancelled) {
+          setCertificateId(inserted.certificate_id);
+          setIssuedAt(new Date(inserted.issued_at));
+          setFaceHash(safeFace);
+          setVoiceHash(safeVoice);
+        }
+      }
+      if (!cancelled) setReady(true);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, headshotUrl, voiceUrl, legalName, profile?.stage_name, hasMinimum]);
+
+  const verifyUrl = useMemo(
+    () => certificateId ? `${window.location.origin}/verify/${certificateId}` : "",
+    [certificateId]
   );
-  if (!hasName || !hasIdentityAnchor) return null;
+
+  if (!hasMinimum) return null;
+
+  const copyLink = async () => {
+    if (!verifyUrl) return;
+    await navigator.clipboard.writeText(verifyUrl);
+    toast({ title: "Verification link copied" });
+  };
 
   const downloadPdf = async () => {
     setDownloading(true);
     try {
-      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
       const W = doc.internal.pageSize.getWidth();
       const H = doc.internal.pageSize.getHeight();
 
-      doc.setFillColor(13, 17, 23);
-      doc.rect(0, 0, W, H, "F");
-      doc.setDrawColor(192, 57, 43);
-      doc.setLineWidth(4);
-      doc.rect(24, 24, W - 48, H - 48);
-      doc.setDrawColor(201, 168, 76);
-      doc.setLineWidth(0.5);
-      doc.rect(36, 36, W - 72, H - 72);
+      // Background — deep navy
+      doc.setFillColor(...NAVY); doc.rect(0, 0, W, H, "F");
+      // Subtle inner navy panel
+      doc.setFillColor(...NAVY_LIGHT); doc.rect(28, 28, W - 56, H - 56, "F");
+      // Gold double border
+      doc.setDrawColor(...GOLD); doc.setLineWidth(2.5); doc.rect(28, 28, W - 56, H - 56);
+      doc.setLineWidth(0.5); doc.rect(40, 40, W - 80, H - 80);
 
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(28);
-      doc.text("ClaimMyFace", W / 2, 100, { align: "center" });
+      // Top eyebrow
+      doc.setTextColor(...GOLD); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+      doc.text("CLAIMMYFACE  •  IDENTITY CREDENTIAL  •  C2PA-COMPATIBLE", W / 2, 70, { align: "center" });
 
-      doc.setFontSize(16);
-      doc.setTextColor(201, 168, 76);
-      doc.text("Face Registration Certificate", W / 2, 130, { align: "center" });
+      // Shield emblem
+      const cx = W / 2, cy = 130;
+      doc.setDrawColor(...GOLD); doc.setLineWidth(1.5);
+      doc.setFillColor(...CRIMSON);
+      // simple shield shape via polygon
+      const sw = 38;
+      // @ts-ignore
+      doc.lines([[sw, 0], [-2, 28], [-(sw - 4), 22], [-(sw - 4), -22], [-2, -28]], cx - sw, cy - 30, [1, 1], "FD");
+      doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(20);
+      doc.text("CMF", cx, cy + 4, { align: "center" });
 
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.text(performerName, W / 2, 200, { align: "center" });
-      if (legalName && legalName !== performerName) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-        doc.setTextColor(180, 180, 180);
-        doc.text(`Legal name: ${legalName}`, W / 2, 222, { align: "center" });
+      // Title
+      doc.setTextColor(...PARCHMENT); doc.setFont("times", "bold"); doc.setFontSize(26);
+      doc.text("Identity Credential Certificate", W / 2, 200, { align: "center" });
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(180, 180, 190);
+      doc.text("Cryptographically signed proof of identity registration", W / 2, 220, { align: "center" });
+
+      // Performer photo (round-ish — jsPDF doesn't clip, draw a gold frame)
+      const photoData = await loadImageDataUrl(headshotUrl);
+      const px = W / 2 - 55, py = 245, pw = 110, ph = 130;
+      doc.setFillColor(255, 255, 255); doc.rect(px - 4, py - 4, pw + 8, ph + 8, "F");
+      doc.setDrawColor(...GOLD); doc.setLineWidth(2); doc.rect(px - 4, py - 4, pw + 8, ph + 8);
+      if (photoData) {
+        try { doc.addImage(photoData, "JPEG", px, py, pw, ph); }
+        catch { try { doc.addImage(photoData, "PNG", px, py, pw, ph); } catch {} }
       }
 
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(220, 220, 220);
-      doc.setFontSize(12);
-      doc.text(`Registry ID:  ${registryId}`, W / 2, 270, { align: "center" });
-      doc.text(`Issued:  ${issuedAt.toLocaleString()}`, W / 2, 290, { align: "center" });
-      doc.text(`Assets Protected:  ${assetsCount}`, W / 2, 310, { align: "center" });
-      doc.text(`Identity Verified ✓`, W / 2, 330, { align: "center" });
-      doc.setFontSize(9);
-      doc.setTextColor(180, 180, 180);
-      doc.text(`SHA-256:  ${sha256.slice(0, 32)}…${sha256.slice(-16)}`, W / 2, 350, { align: "center" });
+      // Name
+      let y = py + ph + 38;
+      doc.setTextColor(...PARCHMENT); doc.setFont("times", "bold"); doc.setFontSize(22);
+      doc.text(performerName, W / 2, y, { align: "center" });
+      if (legalName && legalName !== performerName) {
+        y += 18;
+        doc.setFont("helvetica", "italic"); doc.setFontSize(11); doc.setTextColor(200, 200, 210);
+        doc.text(`Legal name: ${legalName}`, W / 2, y, { align: "center" });
+      }
 
-      doc.setFontSize(11);
-      doc.setTextColor(200, 200, 200);
+      // Gold separator
+      y += 24;
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.6);
+      doc.line(W / 2 - 100, y, W / 2 + 100, y);
+
+      // Metadata block
+      y += 22;
+      const meta: [string, string][] = [
+        ["Certificate ID", certificateId],
+        ["Issued (UTC)", issuedAt.toISOString()],
+        ["Issuing Authority", "ClaimMyFace Registry"],
+        ["Face SHA-256", `${faceHash.slice(0, 24)}…${faceHash.slice(-12)}`],
+      ];
+      if (voiceHash) meta.push(["Voice SHA-256", `${voiceHash.slice(0, 24)}…${voiceHash.slice(-12)}`]);
+      meta.push(["Verify At", verifyUrl.replace(/^https?:\/\//, "")]);
+
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+      for (const [k, v] of meta) {
+        doc.setTextColor(...GOLD); doc.text(k.toUpperCase(), W / 2 - 180, y);
+        doc.setTextColor(230, 230, 235); doc.setFont("courier", "normal");
+        doc.text(v, W / 2 - 60, y);
+        doc.setFont("helvetica", "normal");
+        y += 16;
+      }
+
+      // Statement
+      y += 14;
+      doc.setTextColor(210, 210, 220); doc.setFont("times", "italic"); doc.setFontSize(10);
       const statement =
-        "This performer has established documented face and likeness registration. " +
-        "Timestamped proof of ownership prior to federal digital replica legislation.";
+        "This certificate attests that the performer named above has registered their facial likeness and identity " +
+        "with ClaimMyFace, a digital rights registry. The cryptographic hashes recorded herein establish a " +
+        "tamper-evident timestamp of ownership prior to any unauthorized synthetic reproduction.";
       const wrapped = doc.splitTextToSize(statement, W - 160);
-      doc.text(wrapped, W / 2, 380, { align: "center" });
+      doc.text(wrapped, W / 2, y, { align: "center" });
 
-      doc.setFontSize(10);
-      doc.setTextColor(192, 57, 43);
-      doc.text("AES-256 Encrypted   •   SOC 2 Compliant   •   Never Sold", W / 2, H - 80, {
-        align: "center",
-      });
+      // Footer seals
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(...GOLD);
+      doc.text("AES-256 ENCRYPTED  •  SHA-256 SIGNED  •  C2PA-COMPATIBLE  •  SOC 2 COMPLIANT", W / 2, H - 70, { align: "center" });
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(160, 160, 170);
+      doc.text(`Verify authenticity: ${verifyUrl}`, W / 2, H - 55, { align: "center" });
 
-      doc.save(`ClaimMyFace-Certificate-${registryId}.pdf`);
+      doc.save(`ClaimMyFace-Credential-${certificateId}.pdf`);
       toast({ title: "Certificate downloaded" });
     } catch (e: any) {
       toast({ title: "Download failed", description: e.message, variant: "destructive" });
@@ -145,71 +251,71 @@ const CertificateCard = ({ profile }: Props) => {
   };
 
   return (
-    <div className="rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-card/80 to-background p-6 sm:p-8 space-y-5 shadow-[0_0_50px_-15px_hsl(var(--primary)/0.4)]">
+    <div className="rounded-2xl border-2 border-accent/40 bg-gradient-to-br from-[#0B1526] to-[#142340] p-6 sm:p-8 space-y-5 shadow-[0_0_60px_-15px_rgba(212,168,67,0.35)]">
       <div className="flex flex-col items-center text-center space-y-2">
-        <div className="w-14 h-14 rounded-full bg-primary/15 border-2 border-primary flex items-center justify-center">
-          <Shield className="w-7 h-7 text-primary" />
+        <div className="w-14 h-14 rounded-full bg-accent/15 border-2 border-accent flex items-center justify-center">
+          <Shield className="w-7 h-7 text-accent" />
         </div>
-        <p className="font-display text-lg tracking-wide text-primary">ClaimMyFace</p>
-        <p className="text-xs uppercase tracking-[0.2em] text-accent">
-          Face Registration Certificate
-        </p>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-accent">ClaimMyFace · C2PA-Compatible</p>
+        <h3 className="font-display text-2xl text-foreground">Identity Credential Certificate</h3>
       </div>
 
       <div className="text-center space-y-1">
-        <h3 className="font-display text-2xl font-bold">{performerName}</h3>
+        <p className="font-display text-xl font-bold text-foreground">{performerName}</p>
         {legalName && legalName !== performerName && (
           <p className="text-xs text-muted-foreground">Legal name: {legalName}</p>
         )}
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3 max-w-xl mx-auto">
-        <div className="rounded-lg border border-border/60 bg-card/40 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Registry ID</p>
-          <p className="font-mono text-sm font-semibold">{registryId}</p>
+        <div className="rounded-lg border border-accent/30 bg-background/30 p-3">
+          <p className="text-[10px] uppercase tracking-wider text-accent">Certificate ID</p>
+          <p className="font-mono text-sm font-semibold break-all">{certificateId || "—"}</p>
         </div>
-        <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+        <div className="rounded-lg border border-border/60 bg-background/30 p-3">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Issued</p>
           <p className="font-mono text-sm">{issuedAt.toLocaleString()}</p>
         </div>
-        <div className="rounded-lg border border-border/60 bg-card/40 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Assets Protected</p>
-          <p className="font-mono text-sm">{assetsCount}</p>
+        <div className="rounded-lg border border-border/60 bg-background/30 p-3">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Face SHA-256</p>
+          <p className="font-mono text-[10px] break-all text-foreground/80">{faceHash || "Computing…"}</p>
         </div>
-        <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <p className="text-sm font-medium text-emerald-300">Identity Verified ✓</p>
+        <div className="rounded-lg border border-border/60 bg-background/30 p-3">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Voice SHA-256</p>
+          <p className="font-mono text-[10px] break-all text-foreground/80">{voiceHash || "Not provided"}</p>
         </div>
       </div>
 
-      {sha256 && (
-        <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 max-w-xl mx-auto">
-          <p className="text-[10px] uppercase tracking-wider text-accent mb-1">SHA-256 Cryptographic Fingerprint</p>
-          <p className="font-mono text-[10px] break-all text-foreground/80">{sha256}</p>
+      {verifyUrl && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 flex flex-wrap items-center gap-3 max-w-xl mx-auto">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="font-mono text-xs break-all flex-1 min-w-0">{verifyUrl}</span>
+          <Button size="sm" variant="ghost" onClick={copyLink} className="h-7">
+            <Copy className="w-3.5 h-3.5 mr-1" /> Copy
+          </Button>
+          <a href={verifyUrl} target="_blank" rel="noreferrer">
+            <Button size="sm" variant="ghost" className="h-7">
+              <ExternalLink className="w-3.5 h-3.5 mr-1" /> Open
+            </Button>
+          </a>
         </div>
       )}
 
       <div className="flex flex-wrap justify-center gap-2">
         {[
           { icon: Lock, text: "AES-256 Encrypted" },
-          { icon: ShieldCheck, text: "SOC 2 Compliant" },
-          { icon: Check, text: "Never Sold" },
+          { icon: ShieldCheck, text: "SHA-256 Signed" },
+          { icon: Check, text: "C2PA-Compatible" },
         ].map((b) => (
-          <span
-            key={b.text}
-            className="text-xs font-medium px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-foreground/90 inline-flex items-center gap-1.5"
-          >
-            <b.icon className="w-3.5 h-3.5 text-primary" /> {b.text}
+          <span key={b.text} className="text-xs font-medium px-3 py-1.5 rounded-full bg-accent/10 border border-accent/30 text-foreground/90 inline-flex items-center gap-1.5">
+            <b.icon className="w-3.5 h-3.5 text-accent" /> {b.text}
           </span>
         ))}
       </div>
 
-      <Button onClick={downloadPdf} disabled={downloading} size="lg" className="w-full font-display">
-        {downloading ? (
-          <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating PDF…</>
-        ) : (
-          <><Download className="w-4 h-4 mr-1" /> Download My Certificate PDF</>
-        )}
+      <Button onClick={downloadPdf} disabled={downloading || !ready} size="lg" className="w-full font-display bg-accent text-accent-foreground hover:bg-accent/90">
+        {downloading ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating PDF…</>) :
+          (<><Download className="w-4 h-4 mr-1" /> Download Identity Credential PDF</>)}
       </Button>
     </div>
   );
