@@ -16,6 +16,27 @@ const CertificateCard = ({ profile }: Props) => {
   const [assetsCount, setAssetsCount] = useState(0);
   const [registryId, setRegistryId] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [sha256, setSha256] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const payload = JSON.stringify({
+        u: user?.id,
+        n: profile?.legal_name || profile?.full_name || profile?.stage_name || "",
+        s: profile?.stage_name || "",
+        face: profile?.face_descriptor ?? null,
+        voice: profile?.voice_print_url ?? null,
+        writing: (profile?.writing_sample || "").slice(0, 2000),
+        registered: profile?.face_registered_at ?? null,
+      });
+      const buf = new TextEncoder().encode(payload);
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      const hex = Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      setSha256(hex);
+    })();
+  }, [user, profile]);
 
   useEffect(() => {
     if (!user) return;
@@ -43,7 +64,15 @@ const CertificateCard = ({ profile }: Props) => {
     profile?.stage_name || profile?.full_name || profile?.legal_name || "Performer";
   const legalName = profile?.legal_name || profile?.full_name || "";
 
-  if (!profile?.face_registered_at) return null;
+  const hasName = !!(profile?.legal_name || profile?.full_name || profile?.stage_name);
+  const hasIdentityAnchor = !!(
+    profile?.face_registered_at ||
+    profile?.face_descriptor ||
+    profile?.voice_print_url ||
+    profile?.writing_sample ||
+    assetsCount > 0
+  );
+  if (!hasName || !hasIdentityAnchor) return null;
 
   const downloadPdf = async () => {
     setDownloading(true);
@@ -88,6 +117,9 @@ const CertificateCard = ({ profile }: Props) => {
       doc.text(`Issued:  ${issuedAt.toLocaleString()}`, W / 2, 290, { align: "center" });
       doc.text(`Assets Protected:  ${assetsCount}`, W / 2, 310, { align: "center" });
       doc.text(`Identity Verified ✓`, W / 2, 330, { align: "center" });
+      doc.setFontSize(9);
+      doc.setTextColor(180, 180, 180);
+      doc.text(`SHA-256:  ${sha256.slice(0, 32)}…${sha256.slice(-16)}`, W / 2, 350, { align: "center" });
 
       doc.setFontSize(11);
       doc.setTextColor(200, 200, 200);
@@ -149,6 +181,13 @@ const CertificateCard = ({ profile }: Props) => {
           <p className="text-sm font-medium text-emerald-300">Identity Verified ✓</p>
         </div>
       </div>
+
+      {sha256 && (
+        <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 max-w-xl mx-auto">
+          <p className="text-[10px] uppercase tracking-wider text-accent mb-1">SHA-256 Cryptographic Fingerprint</p>
+          <p className="font-mono text-[10px] break-all text-foreground/80">{sha256}</p>
+        </div>
+      )}
 
       <div className="flex flex-wrap justify-center gap-2">
         {[
