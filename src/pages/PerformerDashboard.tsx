@@ -302,14 +302,9 @@ const PerformerDashboard = () => {
               <ScanSearch className="w-5 h-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Scanner Activity</h2>
             </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={handleScanSocialMedia} disabled={scanning}>
-                <ScanSearch className="w-4 h-4 mr-1" /> Scan Social Media
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
-              </Button>
-            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
+            </Button>
           </div>
           {alertCount > 0 ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
