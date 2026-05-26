@@ -278,45 +278,8 @@ const PerformerDashboard = () => {
         <FacePanel thumbs={thumbs} registryId={registryId} registeredAt={profile?.face_registered_at} />
 
 
-        {/* What We Found summary */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="rounded-2xl border border-border/30 bg-card/40 p-6"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <ScanSearch className="w-5 h-5 text-primary" />
-              <h2 className="font-display text-lg font-semibold">Scanner Activity</h2>
-            </div>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
-            </Button>
-          </div>
-          {alertCount > 0 ? (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-              <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{alertCount} potential match{alertCount > 1 ? "es" : ""} found</p>
-                <p className="text-xs text-muted-foreground mt-0.5">See the table below for details.</p>
-              </div>
-            </div>
-          ) : monitoringActive ? (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Scanner is active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching the web and social media for your mapped identity 24/7.</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border/20">
-              <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Scanner not active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Switch on the scanner to start watching the web for your mapped identity.</p>
-              </div>
-            </div>
-          )}
-        </motion.div>
+        {/* Scanner Activity — rendered at top and bottom */}
+        {(() => null)()}
 
         {/* ─── Identity Footprint Table (real Supabase data) ─── */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
