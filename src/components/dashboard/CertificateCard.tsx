@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Shield, Check, Download, Loader2, Lock, ShieldCheck, Copy, ExternalLink } from "lucide-react";
+import { Shield, Check, Download, Loader2, Lock, ShieldCheck, Copy, ExternalLink, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
+import cmfBadge from "@/assets/cmf-registered-badge.png";
 
 interface Props {
   profile: any;
@@ -317,6 +318,37 @@ const CertificateCard = ({ profile }: Props) => {
         {downloading ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating PDF…</>) :
           (<><Download className="w-4 h-4 mr-1" /> Download Identity Credential PDF</>)}
       </Button>
+
+      {/* Shareable "CMF Registered" badge */}
+      <div className="pt-4 border-t border-accent/20">
+        <div className="text-center mb-3">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-accent flex items-center justify-center gap-2">
+            <ImageIcon className="w-3 h-3" /> Protected Badge
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Tap the seal to download. Post it on your website or social profiles to show you're registered.
+          </p>
+        </div>
+        <div className="flex justify-center">
+          <a
+            href={cmfBadge}
+            download={`ClaimMyFace-Registered-Badge-${certificateId || "CMF"}.png`}
+            className="group block relative"
+            title="Click to download full-size badge"
+          >
+            <img
+              src={cmfBadge}
+              alt="CMF Registered — Don't Steal My Image"
+              className="w-40 h-40 sm:w-48 sm:h-48 rounded-full object-contain transition-transform group-hover:scale-105 drop-shadow-[0_0_30px_rgba(212,168,67,0.35)]"
+            />
+            <span className="absolute inset-0 rounded-full flex items-center justify-center bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent">
+                <Download className="w-4 h-4" /> Download
+              </span>
+            </span>
+          </a>
+        </div>
+      </div>
     </div>
   );
 };
