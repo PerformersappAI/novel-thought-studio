@@ -123,11 +123,6 @@ const PerformerProfileTab = () => {
     })();
   }, [user]);
 
-  const _unused_thumbs_block = null;
-  // (face-capture thumbnails removed; single headshot is shown instead)
-  void _unused_thumbs_block;
-  return null as any; // placeholder — replaced below
-
 
   const update = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
 
