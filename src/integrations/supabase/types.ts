@@ -996,6 +996,39 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_reports: {
+        Row: {
+          created_at: string
+          id: string
+          period_month: string
+          query_label: string | null
+          scan_type: string
+          source_scan_id: string | null
+          summary: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          period_month?: string
+          query_label?: string | null
+          scan_type: string
+          source_scan_id?: string | null
+          summary?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          period_month?: string
+          query_label?: string | null
+          scan_type?: string
+          source_scan_id?: string | null
+          summary?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       scan_runs: {
         Row: {
           actor_id: string | null

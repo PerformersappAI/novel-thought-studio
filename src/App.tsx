@@ -59,6 +59,7 @@ import ReportPlatformAction from "./pages/actions/ReportPlatformAction";
 import RemovalAction from "./pages/actions/RemovalAction";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
+import ScanReports from "./pages/ScanReports";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const App = () => (
             <Route path="/dashboard/claim-scanner" element={<ProtectedRoute><ClaimScanner /></ProtectedRoute>} />
             <Route path="/dashboard/report" element={<ProtectedRoute><ProtectionReport /></ProtectedRoute>} />
             <Route path="/dashboard/violations" element={<ProtectedRoute><ReportViolation /></ProtectedRoute>} />
+            <Route path="/dashboard/reports" element={<ProtectedRoute><ScanReports /></ProtectedRoute>} />
             <Route path="/education" element={<Education />} />
             <Route path="/education/:slug" element={<BlogPost />} />
             <Route path="/tools" element={<Tools />} />
