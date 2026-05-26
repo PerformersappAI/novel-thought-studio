@@ -119,14 +119,15 @@ const PerformerProfileTab = () => {
       }
 
 
-      const paths = [data?.face_capture_front_url, data?.face_capture_left_url, data?.face_capture_right_url].filter(Boolean) as string[];
-      if (paths.length) {
-        const { data: signed } = await supabase.storage.from("face-captures").createSignedUrls(paths, 60 * 10);
-        setThumbs((signed ?? []).map((s) => s.signedUrl).filter(Boolean) as string[]);
-      }
       setLoading(false);
     })();
   }, [user]);
+
+  const _unused_thumbs_block = null;
+  // (face-capture thumbnails removed; single headshot is shown instead)
+  void _unused_thumbs_block;
+  return null as any; // placeholder — replaced below
+
 
   const update = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
 
