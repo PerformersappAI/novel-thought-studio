@@ -31,7 +31,7 @@ const PerformerProfileTab = () => {
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState<any>({});
-  const [thumbs, setThumbs] = useState<string[]>([]);
+  // (face-capture thumbnails removed)
   const [headshotPreview, setHeadshotPreview] = useState<string | null>(null);
   const [voicePreview, setVoicePreview] = useState<string | null>(null);
   const [uploadingHeadshot, setUploadingHeadshot] = useState(false);
@@ -167,11 +167,7 @@ const PerformerProfileTab = () => {
     }
   };
 
-  const descriptorPreview = (() => {
-    const d = profile?.face_descriptor as number[] | undefined;
-    if (!d || !Array.isArray(d)) return "[ not yet registered ]";
-    return "[" + d.slice(0, 6).map((n) => n.toFixed(2)).join(", ") + "…]";
-  })();
+  // descriptor preview removed
 
   if (loading) {
     return (
