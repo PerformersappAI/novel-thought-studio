@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import LinkPreviewInput from "@/components/onboarding/LinkPreviewInput";
 import CertificateCard from "@/components/dashboard/CertificateCard";
 
-const UNIONS = ["SAG-AFTRA", "Fi-Core", "Non-Union", "ACTRA", "Equity", "Other"];
+const UNIONS = ["Union Member", "Fi-Core", "Non-Union", "ACTRA", "Equity", "Other"];
 const TYPES = ["Actor", "Voice Actor", "Musician", "Dancer", "Stunt Performer", "Model", "Content Creator", "Other"];
 const YEARS = ["0-2", "3-5", "6-10", "10+"];
 const MARKETS = ["Los Angeles", "New York", "Atlanta", "Chicago", "London", "Other"];

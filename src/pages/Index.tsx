@@ -249,7 +249,7 @@ const Index = () => {
             {[
               { name: "Sarah K., Commercial Actor", quote: "I found my face being used in an AI ad without my consent. ClaimMyFace gave me the evidence packet and DMCA notice I needed in minutes." },
               { name: "Marcus T., Voice Actor", quote: "The AI Usage Rights declaration alone was worth it. Now I have a timestamped record of exactly what I consented to." },
-              { name: "Jenna R., SAG Award Winner", quote: "Every performer needs this. The Vault Score showed me exactly what I was missing and the certificate gives me legal-weight proof of registration." },
+              { name: "Jenna R., Working Actor", quote: "Every performer needs this. The Vault Score showed me exactly what I was missing and the certificate gives me legal-weight proof of registration." },
             ].map((t, i) => (
               <motion.div
                 key={t.name}
@@ -399,7 +399,7 @@ const Index = () => {
               { q: "Is ClaimMyFace a law firm?", a: "No. ClaimMyFace is a documentation and evidence-vault platform. We help you build timestamped proof of your identity and likeness — but we are not attorneys and do not provide legal advice." },
               { q: "How is this different from just watermarking my photos?", a: "Watermarks can be removed. ClaimMyFace creates SHA-256 cryptographic hashes of your assets, timestamps them on registration, and stores them in a secure vault — creating legal-weight evidence of prior ownership." },
               { q: "What does the $19.99 registration fee cover?", a: "Your one-time registration includes identity verification, face vault setup, your Face Registration Certificate, and your Identity Statement — all timestamped proof of ownership." },
-              { q: "Do I need to be SAG-AFTRA to register?", a: "No. ClaimMyFace is open to any performer, creator, or public figure who wants to protect their digital likeness." },
+              { q: "Do I need to be in a union to register?", a: "No. ClaimMyFace is open to any performer, creator, or public figure who wants to protect their digital likeness." },
               { q: "What happens if someone is using my face without permission?", a: "Use our Emergency Response protocol — it walks you through documentation, DMCA filing, and incident reporting step by step." },
               { q: "Is my data private?", a: "Yes. Your uploaded assets are stored in a private encrypted vault. We never share, sell, or display your personal assets." },
             ].map((item, i) => (

@@ -132,8 +132,8 @@ const faqs = [
     a: "Yes. Cancel anytime from your dashboard. No contracts, no cancellation fees. Your registration and certificate remain active even after cancelling.",
   },
   {
-    q: "Do I need to be in SAG-AFTRA?",
-    a: "No. ClaimMyFace is built for every performer — SAG members, Fi-Core, non-union, and emerging talent.",
+    q: "Do I need to be in a union?",
+    a: "No. ClaimMyFace is built for every performer — union, non-union, and emerging talent alike.",
   },
   {
     q: "What happens when the NO FAKES Act passes?",
