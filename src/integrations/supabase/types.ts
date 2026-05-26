@@ -719,6 +719,7 @@ export type Database = {
           is_discoverable: boolean
           legal_accepted_at: string | null
           legal_name: string | null
+          onboarding_complete: boolean
           onboarding_why_seen: boolean
           performance_type: string | null
           phone: string | null
@@ -772,6 +773,7 @@ export type Database = {
           is_discoverable?: boolean
           legal_accepted_at?: string | null
           legal_name?: string | null
+          onboarding_complete?: boolean
           onboarding_why_seen?: boolean
           performance_type?: string | null
           phone?: string | null
@@ -825,6 +827,7 @@ export type Database = {
           is_discoverable?: boolean
           legal_accepted_at?: string | null
           legal_name?: string | null
+          onboarding_complete?: boolean
           onboarding_why_seen?: boolean
           performance_type?: string | null
           phone?: string | null
