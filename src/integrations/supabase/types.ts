@@ -271,6 +271,51 @@ export type Database = {
         }
         Relationships: []
       }
+      credentials: {
+        Row: {
+          actor_id: string
+          certificate_id: string
+          created_at: string
+          face_hash: string | null
+          headshot_url: string | null
+          id: string
+          is_valid: boolean
+          issued_at: string
+          legal_name: string | null
+          stage_name: string | null
+          updated_at: string
+          voice_hash: string | null
+        }
+        Insert: {
+          actor_id: string
+          certificate_id: string
+          created_at?: string
+          face_hash?: string | null
+          headshot_url?: string | null
+          id?: string
+          is_valid?: boolean
+          issued_at?: string
+          legal_name?: string | null
+          stage_name?: string | null
+          updated_at?: string
+          voice_hash?: string | null
+        }
+        Update: {
+          actor_id?: string
+          certificate_id?: string
+          created_at?: string
+          face_hash?: string | null
+          headshot_url?: string | null
+          id?: string
+          is_valid?: boolean
+          issued_at?: string
+          legal_name?: string | null
+          stage_name?: string | null
+          updated_at?: string
+          voice_hash?: string | null
+        }
+        Relationships: []
+      }
       dmca_notices: {
         Row: {
           created_at: string
