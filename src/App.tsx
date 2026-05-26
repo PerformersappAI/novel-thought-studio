@@ -60,6 +60,8 @@ import RemovalAction from "./pages/actions/RemovalAction";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import ScanReports from "./pages/ScanReports";
+import PublicVerifyImage from "./pages/PublicVerifyImage";
+import SecureChecklist from "./pages/SecureChecklist";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +84,8 @@ const App = () => (
             <Route path="/dashboard/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
             <Route path="/dashboard/certificate" element={<ProtectedRoute><Certificate /></ProtectedRoute>} />
             <Route path="/verify/:id" element={<PublicVerify />} />
+            <Route path="/verify-image" element={<PublicVerifyImage />} />
+            <Route path="/dashboard/secure-checklist" element={<ProtectedRoute><SecureChecklist /></ProtectedRoute>} />
             <Route path="/dashboard/verification" element={<ProtectedRoute><IdentityVerification /></ProtectedRoute>} />
             <Route path="/dashboard/review" element={<ProtectedRoute><AdminReviewQueue /></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
