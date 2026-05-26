@@ -258,6 +258,53 @@ const PerformerDashboard = () => {
     return /\.(jpg|jpeg|png|gif|webp|svg)/i.test(url);
   };
 
+  const scannerActivityPanel = (variant: "top" | "bottom") => (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card/60 to-card/40 p-6 shadow-[0_0_40px_-12px_hsl(var(--primary)/0.4)]"
+    >
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <ScanSearch className="w-5 h-5 text-primary" />
+          <h2 className="font-display text-lg font-semibold">
+            {variant === "bottom" ? "Ready to scan again?" : "Scanner Activity"}
+          </h2>
+        </div>
+        <Button asChild size="lg" className="glow-red font-display font-semibold text-base px-6 h-12 animate-pulse">
+          <Link to="/dashboard/monitoring">
+            <ScanSearch className="w-5 h-5 mr-2" /> Run New Scan
+          </Link>
+        </Button>
+      </div>
+      {alertCount > 0 ? (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+          <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{alertCount} potential match{alertCount > 1 ? "es" : ""} found</p>
+            <p className="text-xs text-muted-foreground mt-0.5">See the table below for details.</p>
+          </div>
+        </div>
+      ) : monitoringActive ? (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+          <div>
+            <p className="text-sm font-medium">Scanner is active</p>
+            <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching the web and social media for your mapped identity 24/7.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border/20">
+          <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
+          <div>
+            <p className="text-sm font-medium">Scanner not active</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Tap <span className="text-primary font-semibold">Run New Scan</span> to start watching the web for your mapped identity.</p>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+
   return (
     <DashboardLayout>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto space-y-8">
@@ -270,6 +317,9 @@ const PerformerDashboard = () => {
           </div>
         </header>
 
+        {/* Scanner Activity — top placement */}
+        {scannerActivityPanel("top")}
+
         <ScanStatusCards actorId={(profile as any)?.external_actor_id ?? null} />
 
 
@@ -278,45 +328,6 @@ const PerformerDashboard = () => {
         <FacePanel thumbs={thumbs} registryId={registryId} registeredAt={profile?.face_registered_at} />
 
 
-        {/* What We Found summary */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="rounded-2xl border border-border/30 bg-card/40 p-6"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <ScanSearch className="w-5 h-5 text-primary" />
-              <h2 className="font-display text-lg font-semibold">Scanner Activity</h2>
-            </div>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/monitoring"><ScanSearch className="w-4 h-4 mr-1" /> Run New Scan</Link>
-            </Button>
-          </div>
-          {alertCount > 0 ? (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-              <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{alertCount} potential match{alertCount > 1 ? "es" : ""} found</p>
-                <p className="text-xs text-muted-foreground mt-0.5">See the table below for details.</p>
-              </div>
-            </div>
-          ) : monitoringActive ? (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Scanner is active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">No unauthorized use detected. We're watching the web and social media for your mapped identity 24/7.</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border/20">
-              <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Scanner not active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Switch on the scanner to start watching the web for your mapped identity.</p>
-              </div>
-            </div>
-          )}
-        </motion.div>
 
         {/* ─── Identity Footprint Table (real Supabase data) ─── */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
@@ -480,6 +491,9 @@ const PerformerDashboard = () => {
         )}
 
         <RiskScoreCard monitoringActive={monitoringActive} hasCertificate={hasCertificate} faceCaptured={faceCaptured} profileComplete={profileComplete} voiceRegistered={voiceRegistered} externalRiskScore={externalRiskScore} />
+
+        {/* Scanner Activity — bottom reminder */}
+        {scannerActivityPanel("bottom")}
       </motion.div>
 
       {/* Detail modal */}
