@@ -78,7 +78,7 @@ const PerformerDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
-  const [thumbs, setThumbs] = useState<string[]>([]);
+  // thumbs removed — single headshot shown via profile.headshot_url
   const [registryId, setRegistryId] = useState<string | null>(null);
   const [hasCertificate, setHasCertificate] = useState(false);
   const [monitoringActive, setMonitoringActive] = useState(false);
@@ -188,7 +188,7 @@ const PerformerDashboard = () => {
   };
 
   const profileComplete = !!(profile?.legal_name && profile?.stage_name);
-  const faceCaptured = !!profile?.face_registered_at;
+  const faceCaptured = !!profile?.headshot_url;
   const voiceRegistered = !!profile?.voice_registered_at;
 
   const hasHeadshot = !!profile?.headshot_url;
