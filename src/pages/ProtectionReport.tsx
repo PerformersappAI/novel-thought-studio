@@ -102,6 +102,8 @@ const ProtectionReport = () => {
           </p>
         </header>
 
+        <DetectionPanels mentions={rows as any} />
+
         {loading ? (
           <p className="text-muted-foreground">Loading…</p>
         ) : (
