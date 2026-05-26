@@ -40,10 +40,10 @@ async function hashUrl(url: string): Promise<string> {
     .join("");
 }
 
-function scoreResult(displayName: string, bio: string) {
+function scoreResult(displayName: string, bio: string, query: string) {
   const lower = `${displayName} ${bio}`.toLowerCase();
   let confidence = 45;
-  if (lower.includes(EXACT_NAME_QUERY.toLowerCase())) confidence += 35;
+  if (query && lower.includes(query.toLowerCase())) confidence += 35;
   if (lower.includes("official") || lower.includes("actor") || lower.includes("performer")) confidence += 10;
   if (lower.includes("fan") || lower.includes("parody") || lower.includes("backup")) confidence -= 10;
   confidence = Math.max(10, Math.min(95, confidence));
