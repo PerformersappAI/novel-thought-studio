@@ -182,6 +182,13 @@ const CertificateCard = ({ profile }: Props) => {
         </div>
       </div>
 
+      {sha256 && (
+        <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 max-w-xl mx-auto">
+          <p className="text-[10px] uppercase tracking-wider text-accent mb-1">SHA-256 Cryptographic Fingerprint</p>
+          <p className="font-mono text-[10px] break-all text-foreground/80">{sha256}</p>
+        </div>
+      )}
+
       <div className="flex flex-wrap justify-center gap-2">
         {[
           { icon: Lock, text: "AES-256 Encrypted" },
