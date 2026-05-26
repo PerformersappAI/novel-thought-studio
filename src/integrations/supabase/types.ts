@@ -343,6 +343,27 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_checklist: {
+        Row: {
+          completed_at: string
+          id: string
+          item_key: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          item_key: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          item_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       identity_statements: {
         Row: {
           created_at: string
@@ -747,6 +768,8 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           company_name: string | null
+          consent_date: string | null
+          consent_given: boolean
           created_at: string
           display_name: string | null
           external_actor_id: string | null
@@ -801,6 +824,8 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
+          consent_date?: string | null
+          consent_given?: boolean
           created_at?: string
           display_name?: string | null
           external_actor_id?: string | null
@@ -855,6 +880,8 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
+          consent_date?: string | null
+          consent_given?: boolean
           created_at?: string
           display_name?: string | null
           external_actor_id?: string | null

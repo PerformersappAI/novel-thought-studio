@@ -11,10 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Loader2, ExternalLink, AlertTriangle, Clock, Upload, Image as ImageIcon, Type } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ScanHistory from "@/components/likeness/ScanHistory";
+import BiometricConsentModal from "@/components/BiometricConsentModal";
+import { useBiometricConsent } from "@/hooks/useBiometricConsent";
 
 const LikenessMonitor = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const consent = useBiometricConsent();
   const [query, setQuery] = useState("");
   const [scanning, setScanning] = useState(false);
   const [scans, setScans] = useState<any[]>([]);
@@ -53,6 +56,7 @@ const LikenessMonitor = () => {
 
   const runTextScan = async () => {
     if (!query.trim() || !user) return;
+    if (!consent.requireConsent()) return;
     setScanning(true);
     try {
       const { data: scan, error: insertError } = await supabase
@@ -90,6 +94,7 @@ const LikenessMonitor = () => {
 
   const runImageScan = async () => {
     if (!imageBase64 || !user) return;
+    if (!consent.requireConsent()) return;
     setScanning(true);
     const queryLabel = name.trim() || "Image scan";
     try {
@@ -195,6 +200,11 @@ const LikenessMonitor = () => {
 
         <ScanHistory scans={scans} loading={loading} onUpdate={fetchScans} profile={profile} />
       </div>
+      <BiometricConsentModal
+        open={consent.modalOpen}
+        onConsented={consent.onConsented}
+        onCancel={() => consent.setModalOpen(false)}
+      />
     </DashboardLayout>
   );
 };

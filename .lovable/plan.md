@@ -1,49 +1,22 @@
-The scanner is currently too loose: it is pulling broad name-search results, including unrelated Will Roberts / Willie Robertson / generic legal sites, and the UI is displaying them as if they are valid identity matches.
+## Three new features for ClaimMyFace
 
-Plan to fix it:
+### Feature 1 — Invisible Image Watermark
+- Add a client-side LSB steganography utility (`src/lib/stegoWatermark.ts`) that embeds/extracts a JSON payload (`certificateId`, `stageName`, `registrationDate`, `issuer: "ClaimMyFace.com"`) into PNG pixel data via canvas. No external library needed (keeps it dependency-free and runs in-browser).
+- Update headshot upload flow (in `OnboardingFaceCapture` / `PerformerProfileTab`) to embed the watermark before uploading the PNG to the `headshots` bucket.
+- Add a **"Download Protected Headshot"** button on the profile/certificate card that downloads the watermarked PNG.
+- New public page `/verify-image` (route + `PublicVerifyImage.tsx`): drag-drop an image, decode the watermark, look up the certificate in `credentials`, show the owner + verified badge or "No watermark found."
 
-1. **Remove hardcoded identity assumptions**
-   - Stop relying on the default actor ID and hardcoded `Will Roberts` search terms except as a fallback.
-   - Resolve the current user’s real profile data: legal name, stage name, nicknames, profession, IMDb URL, Instagram, TikTok, YouTube, headshot, and external actor ID.
+### Feature 2 — Biometric Consent Gate
+- DB migration: add `consent_given boolean default false`, `consent_date timestamptz` to `profiles`.
+- New `BiometricConsentModal` component (two required checkboxes + "Agree & Start Scanning"). Stores `consent_given=true` + `consent_date=now()`.
+- Wrap scanner entrypoints (`LikenessMonitor`, `Monitoring`, `ClaimScanner`) so they check `profile.consent_given` on mount; if missing, show modal and block scan buttons. Settings page gets a "Revoke biometric consent" toggle.
 
-2. **Add a strict identity relevance gate before anything displays**
-   - Every result must pass one of these rules before appearing:
-     - exact saved handle match;
-     - exact name plus actor/film/TV/profession context;
-     - trusted known profile/domain match such as IMDb, official site, YouTube channel, or saved profile links;
-     - photo result with a valid image source and strong face/likeness context.
-   - Reject results that only match a common name with no actor/persona context.
+### Feature 3 — Post-Registration Action Checklist
+- DB migration: new `identity_checklist` table (`user_id`, `item_key text`, `completed_at timestamptz`) with RLS (user owns rows).
+- New page `/dashboard/secure-checklist` (`SecureChecklist.tsx`) — dark cinematic style, progress bar at top (X of 10), 10 items with checkbox + description + Learn More link. Item 1 ("Register your face") is pre-checked and locked. Items link to existing tools (`/dashboard/trademark`, `/dashboard/dmca`, `/dashboard/ai-rights`, `/dashboard/voice` etc.) or external resources (USPTO, copyright.gov, Google Alerts).
+- Add nav item in `DashboardLayout`. Redirect from `OnboardingComplete` "Next" CTA to this checklist.
 
-3. **Fix Instagram/TikTok noise**
-   - Treat saved handles as authoritative.
-   - If a result is not the saved handle, require strong evidence before showing it as “possible impersonation.”
-   - Filter out unrelated same-name people, family/wedding posts, sports accounts, charity posts, and “Willie Robertson”-type mismatches.
-
-4. **Fix Web Mentions**
-   - Replace broad web result acceptance with exact phrase + performer-context filtering.
-   - Reject generic domains/pages unless the title/snippet/url contains the performer identity and actor context.
-   - Do not show one random low-quality web result just to fill the section.
-
-5. **Fix Photo Matches**
-   - Keep Yandex image matches only when the image page/source is meaningful, not just a CDN/static asset.
-   - Run Sightengine only after the result passes the relevance gate.
-   - Mark deepfake/AI-image results as threats only when Sightengine flags them above threshold.
-
-6. **Improve result labeling**
-   - Add clearer labels: `Verified Match`, `Possible Impersonation`, `Needs Review`, `Rejected/Hidden`, `AI/Deepfake Alert`.
-   - Stop showing everything as generic “Informational.”
-
-7. **Persist only clean results**
-   - Save/display filtered results in the local app database where possible.
-   - Keep raw external/VPS scanner data out of the user-facing UI unless it passes our relevance rules.
-
-Files/functions to update after approval:
-- `src/pages/Monitoring.tsx`
-- `supabase/functions/mentions-proxy/index.ts`
-- `supabase/functions/actor-registry/index.ts`
-- `supabase/functions/social-scan/index.ts`
-- `supabase/functions/likeness-scan/index.ts`
-
-Expected outcome:
-- The scanner should stop showing unrelated Instagram/TikTok/web garbage.
-- Results should only appear when they are actually tied to the performer’s mapped identity or are credible impersonation/deepfake candidates.
+### Technical notes
+- Stego: LSB on RGB channels of a canvas-rendered PNG; payload prefixed with 32-bit length + magic bytes `CMF1`. Lossless PNG only (warn on JPEG re-encode).
+- Consent gate: simple guard hook `useBiometricConsent()` returning `{ consented, requireConsent() }`.
+- Checklist items stored by `item_key` string; UI defines metadata (title/desc/link) statically.
