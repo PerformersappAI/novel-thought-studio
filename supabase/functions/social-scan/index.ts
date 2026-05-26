@@ -10,7 +10,7 @@ const corsHeaders = {
 const APIFY_TOKEN = Deno.env.get("APIFY_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const EXACT_NAME_QUERY = "Will Roberts";
+
 
 interface ScanRequest {
   user_id: string;
