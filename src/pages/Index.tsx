@@ -228,18 +228,6 @@ const Index = () => {
             ))}
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <Button asChild size="lg" className="font-display text-base font-semibold px-8 h-14 glow-red">
-              <Link to="/register">
-                Start Protecting Yourself <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
-          </motion.div>
         </div>
       </section>
 
