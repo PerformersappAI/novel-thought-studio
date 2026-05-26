@@ -116,12 +116,6 @@ const ScanStatusCards = ({ actorId }: Props) => {
         });
         const rows = await res.json() as ScanRun[];
         if (!res.ok) throw new Error(JSON.stringify(rows));
-        console.log("[ScanStatusCards] authenticated scan_runs rows:", {
-          user_id: user?.id,
-          actor_id: actorId,
-          count: rows.length,
-          rows: rows.map((row) => ({ scanner_name: row.scanner_name, normalized: normalizeScannerName(row.scanner_name), actor_id: row.actor_id })),
-        });
 
         if (rows.length > 0) {
           if (!cancelled) {
@@ -146,11 +140,6 @@ const ScanStatusCards = ({ actorId }: Props) => {
         const functionJson = await functionRes.json();
         if (!functionRes.ok) throw new Error(JSON.stringify(functionJson));
         const functionRows = (functionJson?.scan_runs || []) as ScanRun[];
-        console.log("[ScanStatusCards] actor-registry scan_runs fallback:", {
-          actor_id: functionJson?.actor_id,
-          count: functionRows.length,
-          rows: functionRows.map((row) => ({ scanner_name: row.scanner_name, normalized: normalizeScannerName(row.scanner_name), actor_id: row.actor_id })),
-        });
         if (!cancelled) {
           setRuns(indexRuns(functionRows));
         }
