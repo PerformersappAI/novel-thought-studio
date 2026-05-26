@@ -693,6 +693,10 @@ const Monitoring = () => {
           </p>
         </div>
 
+        <div className="mb-6">
+          <DetectionPanels mentions={mentions as any} />
+        </div>
+
         <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
