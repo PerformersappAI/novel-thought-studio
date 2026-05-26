@@ -491,6 +491,9 @@ const PerformerDashboard = () => {
         )}
 
         <RiskScoreCard monitoringActive={monitoringActive} hasCertificate={hasCertificate} faceCaptured={faceCaptured} profileComplete={profileComplete} voiceRegistered={voiceRegistered} externalRiskScore={externalRiskScore} />
+
+        {/* Scanner Activity — bottom reminder */}
+        {scannerActivityPanel("bottom")}
       </motion.div>
 
       {/* Detail modal */}
