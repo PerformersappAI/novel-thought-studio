@@ -4,6 +4,7 @@ import { ShieldCheck, AlertTriangle, ExternalLink } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import DetectionPanels from "@/components/dashboard/DetectionPanels";
 
 interface Row {
   id: string;
@@ -100,6 +101,8 @@ const ProtectionReport = () => {
             Everything our scanner has found about you, sorted by what's safe and what may need action.
           </p>
         </header>
+
+        <DetectionPanels mentions={rows as any} />
 
         {loading ? (
           <p className="text-muted-foreground">Loading…</p>

@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScanHistory from "@/components/likeness/ScanHistory";
 import BiometricConsentModal from "@/components/BiometricConsentModal";
 import { useBiometricConsent } from "@/hooks/useBiometricConsent";
+import DetectionPanels from "@/components/dashboard/DetectionPanels";
 
 const LikenessMonitor = () => {
   const { user } = useAuth();
@@ -125,6 +126,9 @@ const LikenessMonitor = () => {
           <h1 className="text-2xl font-display font-bold text-foreground">Likeness Monitor</h1>
           <p className="text-muted-foreground mt-1">Search for unauthorized use of your name or face online.</p>
         </div>
+
+        <DetectionPanels />
+
 
         <Tabs defaultValue="image" className="w-full">
           <TabsList className="mb-4">

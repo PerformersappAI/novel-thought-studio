@@ -28,6 +28,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import DetectionPanels from "@/components/dashboard/DetectionPanels";
 
 const DEFAULT_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
 
@@ -690,6 +691,10 @@ const Monitoring = () => {
             What we found across the web and social media for your mapped
             identity.
           </p>
+        </div>
+
+        <div className="mb-6">
+          <DetectionPanels mentions={mentions as any} />
         </div>
 
         <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
