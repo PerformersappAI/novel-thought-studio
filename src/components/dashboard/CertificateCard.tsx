@@ -117,6 +117,9 @@ const CertificateCard = ({ profile }: Props) => {
       doc.text(`Issued:  ${issuedAt.toLocaleString()}`, W / 2, 290, { align: "center" });
       doc.text(`Assets Protected:  ${assetsCount}`, W / 2, 310, { align: "center" });
       doc.text(`Identity Verified ✓`, W / 2, 330, { align: "center" });
+      doc.setFontSize(9);
+      doc.setTextColor(180, 180, 180);
+      doc.text(`SHA-256:  ${sha256.slice(0, 32)}…${sha256.slice(-16)}`, W / 2, 350, { align: "center" });
 
       doc.setFontSize(11);
       doc.setTextColor(200, 200, 200);
