@@ -14,6 +14,8 @@ type Plan = {
   label: string;
   price: string;
   period?: string;
+  setupFee?: string;
+  setupNote?: string;
   subtitle: string;
   features: string[];
   cta: string;
@@ -25,7 +27,7 @@ type Plan = {
 
 const plans: Plan[] = [
   {
-    name: "Register Your Face",
+    name: "Register & Scan",
     label: "Start Here",
     price: "$19.99",
     period: "one-time",
@@ -42,17 +44,19 @@ const plans: Plan[] = [
     ],
     cta: "Register My Face — $19.99 →",
     href: `/signup?plan=registration&price=${import.meta.env.VITE_REGISTRATION_PRICE_ID ?? ""}`,
-    note: "One-time fee. No subscription required to register.",
+    note: "One-time fee. No subscription. No recurring charges.",
     variant: "default",
   },
   {
-    name: "Stay Protected",
+    name: "Pro Shield",
     label: "Keep Watching",
     price: "$9.99",
     period: "/mo",
+    setupFee: "$19.99",
+    setupNote: "one-time sign-up",
     subtitle: "We keep watching. You keep working.",
     features: [
-      "Everything in Register",
+      "Everything in Register & Scan",
       "24/7 monitoring across 7 platforms",
       "Real-time face detection alerts",
       "Voice clone detection",
@@ -61,12 +65,13 @@ const plans: Plan[] = [
       "AI Consent Contract Checker",
       "Priority support",
     ],
-    cta: "Activate Monitoring — $9.99/mo →",
+    cta: "Activate Pro Shield →",
     href: `/signup?plan=monthly&price=${import.meta.env.VITE_MONTHLY_PRICE_ID ?? ""}`,
-    note: "Cancel anytime. No contracts.",
+    note: "$19.99 one-time sign-up, then $9.99/mo. Cancel anytime.",
     variant: "default",
     highlight: true,
   },
+
   {
     name: "Annual Shield",
     label: "Best Value",
