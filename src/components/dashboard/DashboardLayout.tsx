@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch, Stamp, FileSearch, FileArchive, FileSignature, ShieldCheck, AlertTriangle, FileText, Siren, Microscope } from "lucide-react";
+import { LayoutDashboard, Settings, Users, CheckSquare, ScrollText, LogOut, Radar, UserCircle, Home, Menu, X, ShieldAlert, ScanSearch, Stamp, FileSearch, FileArchive, FileSignature, ShieldCheck, AlertTriangle, FileText, Siren, Microscope, FolderArchive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/cmf-shield-logo.png";
@@ -13,6 +13,7 @@ interface DashboardLayoutProps {
 const performerLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "My Protection" },
   { to: "/dashboard/monitoring", icon: ScanSearch, label: "Scan Results" },
+  { to: "/dashboard/reports", icon: FolderArchive, label: "Scan Reports" },
   { to: "/dashboard/claim-scanner", icon: Microscope, label: "Claim Scanner" },
   { to: "/dashboard/take-action", icon: ShieldAlert, label: "Take Action" },
   { to: "/dashboard/contract-scanner", icon: FileSearch, label: "Contract Scanner" },
@@ -33,6 +34,7 @@ const adminLinks = [
   { to: "/dashboard/review", icon: CheckSquare, label: "Review Queue" },
   { to: "/dashboard/users", icon: Users, label: "Users" },
   { to: "/dashboard/violations", icon: ScrollText, label: "Violations" },
+  { to: "/dashboard/reports", icon: FolderArchive, label: "Scan Reports" },
   { to: "/dashboard/legal", icon: ScrollText, label: "Legal Logs" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
