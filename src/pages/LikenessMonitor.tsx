@@ -200,6 +200,11 @@ const LikenessMonitor = () => {
 
         <ScanHistory scans={scans} loading={loading} onUpdate={fetchScans} profile={profile} />
       </div>
+      <BiometricConsentModal
+        open={consent.modalOpen}
+        onConsented={consent.onConsented}
+        onCancel={() => consent.setModalOpen(false)}
+      />
     </DashboardLayout>
   );
 };
