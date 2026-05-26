@@ -197,10 +197,18 @@ const PricingSection = () => {
                     </span>
                   )}
                 </div>
+                {plan.setupFee && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1">
+                    <span className="text-xs font-body font-semibold text-foreground">
+                      + {plan.setupFee} {plan.setupNote}
+                    </span>
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground mt-3 font-body italic min-h-[40px]">
                   {plan.subtitle}
                 </p>
               </div>
+
               <ul className="space-y-2.5 mb-6 flex-1">
                 {plan.features.map((f) => (
                   <li
