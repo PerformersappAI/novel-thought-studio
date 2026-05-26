@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const EXACT_NAME_QUERY = 'Will Roberts';
+const DEFAULT_PROFESSION = 'actor';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
