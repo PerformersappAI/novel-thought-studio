@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import cmfBadge from "@/assets/cmf-registered-badge.png";
+import { embedWatermark, downloadBlob } from "@/lib/stegoWatermark";
 
 interface Props {
   profile: any;
@@ -317,6 +318,30 @@ const CertificateCard = ({ profile }: Props) => {
       <Button onClick={downloadPdf} disabled={downloading || !ready} size="lg" className="w-full font-display bg-accent text-accent-foreground hover:bg-accent/90">
         {downloading ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating PDF…</>) :
           (<><Download className="w-4 h-4 mr-1" /> Download Identity Credential PDF</>)}
+      </Button>
+
+      <Button
+        variant="outline"
+        size="lg"
+        className="w-full"
+        disabled={!ready || !headshotUrl}
+        onClick={async () => {
+          if (!headshotUrl) return;
+          try {
+            const blob = await embedWatermark(headshotUrl, {
+              certificateId,
+              stageName: performerName,
+              registrationDate: issuedAt.toISOString(),
+              issuer: "ClaimMyFace.com",
+            });
+            downloadBlob(blob, `ClaimMyFace-Protected-${certificateId || "headshot"}.png`);
+            toast({ title: "Protected headshot downloaded", description: "Invisible watermark embedded." });
+          } catch (e: any) {
+            toast({ title: "Could not watermark image", description: e.message, variant: "destructive" });
+          }
+        }}
+      >
+        <ImageIcon className="w-4 h-4 mr-2" /> Download Protected Headshot
       </Button>
 
       {/* Shareable "CMF Registered" badge */}
