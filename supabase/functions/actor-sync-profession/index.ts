@@ -1,18 +1,39 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const { email, profession } = await req.json();
-    if (!email || !profession) {
-      return new Response(JSON.stringify({ error: "email and profession required" }), {
+    const authHeader = req.headers.get("authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { profession } = await req.json();
+    if (!profession || typeof profession !== "string" || profession.length > 200) {
+      return new Response(JSON.stringify({ error: "valid profession required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const r = await fetch("http://187.77.199.100:8001/actor/update", {
+
+    // Always use the authenticated user's email server-side; never trust client input.
+    const r = await fetch("https://api.claimmyface.com/actor/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, profession }),
+      body: JSON.stringify({ email: user.email, profession }),
     });
     const text = await r.text();
     return new Response(

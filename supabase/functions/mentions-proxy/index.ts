@@ -22,7 +22,6 @@ Deno.serve(async (req) => {
     }
 
     const endpoints = [
-      `http://187.77.199.100:8001/mentions/${actor}?_=${Date.now()}`,
       `https://api.claimmyface.com/mentions/${actor}?_=${Date.now()}`,
     ];
 

@@ -110,36 +110,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // GET /actor/{actor_id}
+    // GET /actor — always resolve to the authenticated user's own actor record.
+    // The actor_id query param is ignored to prevent IDOR enumeration.
     if (action === "get_actor" && req.method === "GET") {
-      const actorId = url.searchParams.get("actor_id");
-      if (!actorId) {
-        // Try to get from profile
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("external_actor_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("external_actor_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-        const id = (profile as any)?.external_actor_id;
-        if (!id) {
-          return new Response(
-            JSON.stringify({ error: "No actor_id found" }),
-            {
-              status: 404,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            }
-          );
-        }
-
-        const extRes = await fetch(`${EXTERNAL_API}/actor/${id}`);
-        const extData = await extRes.json();
-        return new Response(JSON.stringify(extData), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      const id = (profile as any)?.external_actor_id;
+      if (!id) {
+        return new Response(
+          JSON.stringify({ error: "No actor_id found" }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
       }
 
-      const extRes = await fetch(`${EXTERNAL_API}/actor/${actorId}`);
+      const extRes = await fetch(`${EXTERNAL_API}/actor/${id}`);
       const extData = await extRes.json();
       return new Response(JSON.stringify(extData), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
