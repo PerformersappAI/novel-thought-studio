@@ -4,6 +4,7 @@ import { ShieldCheck, AlertTriangle, ExternalLink } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import DetectionPanels from "@/components/dashboard/DetectionPanels";
 
 interface Row {
   id: string;
