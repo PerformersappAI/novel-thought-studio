@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -86,11 +87,11 @@ const App = () => (
             <Route path="/verify-image" element={<PublicVerifyImage />} />
             <Route path="/dashboard/secure-checklist" element={<ProtectedRoute><SecureChecklist /></ProtectedRoute>} />
             <Route path="/dashboard/verification" element={<ProtectedRoute><IdentityVerification /></ProtectedRoute>} />
-            <Route path="/dashboard/review" element={<ProtectedRoute><AdminReviewQueue /></ProtectedRoute>} />
+            <Route path="/dashboard/review" element={<AdminRoute><AdminReviewQueue /></AdminRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/dashboard/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
-            <Route path="/dashboard/legal" element={<ProtectedRoute><AdminLegalLogs /></ProtectedRoute>} />
-            <Route path="/dashboard/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
+            <Route path="/dashboard/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/dashboard/legal" element={<AdminRoute><AdminLegalLogs /></AdminRoute>} />
+            <Route path="/dashboard/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
             <Route path="/dashboard/monitor" element={<ProtectedRoute><LikenessMonitor /></ProtectedRoute>} />
             <Route path="/dashboard/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
             <Route path="/dashboard/claim-scanner" element={<ProtectedRoute><ClaimScanner /></ProtectedRoute>} />
