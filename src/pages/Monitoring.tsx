@@ -480,19 +480,20 @@ function MentionRow({
     </div>
   );
 }
-
 function Section({
   title,
   items,
   Icon,
   verdicts,
   setVerdict,
+  onSuppress,
 }: {
   title: string;
   items: Mention[];
   Icon: any;
   verdicts: Record<string, Verdict>;
   setVerdict: (id: string, v: Verdict) => void;
+  onSuppress: (m: Mention) => void;
 }) {
   return (
     <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6">
@@ -517,6 +518,7 @@ function Section({
               m={m}
               verdict={verdicts[m.id] || "informational"}
               onVerdict={(v) => setVerdict(m.id, v)}
+              onSuppress={() => onSuppress(m)}
             />
           ))}
         </div>
