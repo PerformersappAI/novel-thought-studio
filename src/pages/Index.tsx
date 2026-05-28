@@ -208,7 +208,7 @@ const Index = () => {
               { icon: FileText, title: "DMCA Generator", desc: "Generate legally formatted DMCA takedown notices ready to send to any platform." },
               { icon: Siren, title: "Emergency Response", desc: "Follow a step-by-step protocol when your identity is being actively misused." },
               { icon: Target, title: "Vault Score", desc: "Track your protection progress and see exactly what steps remain to secure your identity." },
-              { icon: Award, title: "Face Certificate", desc: "Receive a cryptographic ownership certificate proving your biometric registration." },
+              { icon: Award, title: "Face Certificate", desc: "Receive a cryptographic ownership certificate proving your headshot registration." },
             ].map((feature, i) => (
               <motion.div
                 key={feature.title}

@@ -42,22 +42,22 @@ const BiometricConsentModal = ({ open, onConsented, onCancel }: Props) => {
           <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center mb-2">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <DialogTitle className="font-display text-xl">Biometric Scanning Consent</DialogTitle>
+          <DialogTitle className="font-display text-xl">Photo Monitoring Consent</DialogTitle>
           <DialogDescription className="text-sm leading-relaxed pt-2">
-            By clicking Agree, you authorize ClaimMyFace to scan the internet for unauthorized use of your face,
-            voice, name, and likeness using the information you have provided. This scan may include social media
-            platforms, video hosting sites, image search engines, and web pages. You can revoke this consent at
-            any time in Settings.
+            By clicking Agree, you authorize ClaimMyFace to monitor the open internet for unauthorized use of
+            your uploaded headshot, voice sample, name, and likeness. This monitoring may include reverse image
+            search, social media platforms, video hosting sites, and web pages. ClaimMyFace does not perform
+            facial recognition or store biometric identifiers. You can revoke this consent at any time in Settings.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <label className="flex gap-3 items-start cursor-pointer">
             <Checkbox checked={c1} onCheckedChange={(v) => setC1(!!v)} className="mt-1" />
-            <span className="text-sm text-foreground">I consent to ClaimMyFace scanning for my likeness.</span>
+            <span className="text-sm text-foreground">I consent to ClaimMyFace monitoring the web for my likeness.</span>
           </label>
           <label className="flex gap-3 items-start cursor-pointer">
             <Checkbox checked={c2} onCheckedChange={(v) => setC2(!!v)} className="mt-1" />
-            <span className="text-sm text-foreground">I am the rightful owner of the identity I have registered.</span>
+            <span className="text-sm text-foreground">I am the rightful owner of every photo and identity asset I have uploaded.</span>
           </label>
         </div>
         <div className="flex justify-end gap-2 pt-2">

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Upload, Loader2, Image as ImageIcon, Check, ArrowRight } from "lucide-react";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
+import { resolveHeadshotUrl } from "@/lib/headshotUrl";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png"];
@@ -23,13 +24,18 @@ const OnboardingHeadshot = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("headshot_url").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => {
-        if (data?.headshot_url) {
-          setPreview(data.headshot_url);
-          setExisting(true);
-        }
-      });
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("headshot_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data?.headshot_url) {
+        const resolved = await resolveHeadshotUrl(data.headshot_url);
+        if (resolved) setPreview(resolved);
+        setExisting(true);
+      }
+    })();
   }, [user]);
 
   const handleFile = (f: File) => {
@@ -56,13 +62,13 @@ const OnboardingHeadshot = () => {
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("headshots").upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
+      // Store the storage path (bucket is private; rendered via signed URL).
       const { error: dbErr } = await supabase
         .from("profiles")
-        .update({ headshot_url: pub.publicUrl, face_registered_at: new Date().toISOString() } as any)
+        .update({ headshot_url: path, face_registered_at: new Date().toISOString() } as any)
         .eq("user_id", user.id);
       if (dbErr) throw dbErr;
-      toast({ title: "Headshot registered", description: "Your reference photo is saved." });
+      toast({ title: "Headshot uploaded", description: "Your reference photo is saved." });
       navigate("/onboarding/voice");
     } catch (e: any) {
       toast({ title: "Upload failed", description: e.message, variant: "destructive" });

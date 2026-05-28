@@ -34,7 +34,7 @@ const plans: Plan[] = [
     subtitle: "Claim your face. One time. Yours forever.",
     features: [
       "Complete performer profile",
-      "3-photo face capture (front, left, right)",
+      "Professional headshot upload",
       "Official Face Registration Certificate (PDF)",
       "Unique Registry ID (CMF-2026-XXXXX)",
       "Verified badge for your website",

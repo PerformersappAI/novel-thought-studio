@@ -133,7 +133,10 @@ const Welcome = () => {
           instagram_handle: data?.instagram_handle ?? "",
           youtube_handle: data?.youtube_handle ?? "",
         });
-        if (data?.headshot_url) setHeadshotPreview(data.headshot_url);
+        if (data?.headshot_url) {
+          const { resolveHeadshotUrl } = await import("@/lib/headshotUrl");
+          setHeadshotPreview(await resolveHeadshotUrl(data.headshot_url));
+        }
       } catch (e) {
         console.error("Welcome init failed:", e);
       } finally {
@@ -159,8 +162,8 @@ const Welcome = () => {
         const path = `${user.id}/${Date.now()}-${headshotFile.name}`;
         const { error: upErr } = await supabase.storage.from("headshots").upload(path, headshotFile, { upsert: true });
         if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
-        headshot_url = pub.publicUrl;
+        // Private bucket: persist the storage path; signed URL is generated at render time.
+        headshot_url = path;
       }
       const { error } = await supabase
         .from("profiles")

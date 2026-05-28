@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import cmfBadge from "@/assets/cmf-registered-badge.png";
 import { embedWatermark, downloadBlob } from "@/lib/stegoWatermark";
+import { resolveHeadshotUrl } from "@/lib/headshotUrl";
 
 interface Props {
   profile: any;
@@ -61,7 +62,13 @@ const CertificateCard = ({ profile }: Props) => {
 
   const performerName = profile?.stage_name || profile?.full_name || profile?.legal_name || "Performer";
   const legalName = profile?.legal_name || profile?.full_name || "";
-  const headshotUrl: string | null = profile?.headshot_url || profile?.avatar_url || null;
+  const rawHeadshot: string | null = profile?.headshot_url || profile?.avatar_url || null;
+  const [headshotUrl, setHeadshotUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    resolveHeadshotUrl(rawHeadshot).then((u) => { if (!cancelled) setHeadshotUrl(u); });
+    return () => { cancelled = true; };
+  }, [rawHeadshot]);
   const voiceUrl: string | null = profile?.voice_print_url || profile?.voice_print_demo_url || null;
 
   const hasMinimum = !!(performerName && headshotUrl);
