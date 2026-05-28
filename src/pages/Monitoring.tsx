@@ -533,6 +533,15 @@ const EMPTY_IDENTITY: Identity = {
   trustedDomains: new Set(), profession: "",
 };
 
+interface FindingAction {
+  id: string;
+  url_hash: string;
+  action_type: "dmca" | "cease_desist" | "violation_report" | "note";
+  status: string;
+  notes: string | null;
+  created_at: string;
+}
+
 const Monitoring = () => {
   const { user } = useAuth();
   const [mentions, setMentions] = useState<Mention[]>([]);
@@ -541,6 +550,12 @@ const Monitoring = () => {
   const [actorId, setActorId] = useState<string>(DEFAULT_ACTOR_ID);
   const [identity, setIdentity] = useState<Identity>(EMPTY_IDENTITY);
   const [verdicts, setVerdicts] = useState<Record<string, Verdict>>(() => loadVerdicts());
+  const [suppressions, setSuppressions] = useState<Set<string>>(() => loadSuppressions());
+  // Map mention.id -> url_hash so we can quickly toggle suppression for that row.
+  const [hashes, setHashes] = useState<Record<string, string>>({});
+  const [scannedAt, setScannedAt] = useState<Date>(() => new Date());
+  const [actions, setActions] = useState<FindingAction[]>([]);
+  const [actionFilter, setActionFilter] = useState<string>("all");
 
   const setVerdict = useCallback((id: string, v: Verdict) => {
     setVerdicts((prev) => {
@@ -549,6 +564,39 @@ const Monitoring = () => {
       return next;
     });
   }, []);
+
+  const suppressMention = useCallback((m: Mention) => {
+    const hash = hashes[m.id];
+    if (!hash) return;
+    setSuppressions((prev) => {
+      const next = new Set(prev);
+      next.add(hash);
+      saveSuppressions(next);
+      return next;
+    });
+  }, [hashes]);
+
+  const unsuppress = useCallback((hash: string) => {
+    setSuppressions((prev) => {
+      const next = new Set(prev);
+      next.delete(hash);
+      saveSuppressions(next);
+      return next;
+    });
+  }, []);
+
+  const fetchActions = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("finding_actions")
+      .select("id, url_hash, action_type, status, notes, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    setActions((data as any) || []);
+  }, [user]);
+
+  useEffect(() => { fetchActions(); }, [fetchActions]);
 
   const fetchMentions = useCallback(async (id: string, ident: Identity) => {
     setLoading(true);
@@ -625,10 +673,14 @@ const Monitoring = () => {
         console.warn("[Monitoring] handle-scanner fetch failed:", e);
       }
 
+      // Compute URL hashes for every row in parallel so we can suppress reliably.
+      const hashMap: Record<string, string> = {};
+      await Promise.all(list.map(async (m) => {
+        if (m.url) hashMap[m.id] = await sha256Hex(m.url);
+      }));
+      setHashes(hashMap);
       setMentions(list);
-
-
-
+      setScannedAt(new Date());
 
       // Run Sightengine only on photos that already passed relevance.
       const photoUrls = list
@@ -638,7 +690,7 @@ const Monitoring = () => {
       if (photoUrls.length > 0) {
         supabase.functions
           .invoke("deepfake-batch", { body: { urls: photoUrls } })
-          .then(({ data: dfData, error: dfErr }) => {
+          .then(async ({ data: dfData, error: dfErr }) => {
             if (dfErr || !dfData?.results) return;
             const flagged = (dfData.results as any[]).filter((r) => r.flagged);
             if (flagged.length === 0) return;
@@ -660,8 +712,13 @@ const Monitoring = () => {
                 relevance_reason: `${score}% confidence`,
               };
             });
+            // Hash the new rows too.
+            const extra: Record<string, string> = {};
+            await Promise.all(deepfakeMentions.map(async (m) => {
+              if (m.url) extra[m.id] = await sha256Hex(m.url);
+            }));
+            setHashes((prev) => ({ ...prev, ...extra }));
             setMentions((prev) => [...prev, ...deepfakeMentions]);
-            return;
           })
           .catch((e) => console.warn("[Monitoring] deepfake-batch failed:", e));
       }
@@ -713,15 +770,58 @@ const Monitoring = () => {
   }, [user, fetchMentions]);
 
 
-  const photo = mentions.filter((m) => PHOTO_TYPES.has(m.mention_type));
-  const video = mentions.filter((m) => VIDEO_TYPES.has(m.mention_type));
-  const social = mentions.filter((m) => SOCIAL_TYPES.has(m.mention_type));
-  const web = mentions.filter((m) => WEB_TYPES.has(m.mention_type));
-  const deepfake = mentions.filter((m) => DEEPFAKE_TYPES.has(m.mention_type));
-  const voice = mentions.filter((m) => VOICE_TYPES.has(m.mention_type));
-  const writing = mentions.filter((m) => WRITING_TYPES.has(m.mention_type));
-  const impersonators = mentions.filter((m) => IMPERSONATION_TYPES.has(m.mention_type));
+  // Visible mentions = everything except suppressed URLs.
+  const visibleMentions = useMemo(
+    () => mentions.filter((m) => {
+      const h = hashes[m.id];
+      return !h || !suppressions.has(h);
+    }),
+    [mentions, hashes, suppressions],
+  );
 
+  const hiddenMentions = useMemo(
+    () => mentions.filter((m) => {
+      const h = hashes[m.id];
+      return h && suppressions.has(h);
+    }),
+    [mentions, hashes, suppressions],
+  );
+
+  const photo = visibleMentions.filter((m) => PHOTO_TYPES.has(m.mention_type));
+  const video = visibleMentions.filter((m) => VIDEO_TYPES.has(m.mention_type));
+  const social = visibleMentions.filter((m) => SOCIAL_TYPES.has(m.mention_type));
+  const web = visibleMentions.filter((m) => WEB_TYPES.has(m.mention_type));
+  const deepfake = visibleMentions.filter((m) => DEEPFAKE_TYPES.has(m.mention_type));
+  const voice = visibleMentions.filter((m) => VOICE_TYPES.has(m.mention_type));
+  const writing = visibleMentions.filter((m) => WRITING_TYPES.has(m.mention_type));
+  const impersonators = visibleMentions.filter((m) => IMPERSONATION_TYPES.has(m.mention_type));
+
+  const handleDownloadPdf = () => {
+    downloadScanPdf({
+      query: identity.fullName || actorId,
+      scanType: "monitoring",
+      scannedAt,
+      results: visibleMentions.map((m) => ({
+        title: m.title,
+        url: m.url,
+        source: extractDomain(m.url),
+        mention_type: m.mention_type,
+        found_at: m.found_at,
+      })),
+    });
+  };
+
+  const filteredActions = useMemo(
+    () => actions.filter((a) => actionFilter === "all" || a.status === actionFilter),
+    [actions, actionFilter],
+  );
+
+  const actionLabels: Record<string, string> = {
+    dmca: "DMCA Notice",
+    cease_desist: "Cease & Desist",
+    violation_report: "Violation Report",
+    note: "Note",
+  };
 
   return (
     <DashboardLayout>
@@ -732,12 +832,13 @@ const Monitoring = () => {
           </h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
             What we found across the web and social media for your mapped
-            identity.
+            identity. Results are live and not saved — download a PDF if you
+            want a record.
           </p>
         </div>
 
         <div className="mb-6">
-          <DetectionPanels mentions={mentions as any} />
+          <DetectionPanels mentions={visibleMentions as any} />
         </div>
 
         <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -747,10 +848,13 @@ const Monitoring = () => {
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                Live Results
+                Live Results · Not Saved
               </p>
               <p className="text-lg font-semibold">
-                {loading ? "Loading…" : `${mentions.length} mention${mentions.length === 1 ? "" : "s"}`}
+                {loading ? "Loading…" : `${visibleMentions.length} mention${visibleMentions.length === 1 ? "" : "s"}`}
+              </p>
+              <p className="text-[11px] text-muted-foreground/80">
+                Scanned {scannedAt.toLocaleString()}
               </p>
               {error && (
                 <p className="text-xs text-destructive flex items-center gap-1 mt-1">
@@ -759,79 +863,172 @@ const Monitoring = () => {
               )}
             </div>
           </div>
-          <Button
-            onClick={() => fetchMentions(actorId, identity)}
-            disabled={loading}
-            size="lg"
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              onClick={handleDownloadPdf}
+              disabled={loading || visibleMentions.length === 0}
+              size="lg"
+              variant="outline"
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download Report (PDF)
+            </Button>
+            <Button
+              onClick={() => fetchMentions(actorId, identity)}
+              disabled={loading}
+              size="lg"
+              className="gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
-        {impersonators.length > 0 && (
-          <div className="rounded-2xl border-2 border-destructive/50 bg-destructive/5 backdrop-blur-sm p-5 md:p-6 mb-6 shadow-[0_0_30px_-10px_hsl(var(--destructive)/0.4)]">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <UserX className="w-5 h-5 text-destructive" />
-                <h2 className="font-display text-lg font-semibold text-destructive">
-                  Impersonator Accounts
-                </h2>
-              </div>
-              <span className="text-xs px-2 py-0.5 rounded-full border border-destructive/40 text-destructive bg-destructive/10 font-semibold uppercase tracking-wider">
-                {impersonators.length} flagged
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mb-4">
-              Accounts found on platforms where you haven't registered a handle. These may be impersonating you.
-            </p>
-            <div className="space-y-2">
-              {impersonators.map((m) => {
-                const platform = (m.mention_type === "possible_impersonation"
-                  ? (extractDomain(m.url) || m.title || "Unknown platform")
-                  : extractDomain(m.url));
-                return (
-                  <div
-                    key={m.id}
-                    className="rounded-lg border border-destructive/30 bg-background/40 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground">{platform}</p>
-                      {m.url && (
-                        <a
-                          href={m.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-muted-foreground hover:text-primary break-all inline-flex items-center gap-1"
-                        >
-                          {m.url} <ExternalLink className="w-3 h-3 shrink-0" />
-                        </a>
-                      )}
-                      <p className="text-[10px] text-muted-foreground/70 mt-1">
-                        Found {new Date(m.found_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Button asChild size="sm" variant="destructive" className="gap-1.5 shrink-0">
-                      <Link to={`/dashboard/violations?url=${encodeURIComponent(m.url || "")}`}>
-                        <Flag className="w-3.5 h-3.5" /> Report Violation
-                      </Link>
-                    </Button>
+        <Tabs defaultValue="findings" className="mb-6">
+          <TabsList>
+            <TabsTrigger value="findings">Findings</TabsTrigger>
+            <TabsTrigger value="actions" className="gap-1.5">
+              <History className="w-3.5 h-3.5" /> Actions Taken ({actions.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="findings" className="mt-4">
+            {impersonators.length > 0 && (
+              <div className="rounded-2xl border-2 border-destructive/50 bg-destructive/5 backdrop-blur-sm p-5 md:p-6 mb-6 shadow-[0_0_30px_-10px_hsl(var(--destructive)/0.4)]">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <UserX className="w-5 h-5 text-destructive" />
+                    <h2 className="font-display text-lg font-semibold text-destructive">
+                      Impersonator Accounts
+                    </h2>
                   </div>
-                );
-              })}
+                  <span className="text-xs px-2 py-0.5 rounded-full border border-destructive/40 text-destructive bg-destructive/10 font-semibold uppercase tracking-wider">
+                    {impersonators.length} flagged
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Accounts found on platforms where you haven't registered a handle. These may be impersonating you.
+                </p>
+                <div className="space-y-2">
+                  {impersonators.map((m) => {
+                    const platform = (m.mention_type === "possible_impersonation"
+                      ? (extractDomain(m.url) || m.title || "Unknown platform")
+                      : extractDomain(m.url));
+                    return (
+                      <div
+                        key={m.id}
+                        className="rounded-lg border border-destructive/30 bg-background/40 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground">{platform}</p>
+                          {m.url && (
+                            <a
+                              href={m.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-muted-foreground hover:text-primary break-all inline-flex items-center gap-1"
+                            >
+                              {m.url} <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                          )}
+                          <p className="text-[10px] text-muted-foreground/70 mt-1">
+                            Found {new Date(m.found_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button asChild size="sm" variant="destructive" className="gap-1.5 shrink-0">
+                          <Link to={`/dashboard/violations?url=${encodeURIComponent(m.url || "")}`}>
+                            <Flag className="w-3.5 h-3.5" /> Report Violation
+                          </Link>
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} onSuppress={suppressMention} />
+            <Section title="Social Media / Video" items={video} Icon={Video} verdicts={verdicts} setVerdict={setVerdict} onSuppress={suppressMention} />
+            <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} onSuppress={suppressMention} />
+            <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} onSuppress={suppressMention} />
+            <Section title="Deepfake Detection" items={deepfake} Icon={ScanFace} verdicts={verdicts} setVerdict={setVerdict} onSuppress={suppressMention} />
+            <Section title="Voice Clones" items={voice} Icon={Mic} verdicts={verdicts} setVerdict={setVerdict} onSuppress={suppressMention} />
+            <Section title="Writing Plagiarism" items={writing} Icon={PenLine} verdicts={verdicts} setVerdict={setVerdict} onSuppress={suppressMention} />
+
+            {hiddenMentions.length > 0 && (
+              <details className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6 mb-6">
+                <summary className="cursor-pointer text-sm text-muted-foreground flex items-center gap-2">
+                  <EyeOff className="w-4 h-4" /> Hidden ({hiddenMentions.length}) — items you marked "not me" on this device
+                </summary>
+                <div className="mt-4 space-y-2">
+                  {hiddenMentions.map((m) => (
+                    <div key={m.id} className="flex items-center gap-3 text-xs rounded-lg border border-border/20 bg-background/20 px-3 py-2">
+                      <span className="flex-1 min-w-0 truncate">{m.title || m.url || "Untitled"}</span>
+                      <Button size="sm" variant="ghost" onClick={() => unsuppress(hashes[m.id])}>
+                        Unhide
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </TabsContent>
+
+          <TabsContent value="actions" className="mt-4">
+            <div className="rounded-2xl border border-border/20 bg-card/20 backdrop-blur-sm p-5 md:p-6">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Your Legal Paper Trail</h2>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Permanent, tamper-proof record of every DMCA, cease &amp; desist, and violation report you've sent.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {["all", "sent", "resolved"].map((s) => (
+                    <Button
+                      key={s}
+                      size="sm"
+                      variant={actionFilter === s ? "default" : "outline"}
+                      onClick={() => setActionFilter(s)}
+                      className="capitalize"
+                    >
+                      {s}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              {filteredActions.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">
+                  No actions logged yet. When you send a DMCA, C&amp;D, or violation report, it appears here.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {filteredActions.map((a) => (
+                    <div key={a.id} className="rounded-lg border border-border/20 bg-background/30 px-4 py-3 flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="secondary">{actionLabels[a.action_type] || a.action_type}</Badge>
+                          <Badge variant="outline" className="capitalize">{a.status}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(a.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        {a.notes && (
+                          <p className="text-sm text-foreground/80 mt-2">{a.notes}</p>
+                        )}
+                        <p className="text-[10px] font-mono text-muted-foreground/60 mt-1 truncate">
+                          finding: {a.url_hash.slice(0, 16)}…
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        )}
-
-        <Section title="Photo Matches" items={photo} Icon={ImageIcon} verdicts={verdicts} setVerdict={setVerdict} />
-
-        <Section title="Social Media / Video" items={video} Icon={Video} verdicts={verdicts} setVerdict={setVerdict} />
-        <Section title="Social Media" items={social} Icon={Instagram} verdicts={verdicts} setVerdict={setVerdict} />
-        <Section title="Web Mentions" items={web} Icon={Globe} verdicts={verdicts} setVerdict={setVerdict} />
-        <Section title="Deepfake Detection" items={deepfake} Icon={ScanFace} verdicts={verdicts} setVerdict={setVerdict} />
-        <Section title="Voice Clones" items={voice} Icon={Mic} verdicts={verdicts} setVerdict={setVerdict} />
-        <Section title="Writing Plagiarism" items={writing} Icon={PenLine} verdicts={verdicts} setVerdict={setVerdict} />
+          </TabsContent>
+        </Tabs>
 
       </div>
     </DashboardLayout>
