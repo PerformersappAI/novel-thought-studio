@@ -133,7 +133,10 @@ const Welcome = () => {
           instagram_handle: data?.instagram_handle ?? "",
           youtube_handle: data?.youtube_handle ?? "",
         });
-        if (data?.headshot_url) setHeadshotPreview(data.headshot_url);
+        if (data?.headshot_url) {
+          const { resolveHeadshotUrl } = await import("@/lib/headshotUrl");
+          setHeadshotPreview(await resolveHeadshotUrl(data.headshot_url));
+        }
       } catch (e) {
         console.error("Welcome init failed:", e);
       } finally {

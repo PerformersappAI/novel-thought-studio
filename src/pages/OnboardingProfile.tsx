@@ -79,7 +79,10 @@ const OnboardingProfile = () => {
           youtube_handle: data.youtube_handle ?? "",
           is_discoverable: data.is_discoverable ?? false,
         }));
-        if (data.headshot_url) setHeadshotPreview(data.headshot_url);
+        if (data.headshot_url) {
+          const { resolveHeadshotUrl } = await import("@/lib/headshotUrl");
+          setHeadshotPreview(await resolveHeadshotUrl(data.headshot_url));
+        }
       } else {
         setForm((f) => ({ ...f, email: user.email ?? "" }));
       }

@@ -33,7 +33,11 @@ const OnboardingComplete = () => {
       setProfile(data);
 
       // Headshot used directly from profile.headshot_url
-      if (data?.headshot_url) setThumbs([data.headshot_url]);
+      if (data?.headshot_url) {
+        const { resolveHeadshotUrl } = await import("@/lib/headshotUrl");
+        const resolved = await resolveHeadshotUrl(data.headshot_url);
+        if (resolved) setThumbs([resolved]);
+      }
 
       const year = new Date().getFullYear();
       const suffix = String(Math.floor(Math.random() * 100000)).padStart(5, "0");
