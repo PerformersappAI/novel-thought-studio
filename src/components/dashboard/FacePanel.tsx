@@ -38,10 +38,11 @@ const FacePanel = ({ headshotUrl, registryId, registeredAt }: Props) => {
       {headshotUrl ? (
         <div className="flex gap-4 items-center">
           <img
-            src={headshotUrl}
-            alt="Registered headshot"
-            className="w-24 h-24 rounded-xl object-cover border-2 border-accent/40"
+            src={resolved ?? undefined}
+            alt="Uploaded headshot"
+            className="w-24 h-24 rounded-xl object-cover border-2 border-accent/40 bg-muted"
           />
+
           <div className="text-xs space-y-1">
             {registryId && (
               <div>
