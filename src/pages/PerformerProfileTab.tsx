@@ -52,10 +52,10 @@ const PerformerProfileTab = () => {
       toast({ title: "Upload failed", description: upErr.message, variant: "destructive" });
       return;
     }
-    const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
-    const url = pub.publicUrl;
-    await supabase.from("profiles").update({ headshot_url: url } as any).eq("user_id", user.id);
-    setHeadshotPreview(url);
+    // Private bucket: store the storage path, render via signed URL.
+    await supabase.from("profiles").update({ headshot_url: path } as any).eq("user_id", user.id);
+    const { data: signed } = await supabase.storage.from("headshots").createSignedUrl(path, 3600);
+    setHeadshotPreview(signed?.signedUrl ?? null);
     setUploadingHeadshot(false);
     toast({ title: "Headshot uploaded" });
   };
@@ -112,7 +112,10 @@ const PerformerProfileTab = () => {
         trademark_entity: data?.trademark_entity ?? "",
         writing_sample: data?.writing_sample ?? "",
       });
-      setHeadshotPreview(data?.headshot_url ?? null);
+      if (data?.headshot_url) {
+        const { resolveHeadshotUrl } = await import("@/lib/headshotUrl");
+        setHeadshotPreview(await resolveHeadshotUrl(data.headshot_url));
+      }
       if (data?.voice_print_url) {
         const { data: signedVoice } = await supabase.storage.from("voice-prints").createSignedUrl(data.voice_print_url, 600);
         setVoicePreview(signedVoice?.signedUrl ?? null);

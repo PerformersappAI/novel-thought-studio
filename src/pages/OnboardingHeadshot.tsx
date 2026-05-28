@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Upload, Loader2, Image as ImageIcon, Check, ArrowRight } from "lucide-react";
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
+import { resolveHeadshotUrl } from "@/lib/headshotUrl";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png"];

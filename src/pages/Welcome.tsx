@@ -159,8 +159,8 @@ const Welcome = () => {
         const path = `${user.id}/${Date.now()}-${headshotFile.name}`;
         const { error: upErr } = await supabase.storage.from("headshots").upload(path, headshotFile, { upsert: true });
         if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
-        headshot_url = pub.publicUrl;
+        // Private bucket: persist the storage path; signed URL is generated at render time.
+        headshot_url = path;
       }
       const { error } = await supabase
         .from("profiles")

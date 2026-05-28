@@ -125,8 +125,8 @@ const OnboardingProfile = () => {
           .from("headshots")
           .upload(path, headshotFile, { upsert: true, contentType: headshotFile.type });
         if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
-        headshot_url = pub.publicUrl;
+        // Private bucket: store the storage path; resolve to signed URL at render time.
+        headshot_url = path;
       }
 
       const payload: any = {
@@ -340,7 +340,7 @@ const OnboardingProfile = () => {
             </div>
             <div className="flex gap-2 items-start text-xs text-muted-foreground border-t border-border/40 pt-3">
               <Lock className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-              <p>Your personal data and face captures are never shared — only your name, performance type, and market.</p>
+              <p>Your personal data and uploaded headshots are never shared — only your name, performance type, and market.</p>
             </div>
           </div>
 
@@ -355,7 +355,7 @@ const OnboardingProfile = () => {
           </div>
 
           <Button onClick={submit} disabled={saving} size="lg" className="w-full font-display">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Save & Continue to Face Capture <ArrowRight className="w-4 h-4 ml-1" /></>}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Save & Continue to Headshot Upload <ArrowRight className="w-4 h-4 ml-1" /></>}
           </Button>
         </motion.div>
       </div>
