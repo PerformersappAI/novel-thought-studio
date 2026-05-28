@@ -92,6 +92,12 @@ const Footer = () => {
               <span className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body cursor-default">
                 Terms of Service
               </span>
+              <a
+                href="mailto:dmca@claimmyface.com"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-body"
+              >
+                DMCA / Takedown
+              </a>
             </nav>
 
             {/* Copyright */}
