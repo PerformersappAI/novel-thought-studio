@@ -157,6 +157,28 @@ function saveVerdicts(v: Record<string, Verdict>) {
   }
 }
 
+// ---------- Local-only suppression list ("not me") ----------
+// Stored on this device only. No database table — keeps the no-retention promise.
+const SUPPRESS_KEY = "monitoring.suppressions.v1";
+
+function loadSuppressions(): Set<string> {
+  try {
+    const arr = JSON.parse(localStorage.getItem(SUPPRESS_KEY) || "[]");
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSuppressions(s: Set<string>) {
+  try {
+    localStorage.setItem(SUPPRESS_KEY, JSON.stringify(Array.from(s)));
+  } catch {
+    /* ignore */
+  }
+}
+
+
 // ---------- Identity context + relevance gate ----------
 
 interface Identity {
