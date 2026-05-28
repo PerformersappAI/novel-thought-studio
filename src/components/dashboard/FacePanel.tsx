@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Camera, RefreshCw, ImageIcon } from "lucide-react";
+import { resolveHeadshotUrl } from "@/lib/headshotUrl";
 
 interface Props {
   headshotUrl?: string | null;
@@ -11,6 +13,12 @@ interface Props {
 }
 
 const FacePanel = ({ headshotUrl, registryId, registeredAt }: Props) => {
+  const [resolved, setResolved] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    resolveHeadshotUrl(headshotUrl).then((u) => { if (!cancelled) setResolved(u); });
+    return () => { cancelled = true; };
+  }, [headshotUrl]);
   return (
     <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-card to-card/70 p-5 space-y-4">
       <div className="flex items-center justify-between">
