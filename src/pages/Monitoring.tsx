@@ -366,10 +366,12 @@ function MentionRow({
   m,
   verdict,
   onVerdict,
+  onSuppress,
 }: {
   m: Mention;
   verdict: Verdict;
   onVerdict: (v: Verdict) => void;
+  onSuppress: () => void;
 }) {
   const Icon = iconFor(m.mention_type);
   const domain = extractDomain(m.url);
@@ -404,7 +406,7 @@ function MentionRow({
             variant="ghost"
             className={`h-8 w-8 ${verdict === "legitimate" ? "text-emerald-500" : "text-muted-foreground"}`}
             onClick={() => onVerdict(verdict === "legitimate" ? "informational" : "legitimate")}
-            title="Mark as legitimate"
+            title="That's me — legitimate"
             aria-label="Mark as legitimate"
           >
             <ThumbsUp className="w-4 h-4" />
@@ -412,12 +414,22 @@ function MentionRow({
           <Button
             size="icon"
             variant="ghost"
-            className={`h-8 w-8 ${verdict === "threat" ? "text-destructive" : "text-muted-foreground"}`}
-            onClick={() => onVerdict(verdict === "threat" ? "informational" : "threat")}
-            title="Mark as threat"
-            aria-label="Mark as threat"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={onSuppress}
+            title="Not me — hide this and skip it in future scans on this device"
+            aria-label="Not me, hide"
           >
             <ThumbsDown className="w-4 h-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`h-8 w-8 ${verdict === "threat" ? "text-destructive" : "text-muted-foreground"}`}
+            onClick={() => onVerdict(verdict === "threat" ? "informational" : "threat")}
+            title="That's me but I didn't approve it — take action"
+            aria-label="Mark as unauthorized"
+          >
+            <AlertTriangle className="w-4 h-4" />
           </Button>
           {m.url && (
             <Button
