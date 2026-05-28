@@ -1,6 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   RefreshCw,
   ExternalLink,
@@ -15,6 +17,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Eye,
+  EyeOff,
   FileText,
   Gavel,
   Flag,
@@ -23,12 +26,16 @@ import {
   Mic,
   PenLine,
   UserX,
+  Download,
+  History,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
+import { sha256Hex } from "@/lib/urlHash";
+import { downloadScanPdf } from "@/lib/scanPdf";
 
 const DEFAULT_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
 
