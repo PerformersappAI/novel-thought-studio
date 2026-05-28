@@ -343,6 +343,36 @@ export type Database = {
         }
         Relationships: []
       }
+      finding_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          url_hash: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          url_hash: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          url_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       identity_checklist: {
         Row: {
           completed_at: string
