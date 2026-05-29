@@ -808,7 +808,7 @@ const Monitoring = () => {
 
   const handleDownloadPdf = () => {
     downloadScanPdf({
-      query: identity.fullName || actorId,
+      query: identity.fullName || actorId || "",
       scanType: "monitoring",
       scannedAt,
       results: visibleMentions.map((m) => ({
@@ -886,7 +886,7 @@ const Monitoring = () => {
             </Button>
             <Button
               onClick={() => fetchMentions(actorId, identity)}
-              disabled={loading}
+              disabled={loading || !actorId}
               size="lg"
               className="gap-2"
             >
@@ -905,6 +905,18 @@ const Monitoring = () => {
           </TabsList>
 
           <TabsContent value="findings" className="mt-4">
+            {!actorId && !loading && (
+              <div className="rounded-2xl border border-border/30 bg-card/30 backdrop-blur-sm p-8 md:p-10 mb-6 text-center">
+                <ShieldCheck className="w-10 h-10 text-primary mx-auto mb-3" />
+                <h2 className="font-display text-xl font-semibold mb-2">Scanner not set up yet</h2>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
+                  We need to register your identity with the scanner before we can watch the web for you. Finish your Identity Map to turn the Scanner on.
+                </p>
+                <Button asChild size="lg">
+                  <Link to="/onboarding/headshot">Complete your Identity Map</Link>
+                </Button>
+              </div>
+            )}
             {impersonators.length > 0 && (
               <div className="rounded-2xl border-2 border-destructive/50 bg-destructive/5 backdrop-blur-sm p-5 md:p-6 mb-6 shadow-[0_0_30px_-10px_hsl(var(--destructive)/0.4)]">
                 <div className="flex items-center justify-between mb-4">
