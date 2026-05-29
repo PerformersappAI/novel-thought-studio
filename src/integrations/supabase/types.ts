@@ -726,6 +726,47 @@ export type Database = {
         }
         Relationships: []
       }
+      performer_inquiries: {
+        Row: {
+          company: string | null
+          created_at: string
+          destination_email: string | null
+          id: string
+          message: string
+          performer_id: string
+          sender_email: string
+          sender_name: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          destination_email?: string | null
+          id?: string
+          message: string
+          performer_id: string
+          sender_email: string
+          sender_name: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          destination_email?: string | null
+          id?: string
+          message?: string
+          performer_id?: string
+          sender_email?: string
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performer_inquiries_performer_id_fkey"
+            columns: ["performer_id"]
+            isOneToOne: false
+            referencedRelation: "registry_performers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       possible_fake_profiles: {
         Row: {
           bio_snippet: string | null
