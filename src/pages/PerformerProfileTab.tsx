@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Loader2, Lock, RefreshCw, Shield, Stamp, ArrowRight, Mic, FileText, Camera, Upload, Users, Mail } from "lucide-react";
+import { Loader2, Lock, RefreshCw, Shield, Stamp, ArrowRight, Mic, FileText, Camera, Upload, Users, Mail, Play, Globe, Star } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import TrustBanner from "@/components/onboarding/TrustBanner";
@@ -129,13 +129,22 @@ const PerformerProfileTab = () => {
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-      setRegistry(reg ?? {
+      setRegistry(reg ? {
+        ...reg,
+        skills_text: Array.isArray(reg.skills) ? reg.skills.join(", ") : "",
+      } : {
         listed_on_registry: false,
         inquiry_goes_to: "actor",
         inquiry_email: user.email ?? "",
         rep_email: "",
         rep_name: "",
         cc_actor_on_inquiry: true,
+        demo_reel_url: "",
+        website_url: "",
+        instagram_followers: 0,
+        tiktok_followers: 0,
+        youtube_subscribers: 0,
+        skills_text: "",
       });
 
       setLoading(false);
@@ -471,7 +480,72 @@ const PerformerProfileTab = () => {
                   <div>
                     <p className="text-sm font-medium">CC me on every inquiry</p>
                     <p className="text-xs text-muted-foreground">Recommended — so you always know when there's a hit.</p>
-                  </div>
+          </div>
+
+          <div className="border-t border-border/40 pt-5 space-y-4">
+            <div>
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <Star className="w-4 h-4 text-primary" /> Your Public Registry Profile
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Shown on your public /registry page. Leave blank to hide a section.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="flex items-center gap-2"><Play className="w-4 h-4 text-primary" /> Demo Reel URL (YouTube)</Label>
+                <Input
+                  placeholder="https://youtube.com/watch?v=..."
+                  value={registry?.demo_reel_url ?? ""}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, demo_reel_url: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-primary" /> Personal Website</Label>
+                <Input
+                  placeholder="https://yoursite.com"
+                  value={registry?.website_url ?? ""}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, website_url: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Instagram Followers</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={registry?.instagram_followers ?? 0}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, instagram_followers: Number(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>TikTok Followers</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={registry?.tiktok_followers ?? 0}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, tiktok_followers: Number(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>YouTube Subscribers</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={registry?.youtube_subscribers ?? 0}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, youtube_subscribers: Number(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Special Skills</Label>
+                <Input
+                  placeholder="Stage Combat, Horseback Riding, Mandarin (Native)"
+                  value={registry?.skills_text ?? ""}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, skills_text: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">Comma separated — each shows as a pill on your public page.</p>
+              </div>
+            </div>
+          </div>
                   <Switch
                     checked={!!registry?.cc_actor_on_inquiry}
                     onCheckedChange={(v) => setRegistry((r: any) => ({ ...r, cc_actor_on_inquiry: v }))}
@@ -512,6 +586,13 @@ const PerformerProfileTab = () => {
                 instagram_url: form.instagram_handle || null,
                 youtube_url: form.youtube_handle || null,
                 imdb_url: form.imdb_url || null,
+                demo_reel_url: registry?.demo_reel_url?.trim() || null,
+                website_url: registry?.website_url?.trim() || null,
+                instagram_followers: Number(registry?.instagram_followers) || 0,
+                tiktok_followers: Number(registry?.tiktok_followers) || 0,
+                youtube_subscribers: Number(registry?.youtube_subscribers) || 0,
+                skills: (registry?.skills_text || "")
+                  .split(",").map((s: string) => s.trim()).filter(Boolean),
               };
               const { data, error } = await (supabase as any)
                 .from("registry_performers")
@@ -522,7 +603,7 @@ const PerformerProfileTab = () => {
               if (error) {
                 toast({ title: "Save failed", description: error.message, variant: "destructive" });
               } else {
-                setRegistry(data);
+                setRegistry({ ...data, skills_text: Array.isArray(data?.skills) ? data.skills.join(", ") : "" });
                 toast({ title: "Registry settings saved" });
               }
             }}
