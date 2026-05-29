@@ -37,7 +37,7 @@ import DetectionPanels from "@/components/dashboard/DetectionPanels";
 import { sha256Hex } from "@/lib/urlHash";
 import { downloadScanPdf } from "@/lib/scanPdf";
 
-const DEFAULT_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
+// No hardcoded default actor id — falling back to another user's id would leak their data.
 
 interface Mention {
   id: string;
@@ -547,7 +547,7 @@ const Monitoring = () => {
   const [mentions, setMentions] = useState<Mention[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actorId, setActorId] = useState<string>(DEFAULT_ACTOR_ID);
+  const [actorId, setActorId] = useState<string | null>(null);
   const [identity, setIdentity] = useState<Identity>(EMPTY_IDENTITY);
   const [verdicts, setVerdicts] = useState<Record<string, Verdict>>(() => loadVerdicts());
   const [suppressions, setSuppressions] = useState<Set<string>>(() => loadSuppressions());
@@ -598,9 +598,19 @@ const Monitoring = () => {
 
   useEffect(() => { fetchActions(); }, [fetchActions]);
 
-  const fetchMentions = useCallback(async (id: string, ident: Identity) => {
+  const fetchMentions = useCallback(async (id: string | null, ident: Identity) => {
     setLoading(true);
     setError(null);
+
+    if (!id) {
+      // User hasn't been registered with the upstream scanner yet — show the empty
+      // state instead of calling mentions-proxy with a placeholder id.
+      setMentions([]);
+      setHashes({});
+      setScannedAt(new Date());
+      setLoading(false);
+      return;
+    }
 
     const normalize = (raw: any): Mention[] => {
       const list =
@@ -736,7 +746,7 @@ const Monitoring = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      let id = DEFAULT_ACTOR_ID;
+      let id: string | null = null;
       let ident: Identity = EMPTY_IDENTITY;
       try {
         const params = new URLSearchParams(window.location.search);
@@ -757,7 +767,7 @@ const Monitoring = () => {
           }
         }
       } catch {
-        /* fall through to defaults */
+        /* fall through to null actor — empty state handles it */
       }
       if (cancelled) return;
       setActorId(id);
