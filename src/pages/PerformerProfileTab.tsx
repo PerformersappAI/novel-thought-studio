@@ -480,7 +480,72 @@ const PerformerProfileTab = () => {
                   <div>
                     <p className="text-sm font-medium">CC me on every inquiry</p>
                     <p className="text-xs text-muted-foreground">Recommended — so you always know when there's a hit.</p>
-                  </div>
+          </div>
+
+          <div className="border-t border-border/40 pt-5 space-y-4">
+            <div>
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <Star className="w-4 h-4 text-primary" /> Your Public Registry Profile
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Shown on your public /registry page. Leave blank to hide a section.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="flex items-center gap-2"><Play className="w-4 h-4 text-primary" /> Demo Reel URL (YouTube)</Label>
+                <Input
+                  placeholder="https://youtube.com/watch?v=..."
+                  value={registry?.demo_reel_url ?? ""}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, demo_reel_url: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-primary" /> Personal Website</Label>
+                <Input
+                  placeholder="https://yoursite.com"
+                  value={registry?.website_url ?? ""}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, website_url: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Instagram Followers</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={registry?.instagram_followers ?? 0}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, instagram_followers: Number(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>TikTok Followers</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={registry?.tiktok_followers ?? 0}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, tiktok_followers: Number(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>YouTube Subscribers</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={registry?.youtube_subscribers ?? 0}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, youtube_subscribers: Number(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Special Skills</Label>
+                <Input
+                  placeholder="Stage Combat, Horseback Riding, Mandarin (Native)"
+                  value={registry?.skills_text ?? ""}
+                  onChange={(e) => setRegistry((r: any) => ({ ...r, skills_text: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">Comma separated — each shows as a pill on your public page.</p>
+              </div>
+            </div>
+          </div>
                   <Switch
                     checked={!!registry?.cc_actor_on_inquiry}
                     onCheckedChange={(v) => setRegistry((r: any) => ({ ...r, cc_actor_on_inquiry: v }))}
