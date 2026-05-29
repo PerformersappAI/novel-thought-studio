@@ -1017,6 +1017,87 @@ export type Database = {
         }
         Relationships: []
       }
+      registry_performers: {
+        Row: {
+          bio: string | null
+          created_at: string
+          demo_reel_url: string | null
+          experience_level: string | null
+          headshot_url: string | null
+          id: string
+          imdb_url: string | null
+          inquiry_email: string | null
+          inquiry_goes_to: string
+          instagram_followers: number | null
+          instagram_url: string | null
+          profession: string | null
+          rep_email: string | null
+          rep_name: string | null
+          skills: string[] | null
+          slug: string
+          stage_name: string
+          tiktok_followers: number | null
+          union_status: string | null
+          updated_at: string
+          verified_date: string | null
+          website_url: string | null
+          youtube_subscribers: number | null
+          youtube_url: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          demo_reel_url?: string | null
+          experience_level?: string | null
+          headshot_url?: string | null
+          id?: string
+          imdb_url?: string | null
+          inquiry_email?: string | null
+          inquiry_goes_to?: string
+          instagram_followers?: number | null
+          instagram_url?: string | null
+          profession?: string | null
+          rep_email?: string | null
+          rep_name?: string | null
+          skills?: string[] | null
+          slug: string
+          stage_name: string
+          tiktok_followers?: number | null
+          union_status?: string | null
+          updated_at?: string
+          verified_date?: string | null
+          website_url?: string | null
+          youtube_subscribers?: number | null
+          youtube_url?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          demo_reel_url?: string | null
+          experience_level?: string | null
+          headshot_url?: string | null
+          id?: string
+          imdb_url?: string | null
+          inquiry_email?: string | null
+          inquiry_goes_to?: string
+          instagram_followers?: number | null
+          instagram_url?: string | null
+          profession?: string | null
+          rep_email?: string | null
+          rep_name?: string | null
+          skills?: string[] | null
+          slug?: string
+          stage_name?: string
+          tiktok_followers?: number | null
+          union_status?: string | null
+          updated_at?: string
+          verified_date?: string | null
+          website_url?: string | null
+          youtube_subscribers?: number | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       reported_violations: {
         Row: {
           admin_notes: string | null
