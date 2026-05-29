@@ -129,13 +129,22 @@ const PerformerProfileTab = () => {
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-      setRegistry(reg ?? {
+      setRegistry(reg ? {
+        ...reg,
+        skills_text: Array.isArray(reg.skills) ? reg.skills.join(", ") : "",
+      } : {
         listed_on_registry: false,
         inquiry_goes_to: "actor",
         inquiry_email: user.email ?? "",
         rep_email: "",
         rep_name: "",
         cc_actor_on_inquiry: true,
+        demo_reel_url: "",
+        website_url: "",
+        instagram_followers: 0,
+        tiktok_followers: 0,
+        youtube_subscribers: 0,
+        skills_text: "",
       });
 
       setLoading(false);
