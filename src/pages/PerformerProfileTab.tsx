@@ -603,7 +603,7 @@ const PerformerProfileTab = () => {
               if (error) {
                 toast({ title: "Save failed", description: error.message, variant: "destructive" });
               } else {
-                setRegistry(data);
+                setRegistry({ ...data, skills_text: Array.isArray(data?.skills) ? data.skills.join(", ") : "" });
                 toast({ title: "Registry settings saved" });
               }
             }}
