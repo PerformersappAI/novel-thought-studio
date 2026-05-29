@@ -16,10 +16,6 @@ import { useAuth } from "@/hooks/useAuth";
 const Index = () => {
   const { user, loading } = useAuth();
 
-  // If already logged in, go straight to dashboard
-  if (!loading && user) {
-    return <Navigate to="/dashboard" replace />;
-  }
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
