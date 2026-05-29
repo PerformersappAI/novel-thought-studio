@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldCheck, User, Search, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { resolveHeadshotUrl } from "@/lib/headshotUrl";
 
 const BG = "#12131a";
 const GOLD = "#e6a800";
@@ -28,7 +29,13 @@ const RegistryIndex = () => {
         .from("registry_performers")
         .select("id, slug, stage_name, headshot_url, profession, union_status, verified_date")
         .order("stage_name", { ascending: true });
-      setRows(data ?? []);
+      const resolved = await Promise.all(
+        ((data ?? []) as Row[]).map(async (r) => ({
+          ...r,
+          headshot_url: await resolveHeadshotUrl(r.headshot_url),
+        })),
+      );
+      setRows(resolved);
       setLoading(false);
     })();
   }, []);

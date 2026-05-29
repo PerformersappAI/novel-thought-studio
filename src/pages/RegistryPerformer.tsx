@@ -1,6 +1,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveHeadshotUrl } from "@/lib/headshotUrl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,6 +82,9 @@ const RegistryPerformer = () => {
         .select("*")
         .eq("slug", slug)
         .maybeSingle();
+      if (data?.headshot_url) {
+        data.headshot_url = await resolveHeadshotUrl(data.headshot_url);
+      }
       setP(data);
       setLoading(false);
     })();
