@@ -1,55 +1,35 @@
-## The bug
+## Problem
 
-`src/components/dashboard/ScanStatusCards.tsx` builds a direct REST call to `/rest/v1/scan_runs` and appends a cache-buster query param:
+`will@wildwestperformer.com` sees an edge-function error on the Scanner because their profile has no `external_actor_id`. The Scanner page falls back to a hardcoded `DEFAULT_ACTOR_ID` that happens to be Will Roberts' actor, and `mentions-proxy` (correctly) rejects the cross-user request with 403. Will Roberts' account works only because the hardcoded fallback happens to match his own actor.
 
-```ts
-const params = new URLSearchParams({
-  select: "...",
-  order: "started_at.desc",
-  limit: "50",
-  _: Date.now().toString(),   // ← THE BUG
-});
-```
+## Fix
 
-PostgREST treats every unknown query param as a column filter. It tries to parse `_=1780077268951` as a filter on column `_` and expects the value to start with an operator (`eq.`, `gt.`, …). A bare number triggers exactly:
+### 1. `src/pages/Monitoring.tsx`
+- Remove the hardcoded `DEFAULT_ACTOR_ID` constant — it leaks another user's id into every account.
+- Change `actorId` state to `string | null` (initial `null`).
+- In the resolve effect:
+  - Read `?actor=` override only if present.
+  - Otherwise use the logged-in user's `profiles.external_actor_id`.
+  - If neither exists, set `actorId = null` and skip the `mentions-proxy` call.
+- In `fetchMentions`, bail out early when `id` is null: set `loading=false`, leave mentions empty, and surface a friendly status (not an error).
+- Render an empty-state card when `actorId` is null:
+  - Title: "Scanner not set up yet"
+  - Body: "We need to register your identity with the scanner before we can watch the web for you."
+  - CTA button → `/onboarding/headshot` (or `/dashboard` — whichever is the existing registration flow that calls `actor-registry?action=register`).
+- Disable the Refresh button when `actorId` is null.
 
-> PGRST100: failed to parse filter ... unexpected '1' expecting 'not' or operator (eq, gt, ...)
+### 2. `src/components/dashboard/ScanStatusCards.tsx` (drive-by safety)
+- Same pattern: if the user has no `external_actor_id`, don't pass someone else's id around. Just render zeroes / the existing empty state rather than calling the actor endpoint with a wrong id. (Only touch if it currently uses a similar hardcoded fallback — verify before editing.)
 
-The `_` was only a cache-buster. It's redundant — the same request already sets `cache: "no-store"` plus `Cache-Control: no-cache` and `Pragma: no-cache` headers.
+## What I'm explicitly NOT changing
 
-The same pattern is also used on line 128 for the `actor-registry` edge function call. That endpoint isn't PostgREST so it doesn't 400, but it's still dead weight; safe to drop for consistency.
+- `mentions-proxy` — its 403 guard is correct and should stay.
+- `actor-registry` — fine.
+- The Will Roberts account behavior — unchanged; he has a real `external_actor_id`.
+- No DB migration needed.
 
-## Change
+## Verification
 
-**`src/components/dashboard/ScanStatusCards.tsx`**
-
-Before (line 100–105):
-```ts
-const params = new URLSearchParams({
-  select: "id,scanner_name,actor_id,started_at,finished_at,items_scanned,threats_found,legitimate_found,review_found,status,notes",
-  order: "started_at.desc",
-  limit: "50",
-  _: Date.now().toString(),
-});
-```
-
-After:
-```ts
-const params = new URLSearchParams({
-  select: "id,scanner_name,actor_id,started_at,finished_at,items_scanned,threats_found,legitimate_found,review_found,status,notes",
-  order: "started_at.desc",
-  limit: "50",
-});
-```
-
-Before (line 128):
-```ts
-const functionParams = new URLSearchParams({ action: "get_scan_runs", _: Date.now().toString() });
-```
-
-After:
-```ts
-const functionParams = new URLSearchParams({ action: "get_scan_runs" });
-```
-
-No other `scan_runs` query in the codebase has this issue (verified: `DetectionPanels.tsx` uses the supabase-js client cleanly; the edge function `actor-registry/index.ts` builds its own params server-side without a cache-buster).
+After the fix:
+- Log in as `will@wildwestperformer.com` → Scanner shows the "not set up yet" empty state with a CTA, no edge-function error.
+- Log in as `will@actorwillroberts.com` → Scanner loads mentions exactly as before.
