@@ -480,6 +480,14 @@ const PerformerProfileTab = () => {
                   <div>
                     <p className="text-sm font-medium">CC me on every inquiry</p>
                     <p className="text-xs text-muted-foreground">Recommended — so you always know when there's a hit.</p>
+                  </div>
+                  <Switch
+                    checked={!!registry?.cc_actor_on_inquiry}
+                    onCheckedChange={(v) => setRegistry((r: any) => ({ ...r, cc_actor_on_inquiry: v }))}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="border-t border-border/40 pt-5 space-y-4">
@@ -545,14 +553,6 @@ const PerformerProfileTab = () => {
                 <p className="text-xs text-muted-foreground">Comma separated — each shows as a pill on your public page.</p>
               </div>
             </div>
-          </div>
-                  <Switch
-                    checked={!!registry?.cc_actor_on_inquiry}
-                    onCheckedChange={(v) => setRegistry((r: any) => ({ ...r, cc_actor_on_inquiry: v }))}
-                  />
-                </div>
-              </>
-            )}
           </div>
 
           <Button
