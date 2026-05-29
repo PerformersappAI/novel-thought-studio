@@ -726,6 +726,47 @@ export type Database = {
         }
         Relationships: []
       }
+      performer_inquiries: {
+        Row: {
+          company: string | null
+          created_at: string
+          destination_email: string | null
+          id: string
+          message: string
+          performer_id: string
+          sender_email: string
+          sender_name: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          destination_email?: string | null
+          id?: string
+          message: string
+          performer_id: string
+          sender_email: string
+          sender_name: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          destination_email?: string | null
+          id?: string
+          message?: string
+          performer_id?: string
+          sender_email?: string
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performer_inquiries_performer_id_fkey"
+            columns: ["performer_id"]
+            isOneToOne: false
+            referencedRelation: "registry_performers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       possible_fake_profiles: {
         Row: {
           bio_snippet: string | null
@@ -1014,6 +1055,87 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      registry_performers: {
+        Row: {
+          bio: string | null
+          created_at: string
+          demo_reel_url: string | null
+          experience_level: string | null
+          headshot_url: string | null
+          id: string
+          imdb_url: string | null
+          inquiry_email: string | null
+          inquiry_goes_to: string
+          instagram_followers: number | null
+          instagram_url: string | null
+          profession: string | null
+          rep_email: string | null
+          rep_name: string | null
+          skills: string[] | null
+          slug: string
+          stage_name: string
+          tiktok_followers: number | null
+          union_status: string | null
+          updated_at: string
+          verified_date: string | null
+          website_url: string | null
+          youtube_subscribers: number | null
+          youtube_url: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          demo_reel_url?: string | null
+          experience_level?: string | null
+          headshot_url?: string | null
+          id?: string
+          imdb_url?: string | null
+          inquiry_email?: string | null
+          inquiry_goes_to?: string
+          instagram_followers?: number | null
+          instagram_url?: string | null
+          profession?: string | null
+          rep_email?: string | null
+          rep_name?: string | null
+          skills?: string[] | null
+          slug: string
+          stage_name: string
+          tiktok_followers?: number | null
+          union_status?: string | null
+          updated_at?: string
+          verified_date?: string | null
+          website_url?: string | null
+          youtube_subscribers?: number | null
+          youtube_url?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          demo_reel_url?: string | null
+          experience_level?: string | null
+          headshot_url?: string | null
+          id?: string
+          imdb_url?: string | null
+          inquiry_email?: string | null
+          inquiry_goes_to?: string
+          instagram_followers?: number | null
+          instagram_url?: string | null
+          profession?: string | null
+          rep_email?: string | null
+          rep_name?: string | null
+          skills?: string[] | null
+          slug?: string
+          stage_name?: string
+          tiktok_followers?: number | null
+          union_status?: string | null
+          updated_at?: string
+          verified_date?: string | null
+          website_url?: string | null
+          youtube_subscribers?: number | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
