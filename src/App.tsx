@@ -63,6 +63,8 @@ import ScanReports from "./pages/ScanReports";
 import PublicVerifyImage from "./pages/PublicVerifyImage";
 import SecureChecklist from "./pages/SecureChecklist";
 import RegistryPerformer from "./pages/RegistryPerformer";
+import RegistryIndex from "./pages/RegistryIndex";
+
 
 const queryClient = new QueryClient();
 
