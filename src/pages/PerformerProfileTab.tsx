@@ -32,6 +32,8 @@ const PerformerProfileTab = () => {
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState<any>({});
+  const [registry, setRegistry] = useState<any>(null);
+  const [savingRegistry, setSavingRegistry] = useState(false);
   // (face-capture thumbnails removed)
   const [headshotPreview, setHeadshotPreview] = useState<string | null>(null);
   const [voicePreview, setVoicePreview] = useState<string | null>(null);
