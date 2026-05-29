@@ -124,6 +124,19 @@ const PerformerProfileTab = () => {
         setVoicePreview(signedVoice?.signedUrl ?? null);
       }
 
+      const { data: reg } = await (supabase as any)
+        .from("registry_performers")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setRegistry(reg ?? {
+        listed_on_registry: false,
+        inquiry_goes_to: "actor",
+        inquiry_email: user.email ?? "",
+        rep_email: "",
+        rep_name: "",
+        cc_actor_on_inquiry: true,
+      });
 
       setLoading(false);
     })();
