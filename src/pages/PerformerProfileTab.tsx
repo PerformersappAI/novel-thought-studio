@@ -586,6 +586,13 @@ const PerformerProfileTab = () => {
                 instagram_url: form.instagram_handle || null,
                 youtube_url: form.youtube_handle || null,
                 imdb_url: form.imdb_url || null,
+                demo_reel_url: registry?.demo_reel_url?.trim() || null,
+                website_url: registry?.website_url?.trim() || null,
+                instagram_followers: Number(registry?.instagram_followers) || 0,
+                tiktok_followers: Number(registry?.tiktok_followers) || 0,
+                youtube_subscribers: Number(registry?.youtube_subscribers) || 0,
+                skills: (registry?.skills_text || "")
+                  .split(",").map((s: string) => s.trim()).filter(Boolean),
               };
               const { data, error } = await (supabase as any)
                 .from("registry_performers")
