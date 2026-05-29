@@ -101,7 +101,6 @@ const ScanStatusCards = ({ actorId }: Props) => {
           select: "id,scanner_name,actor_id,started_at,finished_at,items_scanned,threats_found,legitimate_found,review_found,status,notes",
           order: "started_at.desc",
           limit: "50",
-          _: Date.now().toString(),
         });
         const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/scan_runs?${params.toString()}`;
         const res = await fetch(url, {
