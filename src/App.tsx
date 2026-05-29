@@ -63,6 +63,8 @@ import ScanReports from "./pages/ScanReports";
 import PublicVerifyImage from "./pages/PublicVerifyImage";
 import SecureChecklist from "./pages/SecureChecklist";
 import RegistryPerformer from "./pages/RegistryPerformer";
+import RegistryIndex from "./pages/RegistryIndex";
+
 
 const queryClient = new QueryClient();
 
@@ -78,8 +80,10 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/performer/:slug" element={<PerformerProfile />} />
+            <Route path="/registry" element={<RegistryIndex />} />
             <Route path="/registry/:slug" element={<RegistryPerformer />} />
             <Route path="/performer/:slug" element={<PerformerProfile />} />
+
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><PerformerDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/assets" element={<ProtectedRoute><MyAssets /></ProtectedRoute>} />
