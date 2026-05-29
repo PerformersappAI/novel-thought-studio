@@ -81,6 +81,9 @@ const RegistryPerformer = () => {
         .select("*")
         .eq("slug", slug)
         .maybeSingle();
+      if (data?.headshot_url) {
+        data.headshot_url = await resolveHeadshotUrl(data.headshot_url);
+      }
       setP(data);
       setLoading(false);
     })();
