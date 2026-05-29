@@ -124,7 +124,7 @@ const ScanStatusCards = ({ actorId }: Props) => {
           return;
         }
 
-        const functionParams = new URLSearchParams({ action: "get_scan_runs", _: Date.now().toString() });
+        const functionParams = new URLSearchParams({ action: "get_scan_runs" });
         if (actorId) functionParams.set("actor_id", actorId);
         const functionRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?${functionParams.toString()}`, {
           method: "GET",
