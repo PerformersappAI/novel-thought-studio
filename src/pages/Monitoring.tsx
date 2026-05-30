@@ -693,6 +693,8 @@ const Monitoring = () => {
           </p>
         </div>
 
+        <CheckImageCard />
+
         <div className="mb-6">
           <DetectionPanels mentions={mentions as any} />
         </div>
