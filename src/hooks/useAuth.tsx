@@ -96,12 +96,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      return { error: error as Error | null };
+    }
+    setSession(data.session);
+    setUser(data.user);
+    if (data.user) await loadUserAccess(data.user.id);
     return { error: error as Error | null };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setRole(null);
+    setLegalAccepted(null);
+    setLoading(false);
   };
 
   const markLegalAccepted = async () => {
