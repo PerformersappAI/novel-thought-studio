@@ -16,7 +16,7 @@ const LIKENESS_RIGHTS_AGREEMENT =
   "By registering your headshot, voice sample, and identifying information with ClaimMyFace, you confirm that you are the sole legal owner of the identity being registered. You grant ClaimMyFace permission to store and process your uploaded photos and voice samples solely for the purpose of monitoring unauthorized public use of your likeness. ClaimMyFace does not perform facial recognition and does not store biometric identifiers. ClaimMyFace will never sell, license, or share your uploaded photos or voice samples with advertisers, data brokers, or AI training providers. You warrant that every image and recording you upload is one you own or have explicit permission to use; takedown requests may be sent to dmca@claimmyface.com. You may request deletion of your data at any time.";
 
 const LegalAgreementGate = ({ children }: { children: React.ReactNode }) => {
-  const { user, legalAccepted, markLegalAccepted, loading } = useAuth();
+  const { user, legalAccepted, markLegalAccepted, loading, refreshAccess } = useAuth();
   const [tosChecked, setTosChecked] = useState(false);
   const [likenessChecked, setLikenessChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +44,10 @@ const LegalAgreementGate = ({ children }: { children: React.ReactNode }) => {
       setTosContent(tos?.content || TERMS_OF_SERVICE);
       setLikenessContent(likeness?.content || LIKENESS_RIGHTS_AGREEMENT);
     };
-    if (user && legalAccepted === false) fetchDocs();
+    if (user && legalAccepted === false) {
+      refreshAccess();
+      fetchDocs();
+    }
   }, [user, legalAccepted]);
 
   if (loading || legalAccepted === null) return null;

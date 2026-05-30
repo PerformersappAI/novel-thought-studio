@@ -11,16 +11,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [onboarded, setOnboarded] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setChecking(false);
+      setOnboarded(true);
+      return;
+    }
     let cancelled = false;
+    setChecking(true);
     (async () => {
-      const { data } = await supabase
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user || authData.user.id !== user.id) {
+        if (!cancelled) setChecking(false);
+        return;
+      }
+
+      const { data, error } = await supabase
         .from("profiles")
         .select("onboarding_complete")
         .eq("user_id", user.id)
         .maybeSingle();
       if (!cancelled) {
-        setOnboarded(!!data?.onboarding_complete);
+        if (error) console.warn("ProtectedRoute profile check failed:", error);
+        setOnboarded(error || !data ? true : !!data.onboarding_complete);
         setChecking(false);
       }
     })();

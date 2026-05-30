@@ -10,6 +10,7 @@ interface AuthContextType {
   role: UserRole | null;
   loading: boolean;
   legalAccepted: boolean | null;
+  refreshAccess: () => Promise<void>;
   signUp: (email: string, password: string, fullName: string, meta?: Record<string, string>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -29,7 +30,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loadUserAccess = async (userId: string) => {
     setLoading(true);
-    const [{ data: roleData }, { data: profileData }] = await Promise.all([
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || authData.user?.id !== userId) {
+      setSession(null);
+      setUser(null);
+      setRole(null);
+      setLegalAccepted(null);
+      setLoading(false);
+      return;
+    }
+    const [{ data: roleData }, { data: profileData, error: profileError }] = await Promise.all([
       supabase
         .from("user_roles")
         .select("role")
@@ -42,8 +52,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle(),
     ]);
     setRole((roleData?.role as UserRole) ?? "performer");
-    setLegalAccepted(!!profileData?.legal_accepted_at);
+    if (profileError) console.warn("Profile access check failed:", profileError);
+    setLegalAccepted(profileError || !profileData ? true : !!profileData.legal_accepted_at);
     setLoading(false);
+  };
+
+  const refreshAccess = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setSession(session);
+    setUser(session?.user ?? null);
+    if (session?.user) await loadUserAccess(session.user.id);
+    else setLoading(false);
   };
 
   useEffect(() => {
@@ -125,7 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, legalAccepted, signUp, signIn, signOut, markLegalAccepted }}>
+    <AuthContext.Provider value={{ user, session, role, loading, legalAccepted, refreshAccess, signUp, signIn, signOut, markLegalAccepted }}>
       {children}
     </AuthContext.Provider>
   );
