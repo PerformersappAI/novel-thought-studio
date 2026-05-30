@@ -27,6 +27,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [legalAccepted, setLegalAccepted] = useState<boolean | null>(null);
 
+  const loadUserAccess = async (userId: string) => {
+    setLoading(true);
+    const [{ data: roleData }, { data: profileData }] = await Promise.all([
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("legal_accepted_at")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    ]);
+    setRole((roleData?.role as UserRole) ?? "performer");
+    setLegalAccepted(!!profileData?.legal_accepted_at);
+    setLoading(false);
+  };
+
   const fetchRole = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
@@ -46,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    let initialized = false;
+    let mounted = true;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -54,29 +73,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         if (session?.user) {
           setTimeout(() => {
-            fetchRole(session.user.id);
-            fetchLegalStatus(session.user.id);
+            if (mounted) loadUserAccess(session.user.id);
           }, 0);
         } else {
           setRole(null);
           setLegalAccepted(null);
+          setLoading(false);
         }
-        if (initialized) setLoading(false);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchRole(session.user.id);
-        fetchLegalStatus(session.user.id);
+        loadUserAccess(session.user.id);
+      } else {
+        setLoading(false);
       }
-      initialized = true;
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
 
