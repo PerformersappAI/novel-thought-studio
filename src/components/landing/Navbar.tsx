@@ -18,7 +18,6 @@ const anchorLinks = [
 ];
 
 const routeLinks = [
-  { label: "Talent Registry", href: "/registry" },
   { label: "Education", href: "/education" },
 ];
 

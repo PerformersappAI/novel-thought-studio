@@ -380,45 +380,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Talent Registry — for casting & industry */}
-      <section className="relative py-20 md:py-28 border-t border-border/20">
-        <div className="container px-4 max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="glass-card rounded-2xl border border-primary/30 p-8 md:p-12 text-center"
-          >
-            <div className="inline-block mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/5">
-              <span className="text-xs font-body font-medium text-primary tracking-wider uppercase">
-                For Casting Directors, Agencies & Producers
-              </span>
-            </div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              The <span className="text-gradient-gold">Public Talent Registry</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto font-body mb-8 leading-relaxed">
-              Browse verified performers, actors, and influencers with ClaimMyFace-verified identities.
-              Search by name or profession, view profiles, and send booking inquiries directly.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild size="lg" className="font-display text-base font-semibold px-8 h-14 glow-red">
-                <Link to="/registry">
-                  Browse the Registry <ArrowRight className="w-5 h-5 ml-2" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="font-display text-base font-semibold px-8 h-14 border-border/50">
-                <Link to="/signup">List Your Profile</Link>
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-6 font-body">
-              Every listed performer is identity-verified. Contact details are protected — inquiries route securely.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-
       {/* FAQ */}
       <section className="relative py-20 md:py-28 border-t border-border/20">
         <div className="container px-4 max-w-3xl mx-auto">

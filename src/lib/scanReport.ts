@@ -1,27 +1,47 @@
-/**
- * DEPRECATED — DO NOT REINTRODUCE.
- *
- * ClaimMyFace is privacy-first: scan findings are never written to the
- * database. Results live in React state for the current session only and
- * disappear when the user leaves the page. If the user wants a record, they
- * download the client-side PDF (see `src/lib/scanPdf.ts`).
- *
- * The `scan_reports` table remains in the schema for historical reasons but
- * is no longer written to. These helpers are kept as no-ops so any stale
- * caller fails closed rather than silently persisting data.
- */
+import { supabase } from "@/integrations/supabase/client";
 
-export function buildScrubbedSummary(_results: any[] = []): Record<string, never> {
-  return {};
+// Build a scrubbed summary of a likeness scan — counts and categories only,
+// no URLs, no titles, no excerpts, no PII.
+export function buildScrubbedSummary(results: any[] = []) {
+  const total = results.length;
+  const byCategory: Record<string, number> = {};
+  const byRisk: Record<string, number> = { high: 0, medium: 0, low: 0 };
+  let withImage = 0;
+
+  for (const r of results) {
+    const cat = (r?.category || r?.media_type || "other").toString().toLowerCase();
+    byCategory[cat] = (byCategory[cat] ?? 0) + 1;
+    const risk = (r?.risk || r?.risk_level || "").toString().toLowerCase();
+    if (risk === "high" || risk === "medium" || risk === "low") byRisk[risk]++;
+    if (r?.thumbnail || r?.image || r?.thumbnail_url) withImage++;
+  }
+
+  return {
+    total_results: total,
+    by_category: byCategory,
+    by_risk: byRisk,
+    results_with_image: withImage,
+    generated_at: new Date().toISOString(),
+  };
 }
 
-export async function saveScanReport(_opts: {
+export async function saveScanReport(opts: {
   userId: string;
   scanId?: string | null;
   scanType: string;
   queryLabel: string;
   results: any[];
-}): Promise<void> {
-  // Intentionally a no-op. See file header.
-  return;
+}) {
+  try {
+    const summary = buildScrubbedSummary(opts.results);
+    await supabase.from("scan_reports").insert({
+      user_id: opts.userId,
+      source_scan_id: opts.scanId ?? null,
+      scan_type: opts.scanType,
+      query_label: opts.queryLabel?.slice(0, 120) ?? null,
+      summary,
+    } as any);
+  } catch (err) {
+    console.warn("[scanReport] save failed", err);
+  }
 }
