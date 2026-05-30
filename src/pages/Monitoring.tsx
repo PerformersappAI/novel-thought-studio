@@ -910,11 +910,52 @@ const Monitoring = () => {
                 <ShieldCheck className="w-10 h-10 text-primary mx-auto mb-3" />
                 <h2 className="font-display text-xl font-semibold mb-2">Scanner not set up yet</h2>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
-                  We need to register your identity with the scanner before we can watch the web for you. Finish your Identity Map to turn the Scanner on.
+                  We need to register your identity with the scanner before we can watch the web for you. If you've already completed your Identity Map, just activate the scanner below.
                 </p>
-                <Button asChild size="lg">
-                  <Link to="/onboarding/headshot">Complete your Identity Map</Link>
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <Button
+                    size="lg"
+                    disabled={activating || !user}
+                    onClick={async () => {
+                      if (!user) return;
+                      setActivating(true);
+                      try {
+                        const { data: prof } = await supabase
+                          .from("profiles")
+                          .select("legal_name, stage_name, full_name")
+                          .eq("user_id", user.id)
+                          .maybeSingle();
+                        const { data, error } = await supabase.functions.invoke("actor-registry", {
+                          method: "POST",
+                          body: {
+                            action: "register",
+                            legal_name: (prof as any)?.legal_name || (prof as any)?.full_name || "",
+                            stage_name: (prof as any)?.stage_name || "",
+                            aka_names: [],
+                            email: user.email || "",
+                          },
+                        });
+                        if (error) throw error;
+                        if ((data as any)?.actor_id) {
+                          setActorId((data as any).actor_id);
+                          fetchMentions((data as any).actor_id, identity);
+                          toast({ title: "Scanner activated", description: "We can now watch the web for you." });
+                        } else {
+                          toast({ title: "Couldn't activate scanner", description: "Please try again or contact support.", variant: "destructive" });
+                        }
+                      } catch (e: any) {
+                        toast({ title: "Activation failed", description: e?.message || "Please try again.", variant: "destructive" });
+                      } finally {
+                        setActivating(false);
+                      }
+                    }}
+                  >
+                    {activating ? "Activating…" : "Activate Scanner"}
+                  </Button>
+                  <Button asChild size="lg" variant="outline">
+                    <Link to="/onboarding/headshot">Review Identity Map</Link>
+                  </Button>
+                </div>
               </div>
             )}
             {impersonators.length > 0 && (
