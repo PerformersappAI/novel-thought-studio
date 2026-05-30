@@ -29,6 +29,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
+import CheckImageCard from "@/components/monitoring/CheckImageCard";
 
 const DEFAULT_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
 
