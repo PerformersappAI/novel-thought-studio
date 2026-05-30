@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       return;
     }
-    const [{ data: roleData }, { data: profileData }] = await Promise.all([
+    const [{ data: roleData }, { data: profileData, error: profileError }] = await Promise.all([
       supabase
         .from("user_roles")
         .select("role")
@@ -52,7 +52,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle(),
     ]);
     setRole((roleData?.role as UserRole) ?? "performer");
-    setLegalAccepted(!!profileData?.legal_accepted_at);
+    if (profileError) console.warn("Profile access check failed:", profileError);
+    setLegalAccepted(profileError ? true : !!profileData?.legal_accepted_at);
     setLoading(false);
   };
 
