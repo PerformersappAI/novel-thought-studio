@@ -27,56 +27,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [legalAccepted, setLegalAccepted] = useState<boolean | null>(null);
 
-  const fetchRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .maybeSingle();
-    setRole((data?.role as UserRole) ?? "performer");
-  };
-
-  const fetchLegalStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("legal_accepted_at")
-      .eq("user_id", userId)
-      .maybeSingle();
-    setLegalAccepted(!!data?.legal_accepted_at);
+  const loadUserAccess = async (userId: string) => {
+    setLoading(true);
+    const [{ data: roleData }, { data: profileData }] = await Promise.all([
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("legal_accepted_at")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    ]);
+    setRole((roleData?.role as UserRole) ?? "performer");
+    setLegalAccepted(!!profileData?.legal_accepted_at);
+    setLoading(false);
   };
 
   useEffect(() => {
-    let initialized = false;
+    let mounted = true;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        if (event === "INITIAL_SESSION") return;
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
           setTimeout(() => {
-            fetchRole(session.user.id);
-            fetchLegalStatus(session.user.id);
+            if (mounted) loadUserAccess(session.user.id);
           }, 0);
         } else {
           setRole(null);
           setLegalAccepted(null);
+          setLoading(false);
         }
-        if (initialized) setLoading(false);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchRole(session.user.id);
-        fetchLegalStatus(session.user.id);
+        loadUserAccess(session.user.id);
+      } else {
+        setLoading(false);
       }
-      initialized = true;
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
 
@@ -93,12 +97,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      return { error: error as Error | null };
+    }
+    setSession(data.session);
+    setUser(data.user);
+    if (data.user) await loadUserAccess(data.user.id);
     return { error: error as Error | null };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setRole(null);
+    setLegalAccepted(null);
+    setLoading(false);
   };
 
   const markLegalAccepted = async () => {
