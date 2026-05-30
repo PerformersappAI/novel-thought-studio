@@ -46,9 +46,10 @@ const OnboardingComplete = () => {
       // Register with external actor registry API
       if (!(data as any)?.external_actor_id) {
         try {
-          await supabase.functions.invoke("actor-registry?action=register", {
+          await supabase.functions.invoke("actor-registry", {
             method: "POST",
             body: {
+              action: "register",
               legal_name: data?.legal_name || data?.full_name || "",
               stage_name: data?.stage_name || "",
               aka_names: [],
