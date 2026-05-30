@@ -343,6 +343,36 @@ export type Database = {
         }
         Relationships: []
       }
+      finding_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          url_hash: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          url_hash: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          url_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       identity_checklist: {
         Row: {
           completed_at: string
@@ -696,6 +726,50 @@ export type Database = {
         }
         Relationships: []
       }
+      performer_inquiries: {
+        Row: {
+          cc_email: string | null
+          company: string | null
+          created_at: string
+          destination_email: string | null
+          id: string
+          message: string
+          performer_id: string
+          sender_email: string
+          sender_name: string
+        }
+        Insert: {
+          cc_email?: string | null
+          company?: string | null
+          created_at?: string
+          destination_email?: string | null
+          id?: string
+          message: string
+          performer_id: string
+          sender_email: string
+          sender_name: string
+        }
+        Update: {
+          cc_email?: string | null
+          company?: string | null
+          created_at?: string
+          destination_email?: string | null
+          id?: string
+          message?: string
+          performer_id?: string
+          sender_email?: string
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performer_inquiries_performer_id_fkey"
+            columns: ["performer_id"]
+            isOneToOne: false
+            referencedRelation: "registry_performers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       possible_fake_profiles: {
         Row: {
           bio_snippet: string | null
@@ -984,6 +1058,96 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      registry_performers: {
+        Row: {
+          bio: string | null
+          cc_actor_on_inquiry: boolean
+          created_at: string
+          demo_reel_url: string | null
+          experience_level: string | null
+          headshot_url: string | null
+          id: string
+          imdb_url: string | null
+          inquiry_email: string | null
+          inquiry_goes_to: string
+          instagram_followers: number | null
+          instagram_url: string | null
+          listed_on_registry: boolean
+          profession: string | null
+          rep_email: string | null
+          rep_name: string | null
+          skills: string[] | null
+          slug: string
+          stage_name: string
+          tiktok_followers: number | null
+          union_status: string | null
+          updated_at: string
+          user_id: string | null
+          verified_date: string | null
+          website_url: string | null
+          youtube_subscribers: number | null
+          youtube_url: string | null
+        }
+        Insert: {
+          bio?: string | null
+          cc_actor_on_inquiry?: boolean
+          created_at?: string
+          demo_reel_url?: string | null
+          experience_level?: string | null
+          headshot_url?: string | null
+          id?: string
+          imdb_url?: string | null
+          inquiry_email?: string | null
+          inquiry_goes_to?: string
+          instagram_followers?: number | null
+          instagram_url?: string | null
+          listed_on_registry?: boolean
+          profession?: string | null
+          rep_email?: string | null
+          rep_name?: string | null
+          skills?: string[] | null
+          slug: string
+          stage_name: string
+          tiktok_followers?: number | null
+          union_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verified_date?: string | null
+          website_url?: string | null
+          youtube_subscribers?: number | null
+          youtube_url?: string | null
+        }
+        Update: {
+          bio?: string | null
+          cc_actor_on_inquiry?: boolean
+          created_at?: string
+          demo_reel_url?: string | null
+          experience_level?: string | null
+          headshot_url?: string | null
+          id?: string
+          imdb_url?: string | null
+          inquiry_email?: string | null
+          inquiry_goes_to?: string
+          instagram_followers?: number | null
+          instagram_url?: string | null
+          listed_on_registry?: boolean
+          profession?: string | null
+          rep_email?: string | null
+          rep_name?: string | null
+          skills?: string[] | null
+          slug?: string
+          stage_name?: string
+          tiktok_followers?: number | null
+          union_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verified_date?: string | null
+          website_url?: string | null
+          youtube_subscribers?: number | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
