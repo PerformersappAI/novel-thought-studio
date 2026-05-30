@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     ]);
     setRole((roleData?.role as UserRole) ?? "performer");
     if (profileError) console.warn("Profile access check failed:", profileError);
-    setLegalAccepted(profileError ? true : !!profileData?.legal_accepted_at);
+    setLegalAccepted(profileError || !profileData ? true : !!profileData.legal_accepted_at);
     setLoading(false);
   };
 
