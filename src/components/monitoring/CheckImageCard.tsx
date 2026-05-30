@@ -58,7 +58,7 @@ const CheckImageCard = () => {
             onChange={(e) => {
               setFile(e.target.files?.[0] ?? null);
               setResult(null);
-              setError(null;
+              setError(null);
             }}
             disabled={loading}
             className="flex-1"
