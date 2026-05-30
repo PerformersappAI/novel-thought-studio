@@ -752,9 +752,6 @@ const Monitoring = () => {
       let id: string | null = null;
       let ident: Identity = EMPTY_IDENTITY;
       try {
-        const params = new URLSearchParams(window.location.search);
-        const override = params.get("actor");
-        if (override) id = override;
         if (user) {
           const { data } = await supabase
             .from("profiles")
@@ -766,7 +763,17 @@ const Monitoring = () => {
           if (data) {
             ident = buildIdentity(data);
             const profileId = (data as any).external_actor_id;
-            if (!override && profileId) id = profileId;
+            if (profileId) id = profileId;
+          }
+
+          if (!id) {
+            const { data: actorData } = await supabase.functions.invoke("actor-registry", {
+              method: "POST",
+              body: { action: "get_actor" },
+            });
+            if ((actorData as any)?.actor_id) {
+              id = (actorData as any).actor_id;
+            }
           }
         }
       } catch {
