@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
 import { sha256Hex } from "@/lib/urlHash";
 import { downloadScanPdf } from "@/lib/scanPdf";
+import { useToast } from "@/hooks/use-toast";
 
 // No hardcoded default actor id — falling back to another user's id would leak their data.
 
