@@ -157,9 +157,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // GET /actor — always resolve to the authenticated user's own actor record.
+    // GET/POST /actor — always resolve to the authenticated user's own actor record.
     // The actor_id query param is ignored to prevent IDOR enumeration.
-    if (action === "get_actor" && req.method === "GET") {
+    if (action === "get_actor" && (req.method === "GET" || req.method === "POST")) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("external_actor_id")
@@ -178,8 +178,8 @@ Deno.serve(async (req) => {
       }
 
       const extRes = await fetch(`${EXTERNAL_API}/actor/${id}`);
-      const extData = await extRes.json();
-      return new Response(JSON.stringify(extData), {
+      const extData = await extRes.json().catch(() => ({}));
+      return new Response(JSON.stringify({ ...extData, actor_id: id }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
