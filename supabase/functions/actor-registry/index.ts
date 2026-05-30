@@ -56,11 +56,18 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const action = url.searchParams.get("action");
+    let action = url.searchParams.get("action");
+
+    // Parse body once; also accept `action` from body since supabase.functions.invoke
+    // does not forward query strings reliably.
+    let body: any = {};
+    if (req.method !== "GET" && req.method !== "OPTIONS") {
+      try { body = await req.json(); } catch { body = {}; }
+      if (!action && typeof body?.action === "string") action = body.action;
+    }
 
     // POST /register
     if (action === "register" && req.method === "POST") {
-      const body = await req.json();
 
       // Get signed URL for reference photo if we have a face capture
       let reference_photo_url = body.reference_photo_url || "";
