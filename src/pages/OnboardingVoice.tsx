@@ -398,12 +398,12 @@ const OnboardingVoice = () => {
           </div>
         </div>
 
-        {/* Optional demo upload */}
+        {/* Alternative: upload a voice sample instead of recording */}
         <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur p-6 space-y-3">
           <div>
-            <h2 className="font-display text-xl font-semibold">Optional — Upload a Demo Reel</h2>
+            <h2 className="font-display text-xl font-semibold">Or — Upload a Voice Sample</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Voiceover demo, commercial, monologue. MP3/WAV/M4A · max {MAX_DEMO_MB}MB. Strengthens future matching.
+              Don't want to record? Upload a voiceover, demo reel, or any clean clip of your voice. We'll use it as your scanner fingerprint. MP3/WAV/M4A · max {MAX_DEMO_MB}MB.
             </p>
           </div>
           <input
