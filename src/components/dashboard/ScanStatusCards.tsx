@@ -101,6 +101,7 @@ const ScanStatusCards = ({ actorId }: Props) => {
           select: "id,scanner_name,actor_id,started_at,finished_at,items_scanned,threats_found,legitimate_found,review_found,status,notes",
           order: "started_at.desc",
           limit: "50",
+          _: Date.now().toString(),
         });
         const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/scan_runs?${params.toString()}`;
         const res = await fetch(url, {
@@ -124,7 +125,7 @@ const ScanStatusCards = ({ actorId }: Props) => {
           return;
         }
 
-        const functionParams = new URLSearchParams({ action: "get_scan_runs" });
+        const functionParams = new URLSearchParams({ action: "get_scan_runs", _: Date.now().toString() });
         if (actorId) functionParams.set("actor_id", actorId);
         const functionRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/actor-registry?${functionParams.toString()}`, {
           method: "GET",

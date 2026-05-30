@@ -90,23 +90,9 @@ Deno.serve(async (req) => {
     const data = await response.json();
     if (!response.ok) {
       console.error('Serper error:', data);
-      if (scanId) {
-        await authClient.from('likeness_scans').update({
-          status: 'completed',
-          query: exactQuery,
-          results: [],
-          result_count: 0,
-          completed_at: new Date().toISOString(),
-        }).eq('id', scanId);
-      }
       return new Response(
-        JSON.stringify({
-          success: true,
-          query: exactQuery,
-          data: [],
-          warning: data.message || `Search provider unavailable (${response.status})`,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: data.message || `Search failed (${response.status})` }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

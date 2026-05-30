@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Loader2, Lock, RefreshCw, Shield, Stamp, ArrowRight, Mic, FileText, Camera, Upload, Users, Mail, Play, Globe, Star } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Loader2, Lock, RefreshCw, Shield, Stamp, ArrowRight, Mic, FileText, Camera, Upload } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import TrustBanner from "@/components/onboarding/TrustBanner";
 import DashboardTrustFooter from "@/components/dashboard/DashboardTrustFooter";
@@ -32,8 +31,6 @@ const PerformerProfileTab = () => {
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState<any>({});
-  const [registry, setRegistry] = useState<any>(null);
-  const [savingRegistry, setSavingRegistry] = useState(false);
   // (face-capture thumbnails removed)
   const [headshotPreview, setHeadshotPreview] = useState<string | null>(null);
   const [voicePreview, setVoicePreview] = useState<string | null>(null);
@@ -124,28 +121,6 @@ const PerformerProfileTab = () => {
         setVoicePreview(signedVoice?.signedUrl ?? null);
       }
 
-      const { data: reg } = await (supabase as any)
-        .from("registry_performers")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setRegistry(reg ? {
-        ...reg,
-        skills_text: Array.isArray(reg.skills) ? reg.skills.join(", ") : "",
-      } : {
-        listed_on_registry: false,
-        inquiry_goes_to: "actor",
-        inquiry_email: user.email ?? "",
-        rep_email: "",
-        rep_name: "",
-        cc_actor_on_inquiry: true,
-        demo_reel_url: "",
-        website_url: "",
-        instagram_followers: 0,
-        tiktok_followers: 0,
-        youtube_subscribers: 0,
-        skills_text: "",
-      });
 
       setLoading(false);
     })();
@@ -395,222 +370,6 @@ const PerformerProfileTab = () => {
 
           <Button onClick={save} disabled={saving} className="font-display">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
-          </Button>
-        </div>
-
-        {/* Public Talent Registry settings */}
-        <div className="glass-card rounded-2xl p-6 space-y-5">
-          <div>
-            <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" /> Public Talent Registry
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Free for verified members. Casting directors, agents, managers and producers can find
-              your verified profile and send inquiries.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-primary/30 bg-card/40 p-4 flex items-start justify-between gap-4">
-            <div>
-              <p className="font-medium">List me on the public Talent Registry</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Your profile appears at /registry. You can turn this off anytime.
-              </p>
-            </div>
-            <Switch
-              checked={!!registry?.listed_on_registry}
-              onCheckedChange={(v) => setRegistry((r: any) => ({ ...r, listed_on_registry: v }))}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2"><Mail className="w-4 h-4 text-primary" /> Where should inquiries go?</Label>
-            <RadioGroup
-              value={registry?.inquiry_goes_to ?? "actor"}
-              onValueChange={(v) => setRegistry((r: any) => ({ ...r, inquiry_goes_to: v }))}
-              className="space-y-2"
-            >
-              <label className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/40 p-3 cursor-pointer">
-                <RadioGroupItem value="actor" id="inq-actor" className="mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Send directly to me</p>
-                  <p className="text-xs text-muted-foreground">Inquiries land in your inbox.</p>
-                </div>
-              </label>
-              <label className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/40 p-3 cursor-pointer">
-                <RadioGroupItem value="rep" id="inq-rep" className="mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Send to my agent or manager</p>
-                  <p className="text-xs text-muted-foreground">We'll deliver to their email and CC you so you know about every hit.</p>
-                </div>
-              </label>
-            </RadioGroup>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Your email (for inquiries / CC)</Label>
-              <Input
-                type="email"
-                placeholder="you@example.com"
-                value={registry?.inquiry_email ?? ""}
-                onChange={(e) => setRegistry((r: any) => ({ ...r, inquiry_email: e.target.value }))}
-              />
-            </div>
-            {registry?.inquiry_goes_to === "rep" && (
-              <>
-                <div className="space-y-2">
-                  <Label>Agent / Manager name</Label>
-                  <Input
-                    placeholder="Jane Doe — Acme Talent"
-                    value={registry?.rep_name ?? ""}
-                    onChange={(e) => setRegistry((r: any) => ({ ...r, rep_name: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Agent / Manager email *</Label>
-                  <Input
-                    type="email"
-                    placeholder="rep@agency.com"
-                    value={registry?.rep_email ?? ""}
-                    onChange={(e) => setRegistry((r: any) => ({ ...r, rep_email: e.target.value }))}
-                  />
-                </div>
-                <div className="sm:col-span-2 flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3">
-                  <div>
-                    <p className="text-sm font-medium">CC me on every inquiry</p>
-                    <p className="text-xs text-muted-foreground">Recommended — so you always know when there's a hit.</p>
-                  </div>
-                  <Switch
-                    checked={!!registry?.cc_actor_on_inquiry}
-                    onCheckedChange={(v) => setRegistry((r: any) => ({ ...r, cc_actor_on_inquiry: v }))}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="border-t border-border/40 pt-5 space-y-4">
-            <div>
-              <h3 className="font-display font-semibold flex items-center gap-2">
-                <Star className="w-4 h-4 text-primary" /> Your Public Registry Profile
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                Shown on your public /registry page. Leave blank to hide a section.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="flex items-center gap-2"><Play className="w-4 h-4 text-primary" /> Demo Reel URL (YouTube)</Label>
-                <Input
-                  placeholder="https://youtube.com/watch?v=..."
-                  value={registry?.demo_reel_url ?? ""}
-                  onChange={(e) => setRegistry((r: any) => ({ ...r, demo_reel_url: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-primary" /> Personal Website</Label>
-                <Input
-                  placeholder="https://yoursite.com"
-                  value={registry?.website_url ?? ""}
-                  onChange={(e) => setRegistry((r: any) => ({ ...r, website_url: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Instagram Followers</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={registry?.instagram_followers ?? 0}
-                  onChange={(e) => setRegistry((r: any) => ({ ...r, instagram_followers: Number(e.target.value) || 0 }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>TikTok Followers</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={registry?.tiktok_followers ?? 0}
-                  onChange={(e) => setRegistry((r: any) => ({ ...r, tiktok_followers: Number(e.target.value) || 0 }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>YouTube Subscribers</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={registry?.youtube_subscribers ?? 0}
-                  onChange={(e) => setRegistry((r: any) => ({ ...r, youtube_subscribers: Number(e.target.value) || 0 }))}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Special Skills</Label>
-                <Input
-                  placeholder="Stage Combat, Horseback Riding, Mandarin (Native)"
-                  value={registry?.skills_text ?? ""}
-                  onChange={(e) => setRegistry((r: any) => ({ ...r, skills_text: e.target.value }))}
-                />
-                <p className="text-xs text-muted-foreground">Comma separated — each shows as a pill on your public page.</p>
-              </div>
-            </div>
-          </div>
-
-          <Button
-            onClick={async () => {
-              if (!user) return;
-              if (registry?.listed_on_registry && !registry?.inquiry_email?.trim()) {
-                toast({ title: "Inquiry email required to list", variant: "destructive" });
-                return;
-              }
-              if (registry?.inquiry_goes_to === "rep" && !registry?.rep_email?.trim()) {
-                toast({ title: "Rep email required", variant: "destructive" });
-                return;
-              }
-              setSavingRegistry(true);
-              const baseSlug = (form.stage_name || form.legal_name || "performer")
-                .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-              const payload = {
-                user_id: user.id,
-                stage_name: form.stage_name || form.legal_name || "Performer",
-                slug: registry?.slug ?? `${baseSlug}-${user.id.slice(0, 6)}`,
-                listed_on_registry: !!registry?.listed_on_registry,
-                inquiry_goes_to: registry?.inquiry_goes_to ?? "actor",
-                inquiry_email: registry?.inquiry_email?.trim() || null,
-                rep_name: registry?.rep_name?.trim() || null,
-                rep_email: registry?.rep_email?.trim() || null,
-                cc_actor_on_inquiry: !!registry?.cc_actor_on_inquiry,
-                headshot_url: profile?.headshot_url ?? null,
-                bio: form.bio || null,
-                profession: form.profession || form.performance_type || null,
-                union_status: form.union_affiliation || null,
-                instagram_url: form.instagram_handle || null,
-                youtube_url: form.youtube_handle || null,
-                imdb_url: form.imdb_url || null,
-                demo_reel_url: registry?.demo_reel_url?.trim() || null,
-                website_url: registry?.website_url?.trim() || null,
-                instagram_followers: Number(registry?.instagram_followers) || 0,
-                tiktok_followers: Number(registry?.tiktok_followers) || 0,
-                youtube_subscribers: Number(registry?.youtube_subscribers) || 0,
-                skills: (registry?.skills_text || "")
-                  .split(",").map((s: string) => s.trim()).filter(Boolean),
-              };
-              const { data, error } = await (supabase as any)
-                .from("registry_performers")
-                .upsert(payload, { onConflict: "user_id" })
-                .select()
-                .maybeSingle();
-              setSavingRegistry(false);
-              if (error) {
-                toast({ title: "Save failed", description: error.message, variant: "destructive" });
-              } else {
-                setRegistry({ ...data, skills_text: Array.isArray(data?.skills) ? data.skills.join(", ") : "" });
-                toast({ title: "Registry settings saved" });
-              }
-            }}
-            disabled={savingRegistry}
-            className="font-display"
-          >
-            {savingRegistry ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Registry Settings"}
           </Button>
         </div>
 

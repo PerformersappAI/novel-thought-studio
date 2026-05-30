@@ -728,7 +728,6 @@ export type Database = {
       }
       performer_inquiries: {
         Row: {
-          cc_email: string | null
           company: string | null
           created_at: string
           destination_email: string | null
@@ -739,7 +738,6 @@ export type Database = {
           sender_name: string
         }
         Insert: {
-          cc_email?: string | null
           company?: string | null
           created_at?: string
           destination_email?: string | null
@@ -750,7 +748,6 @@ export type Database = {
           sender_name: string
         }
         Update: {
-          cc_email?: string | null
           company?: string | null
           created_at?: string
           destination_email?: string | null
@@ -1064,7 +1061,6 @@ export type Database = {
       registry_performers: {
         Row: {
           bio: string | null
-          cc_actor_on_inquiry: boolean
           created_at: string
           demo_reel_url: string | null
           experience_level: string | null
@@ -1075,7 +1071,6 @@ export type Database = {
           inquiry_goes_to: string
           instagram_followers: number | null
           instagram_url: string | null
-          listed_on_registry: boolean
           profession: string | null
           rep_email: string | null
           rep_name: string | null
@@ -1085,7 +1080,6 @@ export type Database = {
           tiktok_followers: number | null
           union_status: string | null
           updated_at: string
-          user_id: string | null
           verified_date: string | null
           website_url: string | null
           youtube_subscribers: number | null
@@ -1093,7 +1087,6 @@ export type Database = {
         }
         Insert: {
           bio?: string | null
-          cc_actor_on_inquiry?: boolean
           created_at?: string
           demo_reel_url?: string | null
           experience_level?: string | null
@@ -1104,7 +1097,6 @@ export type Database = {
           inquiry_goes_to?: string
           instagram_followers?: number | null
           instagram_url?: string | null
-          listed_on_registry?: boolean
           profession?: string | null
           rep_email?: string | null
           rep_name?: string | null
@@ -1114,7 +1106,6 @@ export type Database = {
           tiktok_followers?: number | null
           union_status?: string | null
           updated_at?: string
-          user_id?: string | null
           verified_date?: string | null
           website_url?: string | null
           youtube_subscribers?: number | null
@@ -1122,7 +1113,6 @@ export type Database = {
         }
         Update: {
           bio?: string | null
-          cc_actor_on_inquiry?: boolean
           created_at?: string
           demo_reel_url?: string | null
           experience_level?: string | null
@@ -1133,7 +1123,6 @@ export type Database = {
           inquiry_goes_to?: string
           instagram_followers?: number | null
           instagram_url?: string | null
-          listed_on_registry?: boolean
           profession?: string | null
           rep_email?: string | null
           rep_name?: string | null
@@ -1143,7 +1132,6 @@ export type Database = {
           tiktok_followers?: number | null
           union_status?: string | null
           updated_at?: string
-          user_id?: string | null
           verified_date?: string | null
           website_url?: string | null
           youtube_subscribers?: number | null

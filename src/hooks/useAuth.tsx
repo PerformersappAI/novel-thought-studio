@@ -10,7 +10,6 @@ interface AuthContextType {
   role: UserRole | null;
   loading: boolean;
   legalAccepted: boolean | null;
-  refreshAccess: () => Promise<void>;
   signUp: (email: string, password: string, fullName: string, meta?: Record<string, string>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -28,78 +27,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [legalAccepted, setLegalAccepted] = useState<boolean | null>(null);
 
-  const loadUserAccess = async (userId: string) => {
-    setLoading(true);
-    const { data: authData, error: authError } = await supabase.auth.getUser();
-    if (authError || authData.user?.id !== userId) {
-      setSession(null);
-      setUser(null);
-      setRole(null);
-      setLegalAccepted(null);
-      setLoading(false);
-      return;
-    }
-    const [{ data: roleData }, { data: profileData, error: profileError }] = await Promise.all([
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle(),
-      supabase
-        .from("profiles")
-        .select("legal_accepted_at")
-        .eq("user_id", userId)
-        .maybeSingle(),
-    ]);
-    setRole((roleData?.role as UserRole) ?? "performer");
-    if (profileError) console.warn("Profile access check failed:", profileError);
-    setLegalAccepted(profileError || !profileData ? true : !!profileData.legal_accepted_at);
-    setLoading(false);
+  const fetchRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+    setRole((data?.role as UserRole) ?? "performer");
   };
 
-  const refreshAccess = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    setSession(session);
-    setUser(session?.user ?? null);
-    if (session?.user) await loadUserAccess(session.user.id);
-    else setLoading(false);
+  const fetchLegalStatus = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("legal_accepted_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    setLegalAccepted(!!data?.legal_accepted_at);
   };
 
   useEffect(() => {
-    let mounted = true;
+    let initialized = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "INITIAL_SESSION") return;
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
           setTimeout(() => {
-            if (mounted) loadUserAccess(session.user.id);
+            fetchRole(session.user.id);
+            fetchLegalStatus(session.user.id);
           }, 0);
         } else {
           setRole(null);
           setLegalAccepted(null);
-          setLoading(false);
         }
+        if (initialized) setLoading(false);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadUserAccess(session.user.id);
-      } else {
-        setLoading(false);
+        fetchRole(session.user.id);
+        fetchLegalStatus(session.user.id);
       }
+      initialized = true;
+      setLoading(false);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
 
@@ -116,25 +93,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setLoading(false);
-      return { error: error as Error | null };
-    }
-    setSession(data.session);
-    setUser(data.user);
-    if (data.user) await loadUserAccess(data.user.id);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setSession(null);
-    setUser(null);
-    setRole(null);
-    setLegalAccepted(null);
-    setLoading(false);
   };
 
   const markLegalAccepted = async () => {
@@ -144,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, legalAccepted, refreshAccess, signUp, signIn, signOut, markLegalAccepted }}>
+    <AuthContext.Provider value={{ user, session, role, loading, legalAccepted, signUp, signIn, signOut, markLegalAccepted }}>
       {children}
     </AuthContext.Provider>
   );

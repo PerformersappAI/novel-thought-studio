@@ -36,9 +36,8 @@ import { supabase } from "@/integrations/supabase/client";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
 import { sha256Hex } from "@/lib/urlHash";
 import { downloadScanPdf } from "@/lib/scanPdf";
-import { useToast } from "@/hooks/use-toast";
 
-// No hardcoded default actor id — falling back to another user's id would leak their data.
+const DEFAULT_ACTOR_ID = "8e53f67f-5290-42ff-bab1-b14dd4d08605";
 
 interface Mention {
   id: string;
@@ -545,12 +544,10 @@ interface FindingAction {
 
 const Monitoring = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [activating, setActivating] = useState(false);
   const [mentions, setMentions] = useState<Mention[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actorId, setActorId] = useState<string | null>(null);
+  const [actorId, setActorId] = useState<string>(DEFAULT_ACTOR_ID);
   const [identity, setIdentity] = useState<Identity>(EMPTY_IDENTITY);
   const [verdicts, setVerdicts] = useState<Record<string, Verdict>>(() => loadVerdicts());
   const [suppressions, setSuppressions] = useState<Set<string>>(() => loadSuppressions());
@@ -601,19 +598,9 @@ const Monitoring = () => {
 
   useEffect(() => { fetchActions(); }, [fetchActions]);
 
-  const fetchMentions = useCallback(async (id: string | null, ident: Identity) => {
+  const fetchMentions = useCallback(async (id: string, ident: Identity) => {
     setLoading(true);
     setError(null);
-
-    if (!id) {
-      // User hasn't been registered with the upstream scanner yet — show the empty
-      // state instead of calling mentions-proxy with a placeholder id.
-      setMentions([]);
-      setHashes({});
-      setScannedAt(new Date());
-      setLoading(false);
-      return;
-    }
 
     const normalize = (raw: any): Mention[] => {
       const list =
@@ -749,9 +736,12 @@ const Monitoring = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      let id: string | null = null;
+      let id = DEFAULT_ACTOR_ID;
       let ident: Identity = EMPTY_IDENTITY;
       try {
+        const params = new URLSearchParams(window.location.search);
+        const override = params.get("actor");
+        if (override) id = override;
         if (user) {
           const { data } = await supabase
             .from("profiles")
@@ -763,21 +753,11 @@ const Monitoring = () => {
           if (data) {
             ident = buildIdentity(data);
             const profileId = (data as any).external_actor_id;
-            if (profileId) id = profileId;
-          }
-
-          if (!id) {
-            const { data: actorData } = await supabase.functions.invoke("actor-registry", {
-              method: "POST",
-              body: { action: "get_actor" },
-            });
-            if ((actorData as any)?.actor_id) {
-              id = (actorData as any).actor_id;
-            }
+            if (!override && profileId) id = profileId;
           }
         }
       } catch {
-        /* fall through to null actor — empty state handles it */
+        /* fall through to defaults */
       }
       if (cancelled) return;
       setActorId(id);
@@ -818,7 +798,7 @@ const Monitoring = () => {
 
   const handleDownloadPdf = () => {
     downloadScanPdf({
-      query: identity.fullName || actorId || "",
+      query: identity.fullName || actorId,
       scanType: "monitoring",
       scannedAt,
       results: visibleMentions.map((m) => ({
@@ -896,7 +876,7 @@ const Monitoring = () => {
             </Button>
             <Button
               onClick={() => fetchMentions(actorId, identity)}
-              disabled={loading || !actorId}
+              disabled={loading}
               size="lg"
               className="gap-2"
             >
@@ -915,59 +895,6 @@ const Monitoring = () => {
           </TabsList>
 
           <TabsContent value="findings" className="mt-4">
-            {!actorId && !loading && (
-              <div className="rounded-2xl border border-border/30 bg-card/30 backdrop-blur-sm p-8 md:p-10 mb-6 text-center">
-                <ShieldCheck className="w-10 h-10 text-primary mx-auto mb-3" />
-                <h2 className="font-display text-xl font-semibold mb-2">Scanner not set up yet</h2>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
-                  We need to register your identity with the scanner before we can watch the web for you. If you've already completed your Identity Map, just activate the scanner below.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                  <Button
-                    size="lg"
-                    disabled={activating || !user}
-                    onClick={async () => {
-                      if (!user) return;
-                      setActivating(true);
-                      try {
-                        const { data: prof } = await supabase
-                          .from("profiles")
-                          .select("legal_name, stage_name, full_name")
-                          .eq("user_id", user.id)
-                          .maybeSingle();
-                        const { data, error } = await supabase.functions.invoke("actor-registry", {
-                          method: "POST",
-                          body: {
-                            action: "register",
-                            legal_name: (prof as any)?.legal_name || (prof as any)?.full_name || "",
-                            stage_name: (prof as any)?.stage_name || "",
-                            aka_names: [],
-                            email: user.email || "",
-                          },
-                        });
-                        if (error) throw error;
-                        if ((data as any)?.actor_id) {
-                          setActorId((data as any).actor_id);
-                          fetchMentions((data as any).actor_id, identity);
-                          toast({ title: "Scanner activated", description: "We can now watch the web for you." });
-                        } else {
-                          toast({ title: "Couldn't activate scanner", description: "Please try again or contact support.", variant: "destructive" });
-                        }
-                      } catch (e: any) {
-                        toast({ title: "Activation failed", description: e?.message || "Please try again.", variant: "destructive" });
-                      } finally {
-                        setActivating(false);
-                      }
-                    }}
-                  >
-                    {activating ? "Activating…" : "Activate Scanner"}
-                  </Button>
-                  <Button asChild size="lg" variant="outline">
-                    <Link to="/onboarding/headshot">Review Identity Map</Link>
-                  </Button>
-                </div>
-              </div>
-            )}
             {impersonators.length > 0 && (
               <div className="rounded-2xl border-2 border-destructive/50 bg-destructive/5 backdrop-blur-sm p-5 md:p-6 mb-6 shadow-[0_0_30px_-10px_hsl(var(--destructive)/0.4)]">
                 <div className="flex items-center justify-between mb-4">

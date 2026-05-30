@@ -205,7 +205,7 @@ const OnboardingVoice = () => {
   const submit = async () => {
     if (!user) return;
     if (!recordedBlob && !demoFile) {
-      toast({ title: "Nothing to submit", description: "Record a sample or upload a voice file first." });
+      toast({ title: "Nothing to submit", description: "Record a sample or upload a demo first." });
       return;
     }
     if (recordedBlob && seconds < MIN_SECONDS) {
@@ -223,31 +223,21 @@ const OnboardingVoice = () => {
         voice_registered_at: new Date().toISOString(),
       };
 
-      // Primary voice sample: prefer recording; otherwise use upload.
-      // Either becomes the fingerprint used by the ElevenLabs scanner.
-      const primaryBlob: Blob | null = recordedBlob ?? demoFile;
-      const primaryIsRecording = !!recordedBlob;
-
-      if (primaryBlob) {
-        const ext = primaryIsRecording
-          ? (primaryBlob.type.includes("mp4") ? "mp4" : "webm")
-          : ((demoFile!.name.split(".").pop() || "mp3").toLowerCase());
-        const baseName = primaryIsRecording
-          ? `voice-print-${Date.now()}.${ext}`
-          : `voice-sample-${Date.now()}-${demoFile!.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-        const path = `${user.id}/${baseName}`;
-        const hash = await sha256OfBlob(primaryBlob);
+      if (recordedBlob) {
+        const ext = recordedBlob.type.includes("mp4") ? "mp4" : "webm";
+        const path = `${user.id}/voice-print-${Date.now()}.${ext}`;
+        const hash = await sha256OfBlob(recordedBlob);
         const { error: upErr } = await supabase.storage
           .from("voice-prints")
-          .upload(path, primaryBlob, { contentType: primaryBlob.type || "audio/mpeg", upsert: false });
+          .upload(path, recordedBlob, { contentType: recordedBlob.type, upsert: false });
         if (upErr) throw upErr;
         updates.voice_print_url = path;
         updates.voice_print_hash = hash;
-        if (primaryIsRecording) updates.voice_print_duration_seconds = seconds;
+        updates.voice_print_duration_seconds = seconds;
       }
 
-      // If user provided BOTH, keep the upload as a supplementary demo reel.
-      if (recordedBlob && demoFile) {
+      if (demoFile) {
+        const ext = demoFile.name.split(".").pop() || "mp3";
         const safeName = demoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = `${user.id}/demo-${Date.now()}-${safeName}`;
         const { error: upErr } = await supabase.storage
@@ -398,12 +388,12 @@ const OnboardingVoice = () => {
           </div>
         </div>
 
-        {/* Alternative: upload a voice sample instead of recording */}
+        {/* Optional demo upload */}
         <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur p-6 space-y-3">
           <div>
-            <h2 className="font-display text-xl font-semibold">Or — Upload a Voice Sample</h2>
+            <h2 className="font-display text-xl font-semibold">Optional — Upload a Demo Reel</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Don't want to record? Upload a voiceover, demo reel, or any clean clip of your voice. We'll use it as your scanner fingerprint. MP3/WAV/M4A · max {MAX_DEMO_MB}MB.
+              Voiceover demo, commercial, monologue. MP3/WAV/M4A · max {MAX_DEMO_MB}MB. Strengthens future matching.
             </p>
           </div>
           <input
