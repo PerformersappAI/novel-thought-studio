@@ -545,6 +545,8 @@ interface FindingAction {
 
 const Monitoring = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [activating, setActivating] = useState(false);
   const [mentions, setMentions] = useState<Mention[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
