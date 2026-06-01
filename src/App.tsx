@@ -62,6 +62,7 @@ import Welcome from "./pages/Welcome";
 import ScanReports from "./pages/ScanReports";
 import PublicVerifyImage from "./pages/PublicVerifyImage";
 import SecureChecklist from "./pages/SecureChecklist";
+import Enterprise from "./pages/Enterprise";
 
 const queryClient = new QueryClient();
 
