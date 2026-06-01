@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag, Camera } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import TrackAndAttack from "@/components/dashboard/TrackAndAttack";
+import EvidenceReportCard from "@/components/dashboard/EvidenceReportCard";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
 import ScanStatusCards from "@/components/dashboard/ScanStatusCards";
 import RiskScoreCard from "@/components/dashboard/RiskScoreCard";
@@ -322,6 +323,8 @@ const PerformerDashboard = () => {
         <DetectionPanels mentions={mentions} />
 
         <TrackAndAttack />
+
+        <EvidenceReportCard />
 
 
         <FacePanel headshotUrl={profile?.headshot_url} registryId={registryId} registeredAt={profile?.face_registered_at} />
