@@ -74,16 +74,19 @@ const TrackAndAttack = () => {
     setResult(null);
     setCurrentSource({ value: url.trim(), type: "url" });
     try {
-      const resp = await fetch("https://api.claimmyface.com/build-case-file", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
+      const { data, error } = await supabase.functions.invoke("sightengine-scan", {
+        body: { url: url.trim() },
       });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || `HTTP ${resp.status}`);
-      setResult(data);
+      if (error || !data?.success) throw new Error(error?.message || data?.error || "Scan failed");
+      setResult({
+        type: "url",
+        deepfake: { verdict: data.verdict, fake_score: data.fake_confidence_pct },
+        domain_info: getDomainInfo(url.trim()),
+        exif: {},
+        note: data.note,
+      });
     } catch (err: any) {
-      toast({ title: "Analysis failed", description: err?.message || "Please try again.", variant: "destructive" });
+      toast({ title: "Couldn't analyze that URL", description: "Try a direct image link or upload the image file instead.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -95,17 +98,22 @@ const TrackAndAttack = () => {
     setResult(null);
     setCurrentSource({ value: file.name, type: "upload" });
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const resp = await fetch("https://api.claimmyface.com/build-case-file-upload", {
-        method: "POST",
-        body: fd,
+      const [fileBase64, exif] = await Promise.all([
+        fileToBase64(file),
+        exifr.parse(file, true).catch(() => null),
+      ]);
+      const { data, error } = await supabase.functions.invoke("sightengine-scan", {
+        body: { fileBase64, fileName: file.name, mimeType: file.type },
       });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || `HTTP ${resp.status}`);
-      setResult(data);
+      if (error || !data?.success) throw new Error(error?.message || data?.error || "Scan failed");
+      setResult({
+        type: "upload",
+        deepfake: { verdict: data.verdict, fake_score: data.fake_confidence_pct },
+        exif: exif || {},
+        note: data.note,
+      });
     } catch (err: any) {
-      toast({ title: "Analysis failed", description: err?.message || "Please try again.", variant: "destructive" });
+      toast({ title: "Couldn't analyze that image", description: "Please try a JPG, PNG, or WEBP under 8MB.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
