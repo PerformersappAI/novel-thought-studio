@@ -343,6 +343,39 @@ export type Database = {
         }
         Relationships: []
       }
+      evidence_log: {
+        Row: {
+          analysis: Json
+          created_at: string
+          id: string
+          note: string | null
+          source: string
+          source_type: string
+          user_id: string
+          verdict: string | null
+        }
+        Insert: {
+          analysis?: Json
+          created_at?: string
+          id?: string
+          note?: string | null
+          source: string
+          source_type?: string
+          user_id: string
+          verdict?: string | null
+        }
+        Update: {
+          analysis?: Json
+          created_at?: string
+          id?: string
+          note?: string | null
+          source?: string
+          source_type?: string
+          user_id?: string
+          verdict?: string | null
+        }
+        Relationships: []
+      }
       finding_actions: {
         Row: {
           action_type: string
