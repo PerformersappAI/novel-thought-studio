@@ -321,6 +321,9 @@ const PerformerDashboard = () => {
 
         <DetectionPanels mentions={mentions} />
 
+        <TrackAndAttack />
+
+
         <FacePanel headshotUrl={profile?.headshot_url} registryId={registryId} registeredAt={profile?.face_registered_at} />
 
 
