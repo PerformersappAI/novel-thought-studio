@@ -3,8 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, ImageIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Result = { verdict: string; fake_confidence_pct?: number; note?: string };
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 const CheckImageCard = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -19,15 +28,16 @@ const CheckImageCard = () => {
     setResult(null);
     setError(null);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("https://api.claimmyface.com/check-image", {
-        method: "POST",
-        body: fd,
+      const fileBase64 = await fileToBase64(file);
+      const { data, error } = await supabase.functions.invoke("sightengine-scan", {
+        body: { fileBase64, fileName: file.name, mimeType: file.type },
       });
-      if (!res.ok) throw new Error("Request failed");
-      const data: Result = await res.json();
-      setResult(data);
+      if (error || !data?.success) throw new Error(error?.message || data?.error || "Request failed");
+      setResult({
+        verdict: data.verdict,
+        fake_confidence_pct: data.fake_confidence_pct,
+        note: data.note,
+      });
     } catch {
       setError("Couldn't analyze that image. Please try a different file.");
     } finally {
