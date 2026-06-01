@@ -34,6 +34,7 @@ const Signup = () => {
     setLoading(true);
     const { error } = await signUp(email, password, fullName, {
       account_type: accountType,
+      profession,
       stage_name: stageName,
       union_affiliation: unionAffiliation,
       company_name: companyName,
