@@ -82,8 +82,8 @@ const Signup = () => {
                         : "border-border/50 hover:border-border"
                     }`}
                   >
-                    <div className="font-display font-semibold text-foreground mb-1">Performer</div>
-                    <p className="text-xs text-muted-foreground">Protect your likeness, voice & image rights</p>
+                    <div className="font-display font-semibold text-foreground mb-1">Individual</div>
+                    <p className="text-xs text-muted-foreground">Protect your own face, voice & likeness — for actors, creators, executives, lawyers, and anyone with a public presence.</p>
                   </button>
                   <button
                     onClick={() => setAccountType("producer")}
@@ -93,13 +93,32 @@ const Signup = () => {
                         : "border-border/50 hover:border-border"
                     }`}
                   >
-                    <div className="font-display font-semibold text-foreground mb-1">Producer</div>
-                    <p className="text-xs text-muted-foreground">License performer likenesses for productions</p>
+                    <div className="font-display font-semibold text-foreground mb-1">Enterprise</div>
+                    <p className="text-xs text-muted-foreground">For larger companies protecting multiple people. Click here to get more information.</p>
                   </button>
                 </div>
-                <Button onClick={() => setStep(1)} disabled={!canProceedStep0} className="w-full font-display">
-                  Continue <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
+
+                {accountType === "performer" && (
+                  <div className="space-y-2 mb-6">
+                    <Label>Your Profession / How You're Known</Label>
+                    <Select value={profession} onValueChange={setProfession}>
+                      <SelectTrigger><SelectValue placeholder="Select your profession" /></SelectTrigger>
+                      <SelectContent>
+                        {PROFESSIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {accountType === "producer" ? (
+                  <Button onClick={() => navigate("/enterprise")} className="w-full font-display">
+                    Get more information <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                ) : (
+                  <Button onClick={() => setStep(1)} disabled={!canProceedStep0} className="w-full font-display">
+                    Continue <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
               </motion.div>
             )}
 
