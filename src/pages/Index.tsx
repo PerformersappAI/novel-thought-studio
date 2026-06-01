@@ -170,7 +170,7 @@ const Index = () => {
               </Link>
             </Button>
             <p className="text-xs text-muted-foreground mt-4 font-body text-center">
-              One-time registration. Lifetime monitoring across the web.
+              One-time registration. Tools to check and document suspicious content you find.
             </p>
           </motion.div>
         </div>
@@ -196,13 +196,13 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { icon: FileSignature, title: "Identity Statement", desc: "Sign a timestamped declaration proving ownership of your face, voice, and likeness." },
-              { icon: Stamp, title: "Trademark Kit", desc: "Prepare and file sound marks and visual trademarks to legally protect your identity." },
+              { icon: Stamp, title: "Trademark Kit", desc: "Organize and document your identity claims, and learn how trademark protection works — with resources to pursue it through the proper legal channels." },
               { icon: ShieldCheck, title: "AI Usage Rights", desc: "Publicly declare what AI can and cannot do with your voice, face, and name." },
               { icon: AlertTriangle, title: "Report Violation", desc: "File incident reports when your likeness is used without consent on any platform." },
               { icon: FileText, title: "DMCA Generator", desc: "Generate legally formatted DMCA takedown notices ready to send to any platform." },
               { icon: Siren, title: "Emergency Response", desc: "Follow a step-by-step protocol when your identity is being actively misused." },
               { icon: Target, title: "Vault Score", desc: "Track your protection progress and see exactly what steps remain to secure your identity." },
-              { icon: Award, title: "Face Certificate", desc: "Receive a cryptographic ownership certificate proving your headshot registration." },
+              { icon: Award, title: "Face Certificate", desc: "Generate a timestamped record of your registered headshot — dated proof you can reference if a dispute arises." },
             ].map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -301,7 +301,7 @@ const Index = () => {
                   <h3 className="font-display text-xl font-bold">Pro Shield</h3>
                   <p className="font-display text-3xl font-bold">$9.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
                   <ul className="space-y-2 flex-1">
-                    {["Everything in Register & Scan", "Continuous automated monitoring", "Real-time match alerts", "Unlimited DMCA notices", "Monthly protection report", "Priority support"].map(f => (
+                    {["Everything in Register & Scan", "Regular scans you run to see where you appear online", "Tools to check and document suspicious content you find", "Unlimited DMCA notices", "Monthly protection report", "Priority support"].map(f => (
                       <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground font-body">
                         <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />{f}
                       </li>

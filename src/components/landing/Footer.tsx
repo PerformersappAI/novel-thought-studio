@@ -31,7 +31,7 @@ const Footer = () => {
               Ready to Claim Your Face?
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8 font-body">
-              Join thousands of performers who trust ClaimMyFace to register and defend their likeness.
+              Join the performers and creators taking control of their digital identity.
             </p>
             <Button asChild size="lg" className="font-body text-base font-semibold px-8 h-13 glow-red">
               <Link to="/signup">
