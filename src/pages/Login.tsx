@@ -26,7 +26,7 @@ const Login = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      navigate("/dashboard");
+      navigate("/");
     }
   };
 
