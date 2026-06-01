@@ -11,9 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 import StepIndicator from "@/components/StepIndicator";
 import logo from "@/assets/cmf-shield-logo.png";
 
+const PROFESSIONS = ["Actor", "Model", "Influencer", "CEO", "Executive", "Lawyer", "Doctor", "Athlete", "Musician", "Politician", "Public Figure", "Other"];
+
 const Signup = () => {
   const [step, setStep] = useState(0);
   const [accountType, setAccountType] = useState<"performer" | "producer">("performer");
+  const [profession, setProfession] = useState<string>("Actor");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
