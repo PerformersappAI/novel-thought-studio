@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import exifr from "exifr";
 
 interface AnalysisResult {
   type?: string;
@@ -26,6 +27,23 @@ interface EvidenceEntry {
   note: string | null;
   created_at: string;
 }
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const getDomainInfo = (raw: string) => {
+  try {
+    const u = new URL(raw);
+    return { domain: u.hostname.replace(/^www\./, "") };
+  } catch {
+    return {};
+  }
+};
 
 const TrackAndAttack = () => {
   const { user } = useAuth();
