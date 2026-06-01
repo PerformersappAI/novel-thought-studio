@@ -60,14 +60,10 @@ const HeroSection = () => {
             </motion.div>
 
             <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-3 leading-[1.1]">
-              <span className="text-foreground">My Face.</span>
+              <span className="text-foreground">You're not helpless</span>
               <br />
-              <span className="text-gradient-gold">My Claim.</span>
+              <span className="text-gradient-gold">against AI.</span>
             </h1>
-
-            <p className="font-display text-lg md:text-xl text-foreground/90 mb-5 italic font-body">
-              Map your identity. We'll watch the internet for it.
-            </p>
 
             <motion.p
               initial={{ opacity: 0 }}
@@ -75,10 +71,10 @@ const HeroSection = () => {
               transition={{ delay: 0.5 }}
               className="text-base md:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed font-body"
             >
-              Upload your face, voice, videos, and the names you go by. Our scanner
-              continuously searches the web and social media — Instagram, TikTok,
-              YouTube, Facebook, casting sites, deepfakes, fake profiles, and
-              AI-generated content — for anyone using your identity without permission.
+              Deepfakes, voice clones, and stolen likenesses threaten anyone with a
+              public face — actors, creators, journalists, executives. ClaimMyFace
+              gives you the mirror to see what's out there, the tools to investigate
+              what's fake, and the playbook to fight back.
             </motion.p>
 
             <motion.div
