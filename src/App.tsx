@@ -62,6 +62,7 @@ import Welcome from "./pages/Welcome";
 import ScanReports from "./pages/ScanReports";
 import PublicVerifyImage from "./pages/PublicVerifyImage";
 import SecureChecklist from "./pages/SecureChecklist";
+import Enterprise from "./pages/Enterprise";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/register" element={<Signup />} />
+            <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/performer/:slug" element={<PerformerProfile />} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><PerformerDashboard /></ProtectedRoute>} />
