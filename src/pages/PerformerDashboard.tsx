@@ -320,10 +320,8 @@ const PerformerDashboard = () => {
 
 
         <DetectionPanels mentions={mentions} />
+        <HeroFreeScanWidget />
 
-        <TrackAndAttack />
-
-        <EvidenceReportCard />
 
 
         <FacePanel headshotUrl={profile?.headshot_url} registryId={registryId} registeredAt={profile?.face_registered_at} />
