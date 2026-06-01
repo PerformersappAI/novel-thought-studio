@@ -73,8 +73,8 @@ const Index = () => {
             transition={{ delay: 0.4 }}
             className="font-display text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]"
           >
-            <span className="text-foreground">Your Identity.</span>{" "}
-            <span className="text-gradient-gold">Protected.</span>
+            <span className="text-foreground">You're not helpless</span>{" "}
+            <span className="text-gradient-gold">against AI.</span>
           </motion.h1>
 
           <motion.p
@@ -83,7 +83,7 @@ const Index = () => {
             transition={{ delay: 0.5 }}
             className="text-lg md:text-xl text-muted-foreground max-w-xl mb-10 leading-relaxed font-body"
           >
-            AI-powered detection of unauthorized use of your face, voice, and writing.
+            Deepfakes, voice clones, and stolen likenesses threaten anyone with a public face — actors, creators, journalists, executives. ClaimMyFace gives you the mirror to see what's out there, the tools to investigate what's fake, and the playbook to fight back.
           </motion.p>
 
           <div className="grid w-full items-center gap-6 lg:grid-cols-[1fr_1.25fr] lg:text-left">
