@@ -61,11 +61,11 @@ const buildResult = (
   aiModel:
     data.detection === "Manipulated"
       ? data.aiGenScore >= data.deepfakeScore
-        ? "AI-Generated (Sightengine genai)"
-        : "Deepfake (Sightengine deepfake)"
+        ? "AI-generated / edited image signals"
+        : "Deepfake manipulation signals"
       : null,
   domainInfo,
-  notes: `Sightengine deepfake score: ${(data.deepfakeScore * 100).toFixed(1)}%. AI-generated score: ${(data.aiGenScore * 100).toFixed(1)}%.`,
+  notes: data.note || `Manipulation score: ${(data.deepfakeScore * 100).toFixed(1)}%. AI-generated score: ${(data.aiGenScore * 100).toFixed(1)}%.`,
 });
 
 const analyzeUrl = async (url: string): Promise<ForensicResult> => {

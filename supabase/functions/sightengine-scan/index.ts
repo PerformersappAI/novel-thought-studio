@@ -1,99 +1,122 @@
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BASE64_CHARS = 12 * 1024 * 1024;
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+type GatewayContent =
+  | string
+  | Array<
+      | { type: "text"; text: string }
+      | { type: "image_url"; image_url: { url: string } }
+    >;
+
+const cleanJson = (text: string) => {
+  const stripped = text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();
+  const match = stripped.match(/\{[\s\S]*\}/);
+  return JSON.parse(match ? match[0] : stripped);
+};
+
+const normalize = (raw: any) => {
+  const verdict = raw?.verdict === "likely_fake" ? "likely_fake" : "likely_real";
+  const fakeConfidence = Number(raw?.fake_confidence_pct ?? (verdict === "likely_fake" ? 65 : 20));
+  const fakeScore = Math.max(0, Math.min(100, Math.round(fakeConfidence))) / 100;
+  return {
+    success: true,
+    detection: verdict === "likely_fake" ? "Manipulated" : "Authentic",
+    confidence: verdict === "likely_fake" ? Math.round(fakeScore * 100) : Math.round((1 - fakeScore) * 100),
+    verdict,
+    fake_confidence_pct: Math.round(fakeScore * 100),
+    note: String(raw?.note || "AI visual review completed. Treat this as an estimate, not proof."),
+    deepfakeScore: fakeScore,
+    aiGenScore: fakeScore,
+    raw,
+  };
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Public endpoint: free scans run without auth. Logged-in users may still
-    // pass a Bearer token; we don't gate the response on it.
-
-
-    const apiUser = Deno.env.get("SIGHTENGINE_API_USER");
-    const apiSecret = Deno.env.get("SIGHTENGINE_API_SECRET");
-    if (!apiUser || !apiSecret) {
-      return new Response(
-        JSON.stringify({ error: "Sightengine not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
     const body = await req.json();
     const { url, fileBase64, fileName, mimeType } = body ?? {};
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("AI scanner is not configured");
 
-    const models = "deepfake,genai";
-    let seResponse: Response;
-
-    if (typeof url === "string" && url.length > 0) {
-      const params = new URLSearchParams({
-        url,
-        models,
-        api_user: apiUser,
-        api_secret: apiSecret,
-      });
-      seResponse = await fetch(
-        `https://api.sightengine.com/1.0/check.json?${params.toString()}`,
-      );
-    } else if (typeof fileBase64 === "string" && fileBase64.length > 0) {
-      if (fileBase64.length > MAX_BYTES) {
-        return new Response(JSON.stringify({ error: "File too large" }), {
+    let content: GatewayContent;
+    if (typeof fileBase64 === "string" && fileBase64.length > 0) {
+      if (fileBase64.length > MAX_BASE64_CHARS) {
+        return new Response(JSON.stringify({ error: "File too large. Try an image under 8MB." }), {
           status: 413,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const bin = Uint8Array.from(atob(fileBase64), (c) => c.charCodeAt(0));
-      const form = new FormData();
-      form.append(
-        "media",
-        new Blob([bin], { type: mimeType || "application/octet-stream" }),
-        fileName || "upload",
-      );
-      form.append("models", models);
-      form.append("api_user", apiUser);
-      form.append("api_secret", apiSecret);
-      seResponse = await fetch("https://api.sightengine.com/1.0/check.json", {
-        method: "POST",
-        body: form,
-      });
+      content = [
+        {
+          type: "text",
+          text: `Analyze this uploaded image (${fileName || "upload"}) for visible signs of AI generation, deepfake manipulation, compositing, artifacts, metadata stripping implications, and authenticity.`,
+        },
+        { type: "image_url", image_url: { url: `data:${mimeType || "image/jpeg"};base64,${fileBase64}` } },
+      ];
+    } else if (typeof url === "string" && url.trim().length > 0) {
+      content = [
+        {
+          type: "text",
+          text: `Analyze this image or public social/media URL for suspicious manipulation signals and source context: ${url.trim()}`,
+        },
+        { type: "image_url", image_url: { url: url.trim() } },
+      ];
     } else {
-      return new Response(
-        JSON.stringify({ error: "Provide url or fileBase64" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "Provide an image URL or upload an image." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const seData = await seResponse.json();
-    if (!seResponse.ok || seData.status === "failure") {
-      return new Response(
-        JSON.stringify({ error: seData.error?.message || "Sightengine failed", details: seData }),
-        { status: seResponse.status || 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const deepfakeScore = seData?.type?.deepfake ?? 0;
-    const aiGenScore = seData?.type?.ai_generated ?? 0;
-    const score = Math.max(deepfakeScore, aiGenScore);
-    const manipulated = score >= 0.5;
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        detection: manipulated ? "Manipulated" : "Authentic",
-        confidence: Math.round((manipulated ? score : 1 - score) * 100),
-        deepfakeScore,
-        aiGenScore,
-        raw: seData,
+    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content:
+              'You are ClaimMyFace\'s image analysis assistant. Return ONLY valid JSON with: verdict ("likely_fake" or "likely_real"), fake_confidence_pct (0-100), note (short plain-English explanation). Be cautious: if there are no strong visible manipulation signs, return likely_real. Never claim legal proof.',
+          },
+          { role: "user", content },
+        ],
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    });
+
+    if (!aiResp.ok) {
+      const detail = await aiResp.text().catch(() => "");
+      console.error("AI scanner error", aiResp.status, detail);
+      return new Response(JSON.stringify({ error: "Image analysis failed" }), {
+        status: aiResp.status === 429 ? 429 : 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const data = await aiResp.json();
+    const text = data.choices?.[0]?.message?.content ?? "{}";
+    const parsed = cleanJson(text);
+
+    return new Response(JSON.stringify(normalize(parsed)), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Scan failed" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    console.error("image scanner error:", e);
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Scan failed" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
