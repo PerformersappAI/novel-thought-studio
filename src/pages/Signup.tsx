@@ -41,14 +41,24 @@ const Signup = () => {
       union_affiliation: unionAffiliation,
       company_name: companyName,
       production_type: productionType,
+      promo_code: promoStatus === "valid" ? promoCode.trim().toUpperCase() : undefined,
     });
     setLoading(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
+      if (promoStatus === "valid") {
+        localStorage.setItem("cmf_promo_code", promoCode.trim().toUpperCase());
+      }
       toast({ title: "Account created!", description: "Check your email for confirmation, or sign in directly." });
       navigate("/welcome");
     }
+  };
+
+  const checkPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    const VALID = ["CLAIMVIP", "PROSHIELD2026", "SALFREE", "CMFFREE2026"];
+    setPromoStatus(VALID.includes(code) ? "valid" : "invalid");
   };
 
   const canProceedStep0 = accountType !== undefined;
