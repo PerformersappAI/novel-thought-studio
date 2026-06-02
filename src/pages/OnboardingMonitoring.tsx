@@ -57,7 +57,7 @@ const Tile = ({ name, Icon }: { name: string; Icon: any }) => (
   </div>
 );
 
-const VALID_PROMO_CODES = ["CLAIMVIP", "PROSHIELD2026", "SALFREE"];
+export const VALID_PROMO_CODES = ["CLAIMVIP", "PROSHIELD2026", "SALFREE", "CMFFREE2026"];
 
 const OnboardingMonitoring = () => {
   const navigate = useNavigate();
