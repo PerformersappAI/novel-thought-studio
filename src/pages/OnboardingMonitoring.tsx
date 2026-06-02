@@ -62,8 +62,9 @@ export const VALID_PROMO_CODES = ["CLAIMVIP", "PROSHIELD2026", "SALFREE", "CMFFR
 const OnboardingMonitoring = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [promoCode, setPromoCode] = useState("");
-  const [promoOpen, setPromoOpen] = useState(false);
+  const stored = typeof window !== "undefined" ? localStorage.getItem("cmf_promo_code") || "" : "";
+  const [promoCode, setPromoCode] = useState(stored);
+  const [promoOpen, setPromoOpen] = useState(!!stored);
   const [promoError, setPromoError] = useState("");
 
   const continueBasic = () => navigate("/onboarding/complete?tier=basic");
