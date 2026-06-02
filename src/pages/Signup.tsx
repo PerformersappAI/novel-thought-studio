@@ -24,6 +24,8 @@ const Signup = () => {
   const [unionAffiliation, setUnionAffiliation] = useState("non-union");
   const [companyName, setCompanyName] = useState("");
   const [productionType, setProductionType] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"" | "valid" | "invalid">("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signUp } = useAuth();
