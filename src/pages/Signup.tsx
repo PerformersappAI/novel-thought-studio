@@ -24,6 +24,8 @@ const Signup = () => {
   const [unionAffiliation, setUnionAffiliation] = useState("non-union");
   const [companyName, setCompanyName] = useState("");
   const [productionType, setProductionType] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"" | "valid" | "invalid">("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signUp } = useAuth();
@@ -39,14 +41,24 @@ const Signup = () => {
       union_affiliation: unionAffiliation,
       company_name: companyName,
       production_type: productionType,
+      promo_code: promoStatus === "valid" ? promoCode.trim().toUpperCase() : undefined,
     });
     setLoading(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
+      if (promoStatus === "valid") {
+        localStorage.setItem("cmf_promo_code", promoCode.trim().toUpperCase());
+      }
       toast({ title: "Account created!", description: "Check your email for confirmation, or sign in directly." });
       navigate("/welcome");
     }
+  };
+
+  const checkPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    const VALID = ["CLAIMVIP", "PROSHIELD2026", "SALFREE", "CMFFREE2026"];
+    setPromoStatus(VALID.includes(code) ? "valid" : "invalid");
   };
 
   const canProceedStep0 = accountType !== undefined;
@@ -219,7 +231,31 @@ const Signup = () => {
                       </div>
                     </>
                   )}
+
+                  <div className="space-y-2 pt-2 border-t border-border/40">
+                    <Label htmlFor="promo">Promo Code (optional)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="promo"
+                        placeholder="Enter code for free access"
+                        value={promoCode}
+                        onChange={(e) => { setPromoCode(e.target.value); setPromoStatus(""); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); checkPromo(); } }}
+                      />
+                      <Button type="button" variant="secondary" onClick={checkPromo} className="font-display shrink-0">
+                        Apply
+                      </Button>
+                    </div>
+                    {promoStatus === "valid" && (
+                      <p className="text-xs text-emerald-400">✓ Promo applied — free access unlocked.</p>
+                    )}
+                    {promoStatus === "invalid" && (
+                      <p className="text-xs text-destructive">Invalid promo code.</p>
+                    )}
+                  </div>
+
                   <div className="flex gap-3">
+
                     <Button variant="outline" onClick={() => setStep(1)} className="font-display">Back</Button>
                     <Button onClick={handleSubmit} disabled={loading || !canProceedStep2} className="flex-1 font-display">
                       {loading ? "Creating account..." : "Create Account"}
