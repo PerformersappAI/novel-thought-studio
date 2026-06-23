@@ -30,12 +30,16 @@ const DetectionPanels = ({ mentions = [] }: Props) => {
     photo: 0, voice: 0, writing: 0, threats: 0,
   });
 
-  const photo = mentions.filter((m) => matches(["image", "photo", "face", "photo match"], m.mention_type)).length;
-  const voice = mentions.filter((m) => matches(["voice", "audio", "voice clone"], m.mention_type)).length;
-  const writing = mentions.filter((m) =>
-    matches(["writing", "article", "web", "text", "web mention"], m.mention_type),
+  const verifiedCount = mentions.filter((m) =>
+    (m.status || "").toLowerCase().includes("legitimate")
   ).length;
-  const threats = mentions.filter((m) => {
+
+  const needsReviewCount = mentions.filter((m) => {
+    const s = (m.status || "").toLowerCase();
+    return s.includes("review") || s === "" || s === "pending";
+  }).length;
+
+  const threatsCount = mentions.filter((m) => {
     const s = (m.status || "").toLowerCase();
     const t = (m.mention_type || "").toLowerCase();
     return (
