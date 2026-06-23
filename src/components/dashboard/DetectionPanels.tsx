@@ -72,10 +72,9 @@ const DetectionPanels = ({ mentions = [] }: Props) => {
   }, [user, session]);
 
   const items = [
-    { icon: Camera, label: "Photo Matches", count: photo, scanned: scanned.photo, tab: "image" },
-    { icon: Mic, label: "Voice Matches", count: voice, scanned: scanned.voice, tab: "voice" },
-    { icon: PenLine, label: "Writing Matches", count: writing, scanned: scanned.writing, tab: "web" },
-    { icon: AlertTriangle, label: "Overall Threats", count: threats, scanned: scanned.threats, tab: "threats" },
+    { icon: ShieldCheck, label: "Verified You", count: verifiedCount, scanned: scanned.threats, tab: "verified", accent: "text-emerald-400" },
+    { icon: Eye, label: "Needs Review", count: needsReviewCount, scanned: scanned.threats, tab: "review", accent: "text-amber-400" },
+    { icon: AlertTriangle, label: "Threats", count: threatsCount, scanned: scanned.threats, tab: "threats", accent: "text-destructive" },
   ];
 
   return (
