@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag, Camera } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import HeroFreeScanWidget from "@/components/landing/HeroFreeScanWidget";
@@ -91,6 +91,8 @@ const PerformerDashboard = () => {
   const [scanning, setScanning] = useState(false);
   const [hasUsedContractScanner, setHasUsedContractScanner] = useState(false);
   const [hasGeneratedEvidence, setHasGeneratedEvidence] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!user) return;
@@ -174,6 +176,13 @@ const PerformerDashboard = () => {
     })();
   }, [user]);
 
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["all", "verified", "review", "threats"].includes(tab)) {
+      setActiveFilter(tab);
+    }
+  }, [searchParams]);
+
   const dismissMention = async (id: string) => {
     const { error } = await supabase.from("mentions").update({ status: "Dismissed" } as any).eq("id", id);
     if (error) { toast({ title: "Failed to dismiss", variant: "destructive" }); return; }
@@ -254,6 +263,16 @@ const PerformerDashboard = () => {
     return /\.(jpg|jpeg|png|gif|webp|svg)/i.test(url);
   };
 
+  const filteredMentions = mentions.filter((m) => {
+    const s = (m.status || "").toLowerCase();
+    const t = (m.mention_type || "").toLowerCase();
+    if (activeFilter === "all") return true;
+    if (activeFilter === "verified") return s.includes("legitimate");
+    if (activeFilter === "review") return s.includes("review") || s === "" || s === "pending";
+    if (activeFilter === "threats") return s.includes("threat") || s.includes("alert") || t.includes("deepfake") || t.includes("fake profile") || t.includes("voice clone");
+    return true;
+  });
+
   const scannerActivityPanel = (variant: "top" | "bottom") => (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -327,6 +346,23 @@ const PerformerDashboard = () => {
             <h2 className="font-display text-lg font-semibold">Web &amp; Social Matches</h2>
           </div>
 
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[
+              { key: "all", label: "All" },
+              { key: "verified", label: "Verified You" },
+              { key: "review", label: "Needs Review" },
+              { key: "threats", label: "Threats" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setActiveFilter(key)}
+                className={}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {mentions.length === 0 ? (
             <div className="py-10 text-center">
               <p className="text-sm text-muted-foreground">Scanner is watching. No matches yet for your mapped identity — we'll notify you the moment something appears.</p>
@@ -344,7 +380,7 @@ const PerformerDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mentions.map(m => {
+                  {filteredMentions.map(m => {
                     const PlatformIcon = getPlatformIcon(m.mention_type);
                     return (
                       <HoverCard key={m.id} openDelay={300}>
