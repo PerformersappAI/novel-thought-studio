@@ -81,18 +81,18 @@ const DetectionPanels = ({ mentions = [] }: Props) => {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      className="grid grid-cols-2 lg:grid-cols-3 gap-3"
     >
-      {items.map(({ icon: Icon, label, count, scanned, tab }) => (
+      {items.map(({ icon: Icon, label, count, scanned, tab, accent }) => (
         <Link
           key={label}
           to={`/dashboard/monitoring?tab=${tab}`}
           className="glass-card rounded-2xl border border-border/30 p-4 hover:border-primary/40 transition-colors flex flex-col gap-2"
         >
           <div className="flex items-center justify-between">
-            <Icon className="w-5 h-5 text-primary" />
+            <Icon className={`w-5 h-5 ${accent}`} />
             <span
-              className={`text-2xl font-display font-bold ${label === "Overall Threats" && count > 0 ? "text-destructive" : "text-foreground"}`}
+              className={`text-2xl font-display font-bold ${count > 0 ? accent : "text-foreground"}`}
             >
               {count}
             </span>
