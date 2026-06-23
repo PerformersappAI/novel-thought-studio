@@ -316,17 +316,7 @@ const PerformerDashboard = () => {
         {/* Scanner Activity — top placement */}
         {scannerActivityPanel("top")}
 
-        <ScanStatusCards actorId={(profile as any)?.external_actor_id ?? null} />
-
-
         <DetectionPanels mentions={mentions} />
-        <HeroFreeScanWidget />
-
-
-
-        <FacePanel headshotUrl={profile?.headshot_url} registryId={registryId} registeredAt={profile?.face_registered_at} />
-
-
 
         {/* ─── Identity Footprint Table (real Supabase data) ─── */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
@@ -465,6 +455,12 @@ const PerformerDashboard = () => {
           )}
         </motion.div>
 
+        <ScanStatusCards actorId={(profile as any)?.external_actor_id ?? null} />
+
+        <HeroFreeScanWidget />
+
+        <FacePanel headshotUrl={profile?.headshot_url} registryId={registryId} registeredAt={profile?.face_registered_at} />
+
         {/* Next Step */}
         {nextStep && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
@@ -488,6 +484,7 @@ const PerformerDashboard = () => {
             <p className="text-sm text-muted-foreground">Your face is registered, certified, and monitored 24/7.</p>
           </motion.div>
         )}
+
 
         <RiskScoreCard monitoringActive={monitoringActive} hasCertificate={hasCertificate} faceCaptured={faceCaptured} profileComplete={profileComplete} voiceRegistered={voiceRegistered} externalRiskScore={externalRiskScore} />
 
