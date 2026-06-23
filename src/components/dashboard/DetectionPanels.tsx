@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Camera, Mic, PenLine, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Eye, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -9,11 +9,6 @@ interface Props {
   mentions?: { mention_type?: string | null; status?: string | null }[];
 }
 
-function matches(types: string[], type: string | null | undefined) {
-  if (!type) return false;
-  const t = type.toLowerCase();
-  return types.some((x) => t.includes(x));
-}
 
 // Map scanner_name (normalized) -> which card it belongs to
 const SCANNER_TO_CARD: Record<string, "photo" | "voice" | "writing"> = {
@@ -35,12 +30,16 @@ const DetectionPanels = ({ mentions = [] }: Props) => {
     photo: 0, voice: 0, writing: 0, threats: 0,
   });
 
-  const photo = mentions.filter((m) => matches(["image", "photo", "face", "photo match"], m.mention_type)).length;
-  const voice = mentions.filter((m) => matches(["voice", "audio", "voice clone"], m.mention_type)).length;
-  const writing = mentions.filter((m) =>
-    matches(["writing", "article", "web", "text", "web mention"], m.mention_type),
+  const verifiedCount = mentions.filter((m) =>
+    (m.status || "").toLowerCase().includes("legitimate")
   ).length;
-  const threats = mentions.filter((m) => {
+
+  const needsReviewCount = mentions.filter((m) => {
+    const s = (m.status || "").toLowerCase();
+    return s.includes("review") || s === "" || s === "pending";
+  }).length;
+
+  const threatsCount = mentions.filter((m) => {
     const s = (m.status || "").toLowerCase();
     const t = (m.mention_type || "").toLowerCase();
     return (
@@ -73,28 +72,27 @@ const DetectionPanels = ({ mentions = [] }: Props) => {
   }, [user, session]);
 
   const items = [
-    { icon: Camera, label: "Photo Matches", count: photo, scanned: scanned.photo, tab: "image" },
-    { icon: Mic, label: "Voice Matches", count: voice, scanned: scanned.voice, tab: "voice" },
-    { icon: PenLine, label: "Writing Matches", count: writing, scanned: scanned.writing, tab: "web" },
-    { icon: AlertTriangle, label: "Overall Threats", count: threats, scanned: scanned.threats, tab: "threats" },
+    { icon: ShieldCheck, label: "Verified You", count: verifiedCount, scanned: scanned.threats, tab: "verified", accent: "text-emerald-400" },
+    { icon: Eye, label: "Needs Review", count: needsReviewCount, scanned: scanned.threats, tab: "review", accent: "text-amber-400" },
+    { icon: AlertTriangle, label: "Threats", count: threatsCount, scanned: scanned.threats, tab: "threats", accent: "text-destructive" },
   ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      className="grid grid-cols-2 lg:grid-cols-3 gap-3"
     >
-      {items.map(({ icon: Icon, label, count, scanned, tab }) => (
+      {items.map(({ icon: Icon, label, count, scanned, tab, accent }) => (
         <Link
           key={label}
           to={`/dashboard/monitoring?tab=${tab}`}
           className="glass-card rounded-2xl border border-border/30 p-4 hover:border-primary/40 transition-colors flex flex-col gap-2"
         >
           <div className="flex items-center justify-between">
-            <Icon className="w-5 h-5 text-primary" />
+            <Icon className={`w-5 h-5 ${accent}`} />
             <span
-              className={`text-2xl font-display font-bold ${label === "Overall Threats" && count > 0 ? "text-destructive" : "text-foreground"}`}
+              className={`text-2xl font-display font-bold ${count > 0 ? accent : "text-foreground"}`}
             >
               {count}
             </span>
