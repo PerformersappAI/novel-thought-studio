@@ -356,7 +356,7 @@ const PerformerDashboard = () => {
               <button
                 key={key}
                 onClick={() => setActiveFilter(key)}
-                className={}
+                className={"px-3 py-1.5 rounded-full text-xs font-medium transition-colors " + (activeFilter === key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80")}
               >
                 {label}
               </button>
