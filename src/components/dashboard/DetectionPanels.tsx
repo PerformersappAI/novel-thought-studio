@@ -9,11 +9,6 @@ interface Props {
   mentions?: { mention_type?: string | null; status?: string | null }[];
 }
 
-function matches(types: string[], type: string | null | undefined) {
-  if (!type) return false;
-  const t = type.toLowerCase();
-  return types.some((x) => t.includes(x));
-}
 
 // Map scanner_name (normalized) -> which card it belongs to
 const SCANNER_TO_CARD: Record<string, "photo" | "voice" | "writing"> = {
