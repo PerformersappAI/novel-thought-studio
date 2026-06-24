@@ -111,18 +111,6 @@ const Index = () => {
             </motion.div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="mt-10"
-          >
-            <Button asChild size="lg" className="font-display text-base font-semibold px-8 h-14 glow-red">
-              <Link to="/register">
-                Start Protecting Yourself <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
-          </motion.div>
 
           {/* 4 core protections strip */}
           <motion.div
