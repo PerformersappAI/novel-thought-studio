@@ -229,8 +229,87 @@ const TakeAction = () => {
           </p>
         </header>
 
+        {/* Action Bin — stacked items flagged from the dashboard */}
+        <section className="rounded-2xl border border-amber-400/30 bg-amber-400/5 p-6 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center shrink-0">
+              <Inbox className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h2 className="font-display text-xl font-bold">Action Bin</h2>
+                {bin.length > 0 && (
+                  <button
+                    onClick={() => { clearActionBin(); toast.success("Action Bin cleared"); }}
+                    className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Items you flagged from your scan results. Click <strong className="text-foreground">Send Cease &amp; Desist</strong> to load one into the email generator.
+              </p>
+            </div>
+          </div>
+
+          {bin.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border/40 bg-background/30 p-6 text-sm text-muted-foreground text-center">
+              No items yet. On your <Link to="/dashboard" className="text-primary hover:underline">scan results</Link>, click <span className="text-amber-400 font-medium">Action Bin</span> next to any match you want to take action on.
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {bin.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-lg border border-border/30 bg-background/40 p-3 flex items-center gap-3"
+                >
+                  {item.thumbnailUrl ? (
+                    <img
+                      src={item.thumbnailUrl}
+                      alt=""
+                      className="w-12 h-12 rounded object-cover border border-border/40 shrink-0"
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded bg-secondary/40 border border-border/40 shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs uppercase tracking-wide text-amber-400/90">{item.platform}</div>
+                    <div className="text-sm font-medium text-foreground truncate">{item.title || item.url}</div>
+                    {item.url && (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1 truncate max-w-full"
+                      >
+                        {item.url} <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button size="sm" className="gap-1 text-xs" onClick={() => loadFromBin(item)}>
+                      <Mail className="w-3.5 h-3.5" /> Send Cease &amp; Desist
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => { removeFromActionBin(item.id); toast.success("Removed"); }}
+                      title="Remove"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         {/* Copy-paste takedown email generator */}
-        <section className="rounded-2xl border border-primary/30 bg-card/50 p-6 space-y-5">
+        <section id="takedown-generator" className="rounded-2xl border border-primary/30 bg-card/50 p-6 space-y-5">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0">
               <Mail className="w-5 h-5" />
