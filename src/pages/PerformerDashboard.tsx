@@ -94,6 +94,8 @@ const PerformerDashboard = () => {
   const [hasGeneratedEvidence, setHasGeneratedEvidence] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchParams] = useSearchParams();
+  const [binTick, setBinTick] = useState(0);
+  useEffect(() => subscribeActionBin(() => setBinTick(t => t + 1)), []);
 
   useEffect(() => {
     if (!user) return;
