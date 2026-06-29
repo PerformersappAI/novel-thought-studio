@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag, Camera } from "lucide-react";
+import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag, Camera, Inbox, Check } from "lucide-react";
+import { addToActionBin, isInActionBin, subscribeActionBin } from "@/lib/actionBin";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import HeroFreeScanWidget from "@/components/landing/HeroFreeScanWidget";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
