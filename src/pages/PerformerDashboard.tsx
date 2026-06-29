@@ -76,6 +76,29 @@ interface MentionRow {
   thumbnail_url: string | null;
 }
 
+function downloadReport(rows: MentionRow[], filter: string) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  const header = ["Platform", "Title", "URL", "Status", "Found At"];
+  const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [
+    `# ClaimMyFace Scan Report`,
+    `# Generated: ${new Date().toISOString()}`,
+    `# Filter: ${filter}`,
+    `# Total matches: ${rows.length}`,
+    "",
+    header.join(","),
+    ...rows.map(r => [r.mention_type, r.title, r.url ?? "", r.status, r.found_at].map(esc).join(",")),
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `claimmyface-scan-report-${filter}-${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
 const PerformerDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
