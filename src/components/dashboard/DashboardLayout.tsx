@@ -13,13 +13,7 @@ interface DashboardLayoutProps {
 const performerLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "My Protection" },
   { to: "/dashboard/monitoring", icon: ScanSearch, label: "Scan Results" },
-  { to: "/dashboard/reports", icon: FolderArchive, label: "Scan Reports" },
-  { to: "/dashboard/claim-scanner", icon: Microscope, label: "Claim Scanner" },
   { to: "/dashboard/take-action", icon: ShieldAlert, label: "Take Action" },
-  { to: "/dashboard/contract-scanner", icon: FileSearch, label: "Contract Scanner" },
-  { to: "/dashboard/incident-report", icon: AlertTriangle, label: "Report Violation", indicator: true },
-  { to: "/dashboard/emergency", icon: Siren, label: "Emergency Response", emergency: true },
-  { to: "/dashboard/secure-checklist", icon: CheckSquare, label: "Secure Checklist" },
   { to: "/dashboard/profile", icon: UserCircle, label: "My Profile" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];

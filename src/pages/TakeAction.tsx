@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldAlert,
@@ -11,10 +11,15 @@ import {
   UserX,
   ArrowRight,
   ChevronDown,
+  Copy,
+  Check,
+  Mail,
 } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 type SituationKey =
   | "found-face"
@@ -64,24 +69,6 @@ const TOOLS: Tool[] = [
     triggers: ["review-contract"],
   },
   {
-    id: "cease-desist",
-    title: "Generate a Cease & Desist Letter",
-    whenToUse:
-      "Use this when you want to send a formal legal warning before filing a DMCA or taking legal action.",
-    to: "/dashboard/action/cease-desist",
-    cta: "Generate Letter",
-    triggers: ["found-face", "voice-misuse"],
-  },
-  {
-    id: "face-claim",
-    title: "Full Face Claim — All Three Documents",
-    whenToUse:
-      "Use this when you want to take full action — DMCA notice, cease & desist, AND platform report — all at once.",
-    to: "/tools/face-claim",
-    cta: "Start Full Face Claim",
-    triggers: ["found-face"],
-  },
-  {
     id: "media-kit",
     title: "Build Your Verified Media Kit",
     whenToUse:
@@ -110,9 +97,77 @@ const TOOLS: Tool[] = [
   },
 ];
 
+const REASONS: { key: string; label: string; body: (ctx: { name: string; url: string }) => string }[] = [
+  {
+    key: "deepfake",
+    label: "Deepfake / AI-generated likeness",
+    body: ({ name, url }) =>
+      `I am ${name}. It has come to my attention that the content located at ${url || "[URL]"} contains a deepfake or AI-generated depiction of my face, voice, or likeness that I did not authorize.\n\nI did not grant permission for my likeness to be synthesized, altered, or distributed in this manner. This use violates my right of publicity and, where applicable, copyright in my underlying image.\n\nI request that you remove this content within 72 hours of receipt of this notice. Please confirm the removal in writing.\n\nThis request is made in good faith. I reserve all legal rights and remedies.`,
+  },
+  {
+    key: "voice-clone",
+    label: "Voice clone",
+    body: ({ name, url }) =>
+      `I am ${name}. The audio located at ${url || "[URL]"} appears to use a synthetic clone of my voice without my consent.\n\nMy voice is a protected personal attribute. I did not authorize its capture, modeling, or use. Please remove this content within 72 hours and confirm in writing.\n\nI reserve all legal rights and remedies.`,
+  },
+  {
+    key: "unauthorized-avatar",
+    label: "Unauthorized AI avatar",
+    body: ({ name, url }) =>
+      `I am ${name}. The content at ${url || "[URL]"} uses an AI avatar built from my likeness without my permission.\n\nI did not license my face, voice, or persona for avatar generation. Please remove this content within 72 hours and confirm removal in writing.\n\nI reserve all legal rights and remedies.`,
+  },
+  {
+    key: "old-unapproved",
+    label: "Old / unapproved content (interview, photo, clip)",
+    body: ({ name, url }) =>
+      `I am ${name}. The material at ${url || "[URL]"} was either never approved for distribution or no longer reflects content I consent to having public.\n\nI am requesting that you take this material down at your earliest convenience, and in any case within 14 days. Please confirm in writing once removed.\n\nThank you for your cooperation.`,
+  },
+  {
+    key: "other",
+    label: "Other unauthorized use",
+    body: ({ name, url }) =>
+      `I am ${name}. The content at ${url || "[URL]"} uses my name, image, or likeness in a way I did not authorize.\n\nPlease remove this content within 72 hours and confirm in writing.\n\nI reserve all legal rights and remedies.`,
+  },
+];
+
 const TakeAction = () => {
   const [activeSituation, setActiveSituation] = useState<SituationKey | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+
+  const [reasonKey, setReasonKey] = useState<string>("deepfake");
+  const [targetUrl, setTargetUrl] = useState<string>(searchParams.get("url") || "");
+  const [yourName, setYourName] = useState<string>(
+    (user?.user_metadata as any)?.full_name || user?.email?.split("@")[0] || ""
+  );
+  const [copied, setCopied] = useState<"subject" | "body" | "all" | null>(null);
+
+  useEffect(() => {
+    const u = searchParams.get("url");
+    if (u) setTargetUrl(u);
+  }, [searchParams]);
+
+  const reason = REASONS.find((r) => r.key === reasonKey) || REASONS[0];
+  const subject = useMemo(
+    () => `Takedown request — unauthorized use of my likeness (${reason.label})`,
+    [reason]
+  );
+  const body = useMemo(
+    () => reason.body({ name: yourName || "[Your Name]", url: targetUrl }),
+    [reason, yourName, targetUrl]
+  );
+
+  const copy = async (text: string, key: "subject" | "body" | "all") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(null), 1800);
+    } catch {
+      toast.error("Could not copy");
+    }
+  };
 
   const handleSituation = (key: SituationKey) => {
     setActiveSituation((prev) => (prev === key ? null : key));
@@ -147,11 +202,101 @@ const TakeAction = () => {
       >
         <header>
           <h1 className="font-display text-3xl md:text-4xl font-bold">Take Action</h1>
-          <p className="text-muted-foreground mt-1">What do you need to do right now?</p>
+          <p className="text-muted-foreground mt-1">
+            Generate a takedown email you can copy, paste, and send yourself.
+          </p>
         </header>
+
+        {/* Copy-paste takedown email generator */}
+        <section className="rounded-2xl border border-primary/30 bg-card/50 p-6 space-y-5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0">
+              <Mail className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-bold">Takedown Email Generator</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Pick a reason, fill in the link, then copy the email and send it from your own
+                inbox to the site owner or platform abuse contact. ClaimMyFace does not send
+                anything on your behalf.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">Reason</span>
+              <select
+                value={reasonKey}
+                onChange={(e) => setReasonKey(e.target.value)}
+                className="mt-1 w-full rounded-md bg-background border border-border/40 px-3 py-2 text-sm"
+              >
+                {REASONS.map((r) => (
+                  <option key={r.key} value={r.key}>{r.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">Your name</span>
+              <input
+                value={yourName}
+                onChange={(e) => setYourName(e.target.value)}
+                className="mt-1 w-full rounded-md bg-background border border-border/40 px-3 py-2 text-sm"
+                placeholder="Your full name"
+              />
+            </label>
+            <label className="block sm:col-span-2">
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">Source URL</span>
+              <input
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                className="mt-1 w-full rounded-md bg-background border border-border/40 px-3 py-2 text-sm"
+                placeholder="https://example.com/the-page"
+              />
+            </label>
+          </div>
+
+          <div className="space-y-3">
+            <div className="rounded-lg border border-border/30 bg-background/40 p-3">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">Subject</span>
+                <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => copy(subject, "subject")}>
+                  {copied === "subject" ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  Copy
+                </Button>
+              </div>
+              <p className="text-sm">{subject}</p>
+            </div>
+
+            <div className="rounded-lg border border-border/30 bg-background/40 p-3">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">Email body</span>
+                <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => copy(body, "body")}>
+                  {copied === "body" ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  Copy
+                </Button>
+              </div>
+              <pre className="text-sm whitespace-pre-wrap font-body leading-relaxed">{body}</pre>
+            </div>
+
+            <Button
+              className="w-full sm:w-auto gap-2"
+              onClick={() => copy(`Subject: ${subject}\n\n${body}`, "all")}
+            >
+              {copied === "all" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              Copy entire email
+            </Button>
+          </div>
+
+          <div className="rounded-md border border-border/30 bg-muted/20 p-3 text-xs text-muted-foreground space-y-1">
+            <p><strong className="text-foreground">How to send it:</strong> Find the site's contact, abuse, or DMCA email (often in the footer or /contact page). Paste this email there from your own inbox.</p>
+            <p><strong className="text-foreground">Disclaimer:</strong> This template is provided for informational purposes only and is not legal advice. For escalation, consult an attorney or your union.</p>
+          </div>
+        </section>
 
         {/* Situation selector */}
         <section>
+          <h2 className="font-display text-xl md:text-2xl font-bold mb-3">Other tools</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {SITUATIONS.map((s) => {
               const isActive = activeSituation === s.key;
