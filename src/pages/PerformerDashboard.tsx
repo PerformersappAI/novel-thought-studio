@@ -364,6 +364,30 @@ const PerformerDashboard = () => {
         {/* Scanner Activity — top placement */}
         {scannerActivityPanel("top")}
 
+        {/* ─── Big Download Report CTA ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-gold/40 bg-gradient-to-r from-gold/10 via-gold/5 to-transparent p-5 flex items-center justify-between gap-4 flex-wrap"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center shrink-0">
+              <FileWarning className="w-5 h-5 text-gold" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-display text-base font-semibold">Download Your Scan Report</p>
+              <p className="text-xs text-muted-foreground">{mentions.length} match{mentions.length === 1 ? "" : "es"} — full CSV with platform, URL, status, and date.</p>
+            </div>
+          </div>
+          <Button
+            size="lg"
+            onClick={() => downloadReport(mentions, "all")}
+            disabled={mentions.length === 0}
+            className="bg-gold text-background hover:bg-gold/90 font-semibold"
+          >
+            <FileWarning className="w-5 h-5 mr-2" /> Download Report
+          </Button>
+        </motion.div>
+
         <DetectionPanels mentions={mentions} />
 
         {/* ─── Identity Footprint Table (real Supabase data) ─── */}
