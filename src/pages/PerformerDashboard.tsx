@@ -98,6 +98,9 @@ function downloadReport(rows: MentionRow[], filter: string) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+
 
 const PerformerDashboard = () => {
   const { user } = useAuth();
