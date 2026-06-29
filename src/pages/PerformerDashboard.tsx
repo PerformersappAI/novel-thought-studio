@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag, Camera } from "lucide-react";
+import { ArrowRight, Shield, AlertTriangle, CheckCircle2, ScanSearch, Trash2, ExternalLink, Globe, Instagram, Youtube, Facebook, Twitter, Music2, Linkedin, Search, Newspaper, Bot, Eye, MoreHorizontal, ThumbsUp, ThumbsDown, Gavel, FileWarning, Flag, Camera, Inbox, Check } from "lucide-react";
+import { addToActionBin, isInActionBin, subscribeActionBin } from "@/lib/actionBin";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import HeroFreeScanWidget from "@/components/landing/HeroFreeScanWidget";
 import DetectionPanels from "@/components/dashboard/DetectionPanels";
@@ -93,6 +94,8 @@ const PerformerDashboard = () => {
   const [hasGeneratedEvidence, setHasGeneratedEvidence] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchParams] = useSearchParams();
+  const [binTick, setBinTick] = useState(0);
+  useEffect(() => subscribeActionBin(() => setBinTick(t => t + 1)), []);
 
   useEffect(() => {
     if (!user) return;
@@ -434,6 +437,33 @@ const PerformerDashboard = () => {
                                     <ThumbsDown className="w-3.5 h-3.5" /> Not Me
                                   </Link>
                                 </Button>
+                                {(() => {
+                                  const inBin = binTick >= 0 && isInActionBin(m.id);
+                                  return (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={inBin}
+                                      className="gap-1 text-amber-400 border-amber-400/40 hover:bg-amber-400/10 text-xs"
+                                      onClick={() => {
+                                        const added = addToActionBin({
+                                          id: m.id,
+                                          url: m.url || "",
+                                          title: m.title || "",
+                                          platform: m.mention_type || "Web Mention",
+                                          foundAt: m.found_at,
+                                          thumbnailUrl: m.thumbnail_url || undefined,
+                                          addedAt: new Date().toISOString(),
+                                        });
+                                        toast({ title: added ? "Added to Action Bin" : "Already in Action Bin" });
+                                      }}
+                                      title="Add to Action Bin"
+                                    >
+                                      {inBin ? <Check className="w-3.5 h-3.5" /> : <Inbox className="w-3.5 h-3.5" />}
+                                      {inBin ? "In Bin" : "Action Bin"}
+                                    </Button>
+                                  );
+                                })()}
                                 <Button
                                   size="sm"
                                   variant="ghost"
