@@ -154,6 +154,7 @@ const Index = () => {
                 transition={{ delay: i * 0.1 }}
               >
                 <div className="glass-card rounded-xl border border-border/30 p-6 h-full">
+                  <step.icon className="w-8 h-8 text-gold mb-2" strokeWidth={1.5} />
                   <span className="text-3xl font-display font-bold text-gradient-gold block mb-3">
                     {step.number}
                   </span>
