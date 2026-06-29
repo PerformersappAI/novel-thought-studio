@@ -69,24 +69,6 @@ const TOOLS: Tool[] = [
     triggers: ["review-contract"],
   },
   {
-    id: "cease-desist",
-    title: "Generate a Cease & Desist Letter",
-    whenToUse:
-      "Use this when you want to send a formal legal warning before filing a DMCA or taking legal action.",
-    to: "/dashboard/action/cease-desist",
-    cta: "Generate Letter",
-    triggers: ["found-face", "voice-misuse"],
-  },
-  {
-    id: "face-claim",
-    title: "Full Face Claim — All Three Documents",
-    whenToUse:
-      "Use this when you want to take full action — DMCA notice, cease & desist, AND platform report — all at once.",
-    to: "/tools/face-claim",
-    cta: "Start Full Face Claim",
-    triggers: ["found-face"],
-  },
-  {
     id: "media-kit",
     title: "Build Your Verified Media Kit",
     whenToUse:
