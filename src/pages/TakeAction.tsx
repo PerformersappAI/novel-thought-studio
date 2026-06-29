@@ -158,6 +158,18 @@ const TakeAction = () => {
     if (u) setTargetUrl(u);
   }, [searchParams]);
 
+  // Action Bin state
+  const [bin, setBin] = useState<ActionBinItem[]>(() => getActionBin());
+  useEffect(() => subscribeActionBin(() => setBin(getActionBin())), []);
+
+  const loadFromBin = (item: ActionBinItem) => {
+    setTargetUrl(item.url);
+    toast.success("Loaded into the email generator below");
+    setTimeout(() => {
+      document.getElementById("takedown-generator")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
+
   const reason = REASONS.find((r) => r.key === reasonKey) || REASONS[0];
   const subject = useMemo(
     () => `Takedown request — unauthorized use of my likeness (${reason.label})`,
