@@ -437,6 +437,33 @@ const PerformerDashboard = () => {
                                     <ThumbsDown className="w-3.5 h-3.5" /> Not Me
                                   </Link>
                                 </Button>
+                                {(() => {
+                                  const inBin = binTick >= 0 && isInActionBin(m.id);
+                                  return (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={inBin}
+                                      className="gap-1 text-amber-400 border-amber-400/40 hover:bg-amber-400/10 text-xs"
+                                      onClick={() => {
+                                        const added = addToActionBin({
+                                          id: m.id,
+                                          url: m.url || "",
+                                          title: m.title || "",
+                                          platform: m.mention_type || "Web Mention",
+                                          foundAt: m.found_at,
+                                          thumbnailUrl: m.thumbnail_url || undefined,
+                                          addedAt: new Date().toISOString(),
+                                        });
+                                        toast({ title: added ? "Added to Action Bin" : "Already in Action Bin" });
+                                      }}
+                                      title="Add to Action Bin"
+                                    >
+                                      {inBin ? <Check className="w-3.5 h-3.5" /> : <Inbox className="w-3.5 h-3.5" />}
+                                      {inBin ? "In Bin" : "Action Bin"}
+                                    </Button>
+                                  );
+                                })()}
                                 <Button
                                   size="sm"
                                   variant="ghost"
