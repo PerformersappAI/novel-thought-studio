@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, Star, Building2 } from "lucide-react";
+import { ArrowRight, Check, Star, Building2, UserCircle, ScanSearch, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -131,16 +131,19 @@ const Index = () => {
                 number: "01",
                 title: "Make Your Profile",
                 desc: "Sign up and fill out your details — your name, headshot, and the info our system needs to know who to look for.",
+                icon: UserCircle,
               },
               {
                 number: "02",
                 title: "See Where You're At",
                 desc: "Run a scan and get your results: where your face and likeness appear online, and your risk picture.",
+                icon: ScanSearch,
               },
               {
                 number: "03",
                 title: "Go After It",
                 desc: "Use the action plan — education plus the tools to respond: cease-and-desist letters, DMCA takedowns, and incident reports.",
+                icon: ShieldCheck,
               },
             ].map((step, i) => (
               <motion.div
@@ -151,6 +154,7 @@ const Index = () => {
                 transition={{ delay: i * 0.1 }}
               >
                 <div className="glass-card rounded-xl border border-border/30 p-6 h-full">
+                  <step.icon className="w-8 h-8 text-gold mb-2" strokeWidth={1.5} />
                   <span className="text-3xl font-display font-bold text-gradient-gold block mb-3">
                     {step.number}
                   </span>
