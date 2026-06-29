@@ -1,17 +1,15 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight, FileSignature, Stamp, ShieldCheck, AlertTriangle, FileText, Siren, Target, Award, Quote, Check, Star, Building2 } from "lucide-react";
+import { ArrowRight, Check, Star, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import heroIdBadge from "@/assets/hero-id-badge.png";
 import deepfakeComparison from "@/assets/deepfake-comparison.png";
 import HeroFreeScanWidget from "@/components/landing/HeroFreeScanWidget";
-import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   return (
@@ -73,7 +71,7 @@ const Index = () => {
             transition={{ delay: 0.4 }}
             className="font-display text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]"
           >
-            <span className="text-foreground">You're not helpless</span>{" "}
+            <span className="text-foreground">You&apos;re not helpless</span>{" "}
             <span className="text-gradient-gold">against AI.</span>
           </motion.h1>
 
@@ -83,7 +81,7 @@ const Index = () => {
             transition={{ delay: 0.5 }}
             className="text-lg md:text-xl text-muted-foreground max-w-xl mb-10 leading-relaxed font-body"
           >
-            Deepfakes, voice clones, and stolen likenesses threaten anyone with a public face — actors, creators, journalists, executives. ClaimMyFace gives you the mirror to see what's out there, the tools to investigate what's fake, and the playbook to fight back.
+            Deepfakes, voice clones, and stolen likenesses threaten anyone with a public face — actors, creators, journalists, executives. ClaimMyFace gives you the mirror to see what&apos;s out there, the tools to investigate what&apos;s fake, and the playbook to fight back.
           </motion.p>
 
           <div className="grid w-full items-center gap-6 lg:grid-cols-[1fr_1.25fr] lg:text-left">
@@ -110,62 +108,11 @@ const Index = () => {
               />
             </motion.div>
           </div>
-
-
-          {/* 4 core protections strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1 }}
-            className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-3xl"
-          >
-            {[
-              { icon: "📷", label: "Photo Detection" },
-              { icon: "🎬", label: "Video Detection" },
-              { icon: "🎙️", label: "Voice Detection" },
-              { icon: "✍️", label: "Writing Protection" },
-              { icon: "🧬", label: "Deepfake Detection" },
-              { icon: "👤", label: "Fake Profile Detection" },
-              { icon: "🤖", label: "AI-Generated Content" },
-              { icon: "⚠️", label: "Risk Score" },
-            ].map((p) => (
-              <div
-                key={p.label}
-                className="glass-card rounded-xl border border-border/30 px-4 py-3 flex items-center gap-2 justify-center"
-              >
-                <span className="text-xl" aria-hidden>{p.icon}</span>
-                <span className="font-body text-sm font-medium text-foreground">{p.label}</span>
-              </div>
-            ))}
-          </motion.div>
-
-          {/* Big Register banner — moved below detection boxes */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-14 w-full max-w-3xl"
-          >
-            <Button
-              asChild
-              size="lg"
-              className="w-full font-display text-lg font-semibold px-10 h-16 glow-red"
-            >
-              <Link to="/register">
-                <Shield className="w-5 h-5 mr-2" />
-                Register Your Identity — $19.99 one-time + $9.99/mo
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
-            <p className="text-xs text-muted-foreground mt-4 font-body text-center">
-              One-time registration. Tools to check and document suspicious content you find.
-            </p>
-          </motion.div>
         </div>
       </section>
 
-      {/* Your Complete Protection Suite */}
-      <section id="how-it-works" className="relative py-20 md:py-28 scroll-mt-20">
+      {/* How It Works */}
+      <section className="relative py-20 md:py-28">
         <div className="container px-4 max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -174,42 +121,67 @@ const Index = () => {
             className="text-center mb-14"
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Your Complete <span className="text-gradient-gold">Protection Suite</span>
+              How It <span className="text-gradient-gold">Works</span>
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto font-body">
-              Every tool a performer needs to document, defend, and protect their identity — all in one dashboard.
-            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { icon: FileSignature, title: "Identity Statement", desc: "Sign a timestamped declaration proving ownership of your face, voice, and likeness." },
-              { icon: Stamp, title: "Trademark Kit", desc: "Organize and document your identity claims, and learn how trademark protection works — with resources to pursue it through the proper legal channels." },
-              { icon: ShieldCheck, title: "AI Usage Rights", desc: "Publicly declare what AI can and cannot do with your voice, face, and name." },
-              { icon: AlertTriangle, title: "Report Violation", desc: "File incident reports when your likeness is used without consent on any platform." },
-              { icon: FileText, title: "DMCA Generator", desc: "Generate legally formatted DMCA takedown notices ready to send to any platform." },
-              { icon: Siren, title: "Emergency Response", desc: "Follow a step-by-step protocol when your identity is being actively misused." },
-              { icon: Target, title: "Vault Score", desc: "Track your protection progress and see exactly what steps remain to secure your identity." },
-              { icon: Award, title: "Face Certificate", desc: "Generate a timestamped record of your registered headshot — dated proof you can reference if a dispute arises." },
-            ].map((feature, i) => (
+              {
+                number: "01",
+                title: "Make Your Profile",
+                desc: "Sign up and fill out your details — your name, headshot, and the info our system needs to know who to look for.",
+              },
+              {
+                number: "02",
+                title: "See Where You're At",
+                desc: "Run a scan and get your results: where your face and likeness appear online, and your risk picture.",
+              },
+              {
+                number: "03",
+                title: "Go After It",
+                desc: "Use the action plan — education plus the tools to respond: cease-and-desist letters, DMCA takedowns, and incident reports.",
+              },
+            ].map((step, i) => (
               <motion.div
-                key={feature.title}
+                key={step.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: i * 0.1 }}
               >
-                <Card className="glass-card border-border/30 h-full hover:border-primary/30 transition-colors">
-                  <CardContent className="p-5 space-y-3">
-                    <feature.icon className="w-6 h-6 text-primary" />
-                    <h3 className="font-display font-bold text-sm">{feature.title}</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed font-body">{feature.desc}</p>
-                  </CardContent>
-                </Card>
+                <div className="glass-card rounded-xl border border-border/30 p-6 h-full">
+                  <span className="text-3xl font-display font-bold text-gradient-gold block mb-3">
+                    {step.number}
+                  </span>
+                  <h3 className="font-display font-bold text-lg mb-2">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed font-body">
+                    {step.desc}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
 
+      {/* What You Get */}
+      <section className="relative pb-20 md:pb-28">
+        <div className="container px-4 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground font-body"
+          >
+            <span>Face Certificate</span>
+            <span className="text-primary/40">·</span>
+            <span>DMCA Generator</span>
+            <span className="text-primary/40">·</span>
+            <span>Identity Statement</span>
+            <span className="text-primary/40">·</span>
+            <span>Risk Score</span>
+          </motion.div>
         </div>
       </section>
 

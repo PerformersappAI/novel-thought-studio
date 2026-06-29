@@ -1,53 +1,36 @@
-# ClaimMyFace — Legal Risk Reduction Update
+# Homepage Simplification Plan
 
-Copy, policy, and storage changes only. No functional changes.
+## Goal
+Strip the homepage down to a cleaner funnel: Hero → How It Works → What You Get → Pricing → FAQ → Footer.
 
-## 1. Terms of Service & Likeness Agreement copy
+## What to keep (exactly as-is)
+- Hero section with badge image, headline, paragraph, and HeroFreeScanWidget
+- Pricing section
+- FAQ section
+- Footer
 
-Update fallback strings in `src/components/LegalAgreementGate.tsx` and insert a new active version into `legal_documents` (type `terms` and `likeness_rights`) so the live ToS reflects:
+## What to remove
+1. "4 core protections strip" — the 8 emoji icon cards (Photo Detection, Video Detection, etc.) inside the hero
+2. Big "Register Your Identity — $19.99 one-time + $9.99/mo" CTA banner inside the hero
+3. Entire "Your Complete Protection Suite" section with the 8 glass-card feature cards
 
-- **Photo upload license** — By uploading a headshot, the user grants ClaimMyFace a limited, revocable license to store, hash, and submit that image to reverse image search and monitoring services on their behalf.
-- **DMCA / takedown clause** — User warrants they own (or have rights to) any image uploaded and is solely responsible for unauthorized uploads. Takedown contact: `dmca@claimmyface.com` (also link in footer).
-- **No biometric processing** — Explicitly state ClaimMyFace does not perform facial recognition or store biometric identifiers; photos are used only for visual similarity matching.
+## What to add
+### New "How It Works" section (below hero)
+Title: "How It Works"
+Three numbered cards, side-by-side on desktop / stacked on mobile, using existing `glass-card` styling and gold accent (`text-gradient-gold`).
 
-Likeness Rights Agreement reworded to drop "biometric data" language; replaced with "uploaded photos and voice samples."
+1. **Make Your Profile** — "Sign up and fill out your details — your name, headshot, and the info our system needs to know who to look for."
+2. **See Where You're At** — "Run a scan and get your results: where your face and likeness appear online, and your risk picture."
+3. **Go After It** — "Use the action plan — education plus the tools to respond: cease-and-desist letters, DMCA takedowns, and incident reports."
 
-## 2. Remove biometric / face-scan language
+### New "What You Get" strip (below How It Works)
+One compact row, max 4 items, plain text, no cards:
+"Face Certificate · DMCA Generator · Identity Statement · Risk Score"
 
-Replace "face scan", "facial recognition", "biometric", "face capture" → "headshot upload" / "photo monitoring" across:
+## Files to edit
+- `src/pages/Index.tsx` — only file touched
 
-- `src/locales/{en,de,es,fr,it,ja,ko,pt,zh}.json`
-- `src/components/BiometricConsentModal.tsx` → rename copy to "Photo Upload Consent" (keep file/component name to avoid functional changes; internal-only)
-- `src/components/LegalAgreementGate.tsx`
-- `src/components/landing/PricingSection.tsx`, `src/pages/Index.tsx`
-- `src/pages/OnboardingProfile.tsx`, `OnboardingVoice.tsx`, `PerformerDashboard.tsx`, `PerformerProfileTab.tsx`, `LikenessMonitor.tsx`
-- `src/components/dashboard/{FacePanel,ScanStatusCards}.tsx`, `src/components/likeness/ScanHistory.tsx`
-- `src/lib/likenessReport.ts`, `src/hooks/useBiometricConsent.tsx` (copy strings only)
-
-Footer / DMCA link added in `src/components/landing/Footer.tsx`.
-
-## 3. Private headshots bucket + signed URLs
-
-Currently `headshots` bucket is **public**. Migration:
-
-- `UPDATE storage.buckets SET public = false WHERE id = 'headshots';`
-- Add storage RLS `SELECT` policy: owner-only (`auth.uid()::text = (storage.foldername(name))[1]`). Existing INSERT/UPDATE/DELETE owner policies stay.
-
-Code changes — replace `getPublicUrl` with `createSignedUrl` (e.g. 1-hour expiry) and refresh on load:
-
-- `src/pages/OnboardingHeadshot.tsx` (upload + display)
-- `src/pages/OnboardingProfile.tsx`, `PerformerProfileTab.tsx`, `Welcome.tsx`, `SecureChecklist.tsx`
-- `src/components/dashboard/FacePanel.tsx` consumers that pass `headshot_url`
-
-`profiles.headshot_url` will store the storage **path** (`{user_id}/{file}`) rather than a public URL; components resolve to signed URL at render time via a small helper `src/lib/headshotUrl.ts`.
-
-## 4. RLS confirmation
-
-`profiles` table already has owner-scoped RLS (verified in schema). No new public table named `photos` exists — headshots live in `profiles.headshot_url` + storage. Confirm + document in security memory; no policy changes needed beyond the storage SELECT policy in section 3.
-
-## Technical summary
-
-- 1 migration: bucket privacy + storage SELECT policy + insert new `legal_documents` rows
-- 1 new helper: `src/lib/headshotUrl.ts` (`getSignedHeadshotUrl(path)`)
-- ~15 files touched for copy/signed-url swaps
-- No schema changes to existing tables, no functional behavior changes
+## Technical notes
+- Use existing `glass-card`, `text-gradient-gold`, and `font-display`/`font-body` classes already in use on the page.
+- Reuse existing `motion.div` with `whileInView` pattern for scroll-triggered fade-in animations.
+- No new dependencies or backend changes needed.
