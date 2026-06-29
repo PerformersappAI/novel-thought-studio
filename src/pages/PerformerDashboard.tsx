@@ -76,6 +76,32 @@ interface MentionRow {
   thumbnail_url: string | null;
 }
 
+function downloadReport(rows: MentionRow[], filter: string) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  const header = ["Platform", "Title", "URL", "Status", "Found At"];
+  const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [
+    `# ClaimMyFace Scan Report`,
+    `# Generated: ${new Date().toISOString()}`,
+    `# Filter: ${filter}`,
+    `# Total matches: ${rows.length}`,
+    "",
+    header.join(","),
+    ...rows.map(r => [r.mention_type, r.title, r.url ?? "", r.status, r.found_at].map(esc).join(",")),
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `claimmyface-scan-report-${filter}-${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+
+
 const PerformerDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -344,9 +370,19 @@ const PerformerDashboard = () => {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className="rounded-2xl border border-border/30 bg-card/40 p-6"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Globe className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold">Web &amp; Social Matches</h2>
+          <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              <h2 className="font-display text-lg font-semibold">Web &amp; Social Matches</h2>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadReport(filteredMentions, activeFilter)}
+              disabled={mentions.length === 0}
+            >
+              <FileWarning className="w-4 h-4 mr-1" /> Download Report
+            </Button>
           </div>
 
           <div className="flex flex-wrap gap-2 mb-4">
